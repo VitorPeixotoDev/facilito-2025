@@ -14,8 +14,8 @@ export default function AnimatedComparisonSection() {
                     viewport={{ once: true }}
                 >
                     <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight">
-                        Não é Apenas um QR Code.<br />
-                        <span className="text-indigo-600">É uma Revolução.</span>
+                        Não é apenas um QR Code.<br />
+                        <span className="text-indigo-600 lg:text-7xl">É uma Revolução!</span>
                     </h3>
                 </motion.div>
 

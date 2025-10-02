@@ -1,4 +1,5 @@
 import LogoutButton from "@/components/LogoutButton";
+import Image from "next/image";
 
 export default function Dashboard() {
     return (
@@ -18,6 +19,13 @@ export default function Dashboard() {
                 <div className="px-4 py-6 sm:px-0">
                     <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 flex items-center justify-center">
                         <div className="text-center">
+                            <Image
+                                src="/images/logo_without_bg_g.png"
+                                alt="NEXO Logo"
+                                width={140}
+                                height={60}
+                                className="h-50 w-auto mb-4 mx-auto"
+                            />
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">
                                 Bem-vindo ao NEXO!
                             </h2>

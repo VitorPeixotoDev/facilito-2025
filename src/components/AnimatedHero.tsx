@@ -50,21 +50,21 @@ export default function AnimatedHero() {
 
                     <div className="relative z-10 max-w-4xl">
                         <motion.h1
-                            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight"
+                            className="text-4xl sm:text-5xl md:text-6xl lg:text-6xl font-bold text-gray-900 leading-tight"
                             initial={{ opacity: 0, y: 50 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
                         >
-                            Seu Cliente Sai da Sua Loja<br />
-                            e Critica Você Pelo Celular.
+                            Seu cliente sai da sua loja
+                            e critica você pelo celular.
                         </motion.h1>
                         <motion.h2
-                            className="text-2xl sm:text-3xl md:text-4xl font-bold text-indigo-600 mt-4"
+                            className="text-2xl sm:text-3xl md:text-7xl font-bold text-indigo-600 mt-4"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.4 }}
                         >
-                            Agora Você Pai Ouvir.
+                            Agora você vai ouvir.
                         </motion.h2>
                         <motion.p
                             className="text-lg sm:text-xl text-gray-600 mt-8 max-w-2xl leading-relaxed"

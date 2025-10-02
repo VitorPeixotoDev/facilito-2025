@@ -22,8 +22,8 @@ export default function AnimatedFinalCTA() {
                     viewport={{ once: true }}
                 >
                     <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-8 leading-tight">
-                        Seu Maior Consultor Já Está Dentro da Sua Loja.<br />
-                        <span className="text-yellow-300">São Seus Clientes.</span>
+                        Seu maior consultor já está dentro da sua loja.<br />
+                        <span className="text-yellow-300 lg:text-7xl">São seus clientes!</span>
                     </h3>
                     <motion.p
                         className="text-lg sm:text-xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed"
@@ -66,7 +66,7 @@ export default function AnimatedFinalCTA() {
                     >
                         {[
                             "Configuração em 1 minuto",
-                            "Plano Gratuito para sempre para até 50 respostas/mês",
+                            "Gratuito nos primeiros 30 dias",
                             "Cancele quando quiser"
                         ].map((guarantee, index) => (
                             <motion.div

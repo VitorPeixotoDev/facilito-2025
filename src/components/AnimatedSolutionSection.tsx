@@ -15,10 +15,10 @@ export default function AnimatedSolutionSection() {
                 >
                     <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight">
                         Conheça o NEXO:<br />
-                        <span className="text-indigo-600">O Ouvido Digital do Seu Negócio.</span>
+                        <span className="text-indigo-600 l">O ouvido digital do seu negócio.</span>
                     </h3>
                     <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                        Uma ferramenta tão simples que qualquer um usa.
+                        Uma ferramenta simples para que todos possam usar.
                     </p>
                 </motion.div>
 

@@ -14,12 +14,12 @@ export default function AnimatedPainSection() {
                     viewport={{ once: true }}
                 >
                     <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight">
-                        A Sensação de Operar No Escuro<br />
-                        <span className="text-indigo-600">Acaba Hoje.</span>
+                        A sensação de operar no escuro<br />
+                        <span className="text-indigo-600 lg:text-7xl">Acaba Hoje!</span>
                     </h3>
                     <div className="max-w-4xl mx-auto">
                         <motion.p
-                            className="text-lg sm:text-xl text-gray-600 mb-12 leading-relaxed"
+                            className="text-lg font-bold sm:text-4xl text-gray-600 mb-12 leading-relaxed"
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
