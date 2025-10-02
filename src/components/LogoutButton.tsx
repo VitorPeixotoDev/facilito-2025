@@ -1,11 +1,15 @@
 'use client'
 
 import { signOut } from '@/app/login/actions'
+import { useRouter } from 'next/navigation'
 
 export default function LogoutButton() {
+    const router = useRouter()
+
     const handleLogout = async () => {
         try {
             await signOut()
+            router.push('/')
         } catch (error) {
             console.error('Erro ao fazer logout:', error)
         }
