@@ -39,6 +39,7 @@ export async function updateSession(request: NextRequest) {
 
     // Rotas públicas que não precisam de autenticação
     const publicRoutes = [
+        '/',
         '/login',
         '/auth',
         '/error',
@@ -58,10 +59,17 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
     }
 
-    // Se há usuário e está tentando acessar login, redirecionar para home
+    // Se há usuário e está tentando acessar login, redirecionar para dashboard
     if (user && request.nextUrl.pathname === '/login') {
         const url = request.nextUrl.clone()
-        url.pathname = '/'
+        url.pathname = '/dashboard'
+        return NextResponse.redirect(url)
+    }
+
+    // Se há usuário e está na landing page, redirecionar para dashboard
+    if (user && request.nextUrl.pathname === '/') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/dashboard'
         return NextResponse.redirect(url)
     }
 
