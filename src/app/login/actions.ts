@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/utils/supabase/server'
+import { getURL } from '@/utils/get-url'
 
 export async function login(email: string, password: string) {
     const supabase = await createClient()
@@ -28,7 +29,7 @@ export async function signup(email: string, password: string) {
         email,
         password,
         options: {
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+            emailRedirectTo: `${getURL()}auth/callback`,
         },
     })
 
@@ -44,7 +45,7 @@ export async function resetPassword(email: string) {
     const supabase = await createClient()
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+        redirectTo: `${getURL()}auth/reset-password`,
     })
 
     if (error) {
@@ -60,7 +61,7 @@ export async function signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+            redirectTo: `${getURL()}auth/callback`,
         },
     })
 
