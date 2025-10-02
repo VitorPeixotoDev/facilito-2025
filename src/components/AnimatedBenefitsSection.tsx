@@ -14,8 +14,8 @@ export default function AnimatedBenefitsSection() {
                     viewport={{ once: true }}
                 >
                     <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight">
-                        Pare de Adivinhar.<br />
-                        <span className="text-indigo-600">Comece a Decidir.</span>
+                        Pare de adivinhar.<br />
+                        <span className="text-indigo-600">Comece a decidir.</span>
                     </h3>
                     <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                         Com o painel da NEXO, você toma as rédeas do seu sucesso:
@@ -25,22 +25,22 @@ export default function AnimatedBenefitsSection() {
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
                     {[
                         {
-                            title: "Descubra Oportunidades Ocultas",
+                            title: "Descubra oportunidades ocultas",
                             description: "Aquele produto que ninguém compra? Talvez esteja no lugar errado. Aquele serviço que você nem anuncia? Pode ser o seu carro-chefe.",
                             delay: 0.2
                         },
                         {
-                            title: "Corrija Problemas Antes que Virém Crises",
+                            title: "Corrija problemas antes que virém crises",
                             description: "Saiba instantaneamente se um funcionário está sendo grosseiro, se um produto está com qualidade inferior ou se o banheiro está sujo.",
                             delay: 0.4
                         },
                         {
-                            title: "Fidelize Clientes sem Precisar Pedir",
+                            title: "Fidelize clientes sem precisar pedir",
                             description: "Mostre que você ouve e se importa. Quando o cliente vê você melhorando algo que ele reclamou, ele se torna um fã para a vida toda.",
                             delay: 0.6
                         },
                         {
-                            title: "Tome Decisões com Dados, Não com 'Achismos'",
+                            title: "Tome decisões com dados, não com 'achismos'",
                             description: "Invista no que realmente importa, baseado no desejo genuíno do seu público.",
                             delay: 0.8
                         }
