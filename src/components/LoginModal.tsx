@@ -19,6 +19,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const [message, setMessage] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [emailSent, setEmailSent] = useState(false)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -38,6 +39,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     return
                 }
                 await signup(email, password)
+                setEmailSent(true)
+                setMessage('')
             }
         } catch (error) {
             setMessage('Erro ao processar solicitação. Tente novamente.')
@@ -183,7 +186,18 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                             </div>
                         )}
 
-                        {message && (
+                        {emailSent && (
+                            <div className="bg-green-100 text-green-700 text-sm p-3 rounded-md">
+                                <div className="flex items-center">
+                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                    Email de confirmação enviado! Verifique sua caixa de entrada e clique no link para ativar sua conta.
+                                </div>
+                            </div>
+                        )}
+
+                        {message && !emailSent && (
                             <div className={`text-sm p-3 rounded-md ${message.includes('Erro') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
                                 }`}>
                                 {message}
@@ -220,7 +234,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                 <>
                                     <button
                                         type="button"
-                                        onClick={() => setIsLogin(!isLogin)}
+                                        onClick={() => {
+                                            setIsLogin(!isLogin)
+                                            setEmailSent(false)
+                                            setMessage('')
+                                        }}
                                         className="text-indigo-600 hover:text-indigo-500 text-sm font-medium transition-colors"
                                     >
                                         {isLogin ? (<>Não tem conta? <span className="text-indigo-600 font-bold">Criar conta</span></>) : (<>Já tem conta? <span className="text-indigo-600 font-semibold">Entrar</span></>)}
@@ -241,6 +259,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     onClick={() => {
                                         setIsResetPassword(false)
                                         setMessage('')
+                                        setEmailSent(false)
                                     }}
                                     className="text-indigo-600 hover:text-indigo-500 text-sm font-medium transition-colors"
                                 >
