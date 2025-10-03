@@ -10,13 +10,13 @@ export function getURL(): string {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
 
     // Debug logging
-    console.log('getURL Debug:', {
-        NODE_ENV: process.env.NODE_ENV,
-        VERCEL: process.env.VERCEL,
-        isVercel,
-        vercelUrl,
-        siteUrl
-    })
+    // console.log('getURL Debug:', {
+    //     NODE_ENV: process.env.NODE_ENV,
+    //     VERCEL: process.env.VERCEL,
+    //     isVercel,
+    //     vercelUrl,
+    //     siteUrl
+    // })
 
     let url: string
 
@@ -31,7 +31,7 @@ export function getURL(): string {
     // Certifique-se de incluir uma barra `/` no final
     url = url.endsWith('/') ? url : `${url}/`
 
-    console.log('getURL Result:', url)
+    // console.log('getURL Result:', url)
 
     return url
 }
