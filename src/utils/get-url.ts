@@ -3,13 +3,20 @@
  * Resolve o problema de redirecionamento para localhost em produção
  */
 export function getURL(): string {
-    let url =
-        process?.env?.NEXT_PUBLIC_SITE_URL ?? // URL definida manualmente para produção
-        process?.env?.NEXT_PUBLIC_VERCEL_URL ?? // URL automática da Vercel
-        'http://localhost:3000/' // Fallback para desenvolvimento
+    // Verificar se estamos em produção (Vercel)
+    const isProduction = process.env.NODE_ENV === 'production'
+    const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
 
-    // Certifique-se de incluir `https://` quando não for localhost
-    url = url.startsWith('http') ? url : `https://${url}`
+    let url: string
+
+    if (isProduction) {
+        // Em produção, priorizar NEXT_PUBLIC_SITE_URL ou usar Vercel URL
+        url = siteUrl || (vercelUrl ? `https://${vercelUrl}` : 'https://nexo-fawn.vercel.app')
+    } else {
+        // Em desenvolvimento, usar localhost
+        url = 'http://localhost:3000'
+    }
 
     // Certifique-se de incluir uma barra `/` no final
     url = url.endsWith('/') ? url : `${url}/`
