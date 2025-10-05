@@ -67,13 +67,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <div className="p-6 sm:p-8">
                     {/* Logo */}
                     <div className="flex justify-center mb-6">
-                        <Image
+                        <h1>TEMPLATE</h1>
+                        {/*<Image
                             src="/images/logo_without_bg_g.png"
                             alt="NEXO Logo"
                             width={140}
                             height={40}
                             className="h-10 w-auto"
-                        />
+                        />*/}
                     </div>
 
                     <div className="flex justify-between items-center mb-6">
