@@ -1,0 +1,1052 @@
+Perfeito! Agora entendi o cenário. Vou refazer o algoritmo considerando que o usuário é um candidato que será comparado com outros candidatos semelhantes (não é um contratante). O objetivo é ranquear candidatos com habilidades similares em um raio de 20km, dando destaque para aqueles que têm mais habilidades dentro das mesmas categorias e que possuem habilidades diferenciais (que atuam como multiplicadores).
+
+Vamos ajustar:
+
+    O usuário (candidato) tem um perfil com suas habilidades, cursos, serviços que oferece, etc.
+
+    Queremos buscar outros candidatos com habilidades similares (dentro das mesmas categorias) e ranqueá-los.
+
+    O ranking deve considerar:
+
+        Sobreposição de habilidades (hard skills) dentro das categorias (com bônus por abrangência na mesma categoria).
+
+        Sobreposição de serviços oferecidos (também por categoria).
+
+        Cursos (menor peso).
+
+        Habilidades diferenciais (como multiplicador).
+
+        Localização (dentro de 20km, com decaimento).
+
+        Completude do perfil (incentivar perfis completos).
+
+Agora, como o usuário é um candidato, não temos "requisitos" do contratante. Em vez disso, comparamos o perfil do usuário com o perfil de outros candidatos. A ideia é mostrar ao usuário: "Veja como você se compara com outros profissionais similares na sua região".
+
+Portanto, a similaridade será calculada com base na interseção de habilidades, serviços, etc., mas também com um bônus para quem tem mais abrangência dentro da mesma categoria (ex: mecânico que faz carro e moto vs. só carro).
+
+Vou reestruturar o algoritmo para refletir essa comparação entre candidatos.
+Abordagem:
+
+    Similaridade de habilidades por categoria: Para cada categoria (ex: 'mecanico_automotivo'), calculamos a similaridade entre as habilidades do usuário e do candidato, mas também damos um bônus ao candidato que tem mais subcategorias (abrangência) dentro dessa categoria.
+
+    Similaridade de serviços por categoria: Mesma lógica.
+
+    Cursos: Comparar cursos relevantes (mesma categoria de curso). Como o peso é menor, talvez uma pontuação mais simples.
+
+    Habilidades diferenciais: Multiplicador não-linear.
+
+    Localização: Score baseado na distância (0-1, com decaimento até 20km).
+
+    Completude do perfil: Quanto mais completo, melhor.
+
+Algoritmo em JavaScript:
+javascript
+
+class CandidateRankingAlgorithm {
+  constructor() {
+    // Pesos para cada componente do score
+    this.weights = {
+      hardSkills: 0.4,          // Habilidades técnicas
+      services: 0.3,            // Serviços oferecidos
+      courses: 0.1,             // Cursos
+      profileStrength: 0.1,     // Completude do perfil
+      location: 0.1             // Localização
+    };
+
+    // Configuração das categorias (exemplo)
+    this.categories = {
+      'mecanico_automotivo': {
+        subcategories: ['carro', 'motocicleta', 'caminhao', 'trator'],
+        weightPerItem: 0.8,
+        completenessBonus: 0.2, // Bônus por ter todas as subcategorias que o usuário tem
+        coverageWeight: 1.1     // Multiplicador por cobertura (ter mais subcategorias)
+      },
+      'desenvolvedor': {
+        subcategories: ['frontend', 'backend', 'mobile', 'devops'],
+        weightPerItem: 0.7,
+        completenessBonus: 0.15,
+        coverageWeight: 1.05
+      }
+      // ... outras categorias
+    };
+
+    // Multiplicadores para habilidades diferenciais
+    this.differentialMultipliers = {
+      'certificacao_avançada': 1.3,
+      'teste_especializado': 1.25,
+      'instituicao_parceira_a': 1.2,
+      'instituicao_parceira_b': 1.15,
+      'projeto_destaque': 1.1
+    };
+
+    // Configuração geográfica
+    this.geoConfig = {
+      maxDistance: 20000, // 20km em metros
+      baseScore: 1.0,     // Score máximo para distância 0
+      decayRate: 0.00005  // Taxa de decaimento por metro
+    };
+  }
+
+  // ========== Cálculo de Distância ==========
+  calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }
+
+  // ========== Score de Localização ==========
+  calculateLocationScore(userLocation, candidateLocation) {
+    const distance = this.calculateDistance(
+      userLocation.lat,
+      userLocation.lon,
+      candidateLocation.lat,
+      candidateLocation.lon
+    );
+
+    if (distance > this.geoConfig.maxDistance) {
+      return 0;
+    }
+
+    // Decaimento exponencial
+    const decayFactor = Math.exp(-this.geoConfig.decayRate * distance);
+    return this.geoConfig.baseScore * decayFactor;
+  }
+
+  // ========== Cálculo de Similaridade por Categoria ==========
+  /**
+   * Calcula a similaridade entre dois conjuntos de itens dentro de uma categoria.
+   * Leva em conta:
+   * 1. Interseção (itens em comum)
+   * 2. Bônus por completude (se o candidato tem todos os itens que o usuário tem)
+   * 3. Bônus por abrangência (se o candidato tem mais itens na mesma categoria)
+   * 
+   * @param {Array} userItems - Itens do usuário (ex: ['carro', 'motocicleta'])
+   * @param {Array} candidateItems - Itens do candidato
+   * @param {Object} categoryConfig - Configuração da categoria
+   * @returns {number} Score de similaridade para essa categoria (0-1)
+   */
+  calculateCategorySimilarity(userItems, candidateItems, categoryConfig) {
+    if (!userItems || !candidateItems || userItems.length === 0 || candidateItems.length === 0) {
+      return 0;
+    }
+
+    // Interseção: itens em comum
+    const intersection = userItems.filter(item => candidateItems.includes(item));
+    const intersectionRatio = intersection.length / userItems.length;
+
+    // Bônus por completude: se o candidato tem todos os itens que o usuário tem
+    const hasAllUserItems = intersection.length === userItems.length;
+    const completenessBonus = hasAllUserItems ? categoryConfig.completenessBonus : 0;
+
+    // Bônus por abrangência: se o candidato tem mais itens na categoria (relativo ao total de subcategorias)
+    const coverageRatio = candidateItems.length / categoryConfig.subcategories.length;
+    const coverageBonus = Math.min(coverageRatio * 0.3, 0.3); // Limitado a 0.3
+
+    // Cálculo do score base
+    let score = (intersectionRatio * categoryConfig.weightPerItem) + completenessBonus + coverageBonus;
+
+    // Aplicar multiplicador de cobertura (para incentivar diversidade dentro da categoria)
+    score *= categoryConfig.coverageWeight;
+
+    return Math.min(score, 1.0); // Cap em 1.0
+  }
+
+  // ========== Similaridade de Habilidades ==========
+  calculateHardSkillsSimilarity(user, candidate) {
+    let totalScore = 0;
+    let categoriesCount = 0;
+
+    // Para cada categoria que o usuário tem habilidades
+    for (const [category, userSkills] of Object.entries(user.hardSkills || {})) {
+      const candidateSkills = candidate.hardSkills ? candidate.hardSkills[category] : undefined;
+      const categoryConfig = this.categories[category];
+
+      if (!candidateSkills || !categoryConfig) continue;
+
+      const categoryScore = this.calculateCategorySimilarity(
+        userSkills,
+        candidateSkills,
+        categoryConfig
+      );
+
+      totalScore += categoryScore;
+      categoriesCount++;
+    }
+
+    // Média das categorias (se houver)
+    return categoriesCount > 0 ? totalScore / categoriesCount : 0;
+  }
+
+  // ========== Similaridade de Serviços ==========
+  calculateServicesSimilarity(user, candidate) {
+    let totalScore = 0;
+    let categoriesCount = 0;
+
+    for (const [category, userServices] of Object.entries(user.services || {})) {
+      const candidateServices = candidate.services ? candidate.services[category] : undefined;
+      const categoryConfig = this.categories[category];
+
+      if (!candidateServices || !categoryConfig) continue;
+
+      const categoryScore = this.calculateCategorySimilarity(
+        userServices,
+        candidateServices,
+        categoryConfig
+      );
+
+      totalScore += categoryScore;
+      categoriesCount++;
+    }
+
+    return categoriesCount > 0 ? totalScore / categoriesCount : 0;
+  }
+
+  // ========== Similaridade de Cursos ==========
+  calculateCoursesSimilarity(user, candidate) {
+    if (!user.courses || !candidate.courses) return 0;
+
+    // Consideramos cursos da mesma categoria
+    const userCourseCategories = new Set(user.courses.map(c => c.category));
+    const candidateCourseCategories = new Set(candidate.courses.map(c => c.category));
+
+    const intersection = [...userCourseCategories].filter(cat => candidateCourseCategories.has(cat));
+    const union = new Set([...userCourseCategories, ...candidateCourseCategories]);
+
+    // Similaridade de Jaccard para categorias de cursos
+    return union.size > 0 ? intersection.length / union.size : 0;
+  }
+
+  // ========== Multiplicador de Habilidades Diferenciais ==========
+  calculateDifferentialMultiplier(candidate) {
+    if (!candidate.differentialSkills || candidate.differentialSkills.length === 0) {
+      return 1.0;
+    }
+
+    let multiplier = 1.0;
+    let skillCount = 0;
+
+    candidate.differentialSkills.forEach(skill => {
+      if (this.differentialMultipliers[skill]) {
+        skillCount++;
+        // Efeito decrescente: cada habilidade adicional tem menos impacto
+        const diminishingFactor = 1 / (1 + Math.log(skillCount + 1));
+        const skillMultiplier = (this.differentialMultipliers[skill] - 1) * diminishingFactor + 1;
+        multiplier *= skillMultiplier;
+      }
+    });
+
+    // Limitar o multiplicador máximo a 2.0
+    return Math.min(multiplier, 2.0);
+  }
+
+  // ========== Força do Perfil ==========
+  calculateProfileStrength(candidate) {
+    const factors = {
+      hasPhoto: candidate.profilePhoto ? 0.15 : 0,
+      hasBio: candidate.bio && candidate.bio.length > 50 ? 0.15 : 0,
+      hasSkills: candidate.hardSkills && Object.keys(candidate.hardSkills).length > 0 ? 0.25 : 0,
+      hasServices: candidate.services && Object.keys(candidate.services).length > 0 ? 0.25 : 0,
+      hasCourses: candidate.courses && candidate.courses.length > 0 ? 0.1 : 0,
+      hasDifferential: candidate.differentialSkills && candidate.differentialSkills.length > 0 ? 0.1 : 0
+    };
+
+    return Object.values(factors).reduce((sum, val) => sum + val, 0);
+  }
+
+  // ========== Cálculo do Score Final ==========
+  calculateCandidateScore(user, candidate) {
+    // 1. Se for o próprio usuário, retornar score máximo (ou não incluir no ranking)
+    if (user.id === candidate.id) {
+      return {
+        candidateId: candidate.id,
+        finalScore: 100,
+        breakdown: {
+          hardSkills: 100,
+          services: 100,
+          courses: 100,
+          profileStrength: 100,
+          differentialMultiplier: 1.0,
+          location: 100
+        }
+      };
+    }
+
+    // 2. Calcular componentes
+    const hardSkillsScore = this.calculateHardSkillsSimilarity(user, candidate);
+    const servicesScore = this.calculateServicesSimilarity(user, candidate);
+    const coursesScore = this.calculateCoursesSimilarity(user, candidate);
+    const profileStrength = this.calculateProfileStrength(candidate);
+    const differentialMultiplier = this.calculateDifferentialMultiplier(candidate);
+
+    // 3. Score de localização
+    let locationScore = 1.0; // Default se não houver localização
+    if (user.location && candidate.location) {
+      locationScore = this.calculateLocationScore(user.location, candidate.location);
+    }
+
+    // 4. Combinar scores (sem multiplicador ainda)
+    let combinedScore = 
+      (hardSkillsScore * this.weights.hardSkills) +
+      (servicesScore * this.weights.services) +
+      (coursesScore * this.weights.courses) +
+      (profileStrength * this.weights.profileStrength) +
+      (locationScore * this.weights.location);
+
+    // 5. Aplicar multiplicador das habilidades diferenciais
+    combinedScore *= differentialMultiplier;
+
+    // 6. Normalizar para 0-100
+    const finalScore = Math.min(Math.max(combinedScore * 100, 0), 100);
+
+    // Retornar com breakdown para debug/transparência
+    return {
+      candidateId: candidate.id,
+      finalScore: parseFloat(finalScore.toFixed(2)),
+      breakdown: {
+        hardSkills: parseFloat((hardSkillsScore * 100).toFixed(2)),
+        services: parseFloat((servicesScore * 100).toFixed(2)),
+        courses: parseFloat((coursesScore * 100).toFixed(2)),
+        profileStrength: parseFloat((profileStrength * 100).toFixed(2)),
+        differentialMultiplier: parseFloat(differentialMultiplier.toFixed(2)),
+        location: parseFloat((locationScore * 100).toFixed(2))
+      }
+    };
+  }
+
+  // ========== Ranqueamento de Múltiplos Candidatos ==========
+  rankCandidates(user, candidates, limit = 25) {
+    // Filtrar candidatos dentro do raio de 20km (opcional, pode ser feito no banco)
+    // Vamos calcular o score para todos e depois ordenar
+
+    const scoredCandidates = candidates.map(candidate => 
+      this.calculateCandidateScore(user, candidate)
+    );
+
+    // Remover o próprio usuário (se estiver na lista) - opcional, pois já tratamos no calculate
+    const filtered = scoredCandidates.filter(c => c.candidateId !== user.id);
+
+    // Ordenar por score decrescente
+    filtered.sort((a, b) => b.finalScore - a.finalScore);
+
+    // Retornar top N
+    return filtered.slice(0, limit);
+  }
+}
+
+// ========== Exemplo de Uso ==========
+
+// Criar instância do algoritmo
+const rankingAlgorithm = new CandidateRankingAlgorithm();
+
+// Dados do usuário (candidato)
+const user = {
+  id: 'user_123',
+  location: { lat: -23.5505, lon: -46.6333 }, // São Paulo
+  hardSkills: {
+    'mecanico_automotivo': ['carro', 'motocicleta'],
+    'desenvolvedor': ['frontend', 'backend']
+  },
+  services: {
+    'mecanico_automotivo': ['carro'],
+    'desenvolvedor': ['frontend', 'backend']
+  },
+  courses: [
+    { name: 'Curso de Mecânica Básica', category: 'mecanica' },
+    { name: 'JavaScript Moderno', category: 'programacao' }
+  ],
+  differentialSkills: ['certificacao_avançada'],
+  profilePhoto: true,
+  bio: 'Sou um profissional com experiência em...'
+};
+
+// Dados de candidatos exemplo
+const candidates = [
+  {
+    id: 'candidate_1',
+    location: { lat: -23.5510, lon: -46.6340 },
+    hardSkills: {
+      'mecanico_automotivo': ['carro', 'motocicleta', 'caminhao'],
+      'desenvolvedor': ['frontend', 'backend', 'mobile']
+    },
+    services: {
+      'mecanico_automotivo': ['carro', 'motocicleta'],
+      'desenvolvedor': ['frontend', 'backend', 'mobile']
+    },
+    courses: [
+      { name: 'Curso de Mecânica Avançada', category: 'mecanica' },
+      { name: 'React Avançado', category: 'programacao' }
+    ],
+    differentialSkills: ['certificacao_avançada', 'teste_especializado'],
+    profilePhoto: true,
+    bio: 'Mecânico e desenvolvedor com 10 anos de experiência.'
+  },
+  {
+    id: 'candidate_2',
+    location: { lat: -23.5600, lon: -46.6400 },
+    hardSkills: {
+      'mecanico_automotivo': ['carro'],
+      'desenvolvedor': ['frontend']
+    },
+    services: {
+      'mecanico_automotivo': ['carro'],
+      'desenvolvedor': ['frontend']
+    },
+    courses: [
+      { name: 'Curso de JavaScript', category: 'programacao' }
+    ],
+    differentialSkills: [],
+    profilePhoto: false,
+    bio: 'Desenvolvedor frontend e mecânico iniciante.'
+  }
+  // ... mais candidatos
+];
+
+// Calcular ranking
+const ranking = rankingAlgorithm.rankCandidates(user, candidates, 25);
+
+console.log('Ranking de candidatos similares:');
+ranking.forEach((candidate, index) => {
+  console.log(`${index + 1}. ${candidate.candidateId} - Score: ${candidate.finalScore}`);
+  console.log('   Breakdown:', candidate.breakdown);
+});
+
+Explicação das mudanças:
+
+    Comparação entre candidatos: O algoritmo agora compara o usuário (que é um candidato) com outros candidatos, calculando a similaridade entre seus perfis.
+
+    Similaridade por categoria: Para habilidades e serviços, calculamos a similaridade dentro de cada categoria, com bônus por abrangência (ter mais subcategorias) e por completude (ter todas as subcategorias que o usuário tem).
+
+    Cursos: Similaridade baseada em categorias de cursos (usando Jaccard).
+
+    Habilidades diferenciais: Multiplicador não-linear (cada habilidade adicional tem menos impacto).
+
+    Localização: Score que decai com a distância, chegando a 0 após 20km.
+
+    Força do perfil: Incentiva perfis completos (foto, bio, etc.).
+
+    Exclusão do próprio usuário: No método rankCandidates, removemos o próprio usuário do ranking (ou você pode optar por incluí-lo com score máximo).
+
+Ajustes possíveis:
+
+    Normalização: Se a distribuição de scores for muito concentrada, pode-se aplicar uma normalização para melhor distribuição (ex: usar percentis).
+
+    Pesos: Ajuste os pesos conforme a importância relativa de cada componente.
+
+    Categorias: Defina bem as categorias e subcategorias no sistema real.
+
+Este algoritmo pode ser executado no lado do servidor (Node.js) ou no cliente, dependendo do número de candidatos. Para muitos candidatos, recomenda-se fazer no servidor.
+
+Espero que isso atenda melhor ao seu cenário! Qualquer ajuste adicional, estou à disposição.
+
+Perfeito! Agora entendi completamente o cenário. O usuário é um candidato que quer se comparar com outros candidatos similares em um raio de 20km. Vou ajustar o algoritmo para esse contexto específico.
+javascript
+
+class CandidateSelfRankingAlgorithm {
+  constructor() {
+    // Configuração principal
+    this.maxDistance = 20000; // 20km em metros
+    this.maxCandidates = 25;
+    
+    // Pesos para componentes de similaridade
+    this.weights = {
+      serviceCategories: 0.40,    // Serviços que ambos oferecem
+      hardSkills: 0.30,           // Habilidades técnicas em comum
+      experience: 0.15,           // Anos de experiência comparativa
+      courses: 0.10,             // Cursos similares
+      profileCompleteness: 0.05   // Completude do perfil (incentivo)
+    };
+    
+    // Estrutura hierárquica das categorias (exemplo)
+    this.categoryHierarchy = {
+      'mecanico_automotivo': {
+        name: 'Mecânico Automotivo',
+        subcategories: ['carro', 'motocicleta', 'caminhao', 'trator'],
+        weights: {
+          baseMatch: 0.7,        // Peso base por item em comum
+          breadthBonus: 0.2,     // Bônus por ter mais subcategorias
+          completenessBonus: 0.1 // Bônus por ter todas as subcategorias do usuário
+        }
+      },
+      'desenvolvedor_software': {
+        name: 'Desenvolvedor de Software',
+        subcategories: ['frontend', 'backend', 'mobile', 'devops', 'fullstack'],
+        weights: {
+          baseMatch: 0.6,
+          breadthBonus: 0.25,
+          completenessBonus: 0.15
+        }
+      },
+      'designer': {
+        name: 'Designer',
+        subcategories: ['ui_ux', 'grafico', 'motion', 'produto'],
+        weights: {
+          baseMatch: 0.65,
+          breadthBonus: 0.2,
+          completenessBonus: 0.15
+        }
+      },
+      'eletricista': {
+        name: 'Eletricista',
+        subcategories: ['residencial', 'industrial', 'automotivo', 'predial'],
+        weights: {
+          baseMatch: 0.75,
+          breadthBonus: 0.15,
+          completenessBonus: 0.1
+        }
+      }
+    };
+    
+    // Multiplicadores para habilidades diferenciais (progressivos)
+    this.differentialMultipliers = {
+      'certificacao_ouro': 1.4,      // Certificação mais alta
+      'certificacao_prata': 1.25,    // Certificação média
+      'certificacao_bronze': 1.15,   // Certificação básica
+      'teste_especializado': 1.3,    // Teste especializado aprovado
+      'instituicao_reconhecida': 1.2,// Formação em instituição parceira
+      'projeto_destaque': 1.1        // Projetos notáveis
+    };
+    
+    // Configuração de experiência
+    this.experienceConfig = {
+      maxYears: 30,           // Máximo de anos para normalização
+      weightPerYear: 0.03,    // Peso por ano de experiência
+      diminishingFactor: 0.9   // Fator de diminuição para anos extras
+    };
+  }
+
+  /**
+   * Calcula a distância entre duas coordenadas (Haversine)
+   */
+  calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Raio da Terra em metros
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }
+
+  /**
+   * Verifica se candidato está dentro do raio e calcula fator de proximidade
+   */
+  checkAndCalculateProximity(user, candidate) {
+    if (!user.location || !candidate.location) return { withinRadius: true, proximityFactor: 1 };
+    
+    const distance = this.calculateDistance(
+      user.location.latitude,
+      user.location.longitude,
+      candidate.location.latitude,
+      candidate.location.longitude
+    );
+    
+    if (distance > this.maxDistance) {
+      return { withinRadius: false, proximityFactor: 0 };
+    }
+    
+    // Fator de proximidade: 1.0 a 0.7 baseado na distância (20km = 0.7, 0km = 1.0)
+    const proximityFactor = 1 - (distance / this.maxDistance) * 0.3;
+    return { withinRadius: true, proximityFactor };
+  }
+
+  /**
+   * Calcula similaridade dentro de uma categoria considerando hierarquia
+   */
+  calculateCategorySimilarity(userItems, candidateItems, category) {
+    if (!userItems || !candidateItems || userItems.length === 0) return 0;
+    
+    const categoryConfig = this.categoryHierarchy[category];
+    if (!categoryConfig) return 0;
+    
+    // 1. Itens em comum (match direto)
+    const commonItems = userItems.filter(item => candidateItems.includes(item));
+    const matchRatio = commonItems.length / userItems.length;
+    
+    // 2. Bônus por abrangência (candidato tem mais subcategorias)
+    const userCoverage = userItems.length / categoryConfig.subcategories.length;
+    const candidateCoverage = candidateItems.length / categoryConfig.subcategories.length;
+    const breadthBonus = Math.min(candidateCoverage - userCoverage, 0.5) * categoryConfig.weights.breadthBonus;
+    
+    // 3. Bônus por completude (candidato tem todas as subcategorias do usuário)
+    const completenessBonus = commonItems.length === userItems.length 
+      ? categoryConfig.weights.completenessBonus 
+      : 0;
+    
+    // 4. Score final da categoria
+    return (matchRatio * categoryConfig.weights.baseMatch) + breadthBonus + completenessBonus;
+  }
+
+  /**
+   * Calcula similaridade geral de serviços por categoria
+   */
+  calculateServicesSimilarity(user, candidate) {
+    let totalScore = 0;
+    let categoryCount = 0;
+    
+    // Para cada categoria que o usuário atua
+    Object.keys(user.services || {}).forEach(category => {
+      const userServices = user.services[category];
+      const candidateServices = candidate.services?.[category];
+      
+      if (!userServices || !candidateServices) return;
+      
+      const categoryScore = this.calculateCategorySimilarity(
+        userServices,
+        candidateServices,
+        category
+      );
+      
+      totalScore += categoryScore;
+      categoryCount++;
+    });
+    
+    // Se não há categorias em comum, retorna 0
+    return categoryCount > 0 ? totalScore / categoryCount : 0;
+  }
+
+  /**
+   * Calcula similaridade de hard skills
+   */
+  calculateHardSkillsSimilarity(user, candidate) {
+    let totalScore = 0;
+    let categoryCount = 0;
+    
+    Object.keys(user.hardSkills || {}).forEach(category => {
+      const userSkills = user.hardSkills[category];
+      const candidateSkills = candidate.hardSkills?.[category];
+      
+      if (!userSkills || !candidateSkills) return;
+      
+      const commonSkills = userSkills.filter(skill => candidateSkills.includes(skill));
+      
+      if (commonSkills.length > 0) {
+        const matchRatio = commonSkills.length / userSkills.length;
+        totalScore += matchRatio;
+        categoryCount++;
+      }
+    });
+    
+    return categoryCount > 0 ? totalScore / categoryCount : 0;
+  }
+
+  /**
+   * Calcula similaridade de experiência
+   */
+  calculateExperienceSimilarity(user, candidate) {
+    const userExp = user.experienceYears || 0;
+    const candidateExp = candidate.experienceYears || 0;
+    
+    // Normaliza experiência (0-1)
+    const normalizedUserExp = Math.min(userExp / this.experienceConfig.maxYears, 1);
+    const normalizedCandidateExp = Math.min(candidateExp / this.experienceConfig.maxYears, 1);
+    
+    // Similaridade: quanto mais próximo, melhor, mas com leve vantagem para mais experiência
+    const expDiff = Math.abs(normalizedUserExp - normalizedCandidateExp);
+    const similarity = 1 - expDiff;
+    
+    // Bônus se candidato tem mais experiência
+    const experienceBonus = normalizedCandidateExp > normalizedUserExp 
+      ? (normalizedCandidateExp - normalizedUserExp) * 0.2 
+      : 0;
+    
+    return Math.min(similarity + experienceBonus, 1);
+  }
+
+  /**
+   * Calcula similaridade de cursos
+   */
+  calculateCoursesSimilarity(user, candidate) {
+    if (!user.courses || !candidate.courses || user.courses.length === 0) return 0;
+    
+    // Extrair categorias de cursos
+    const userCourseCats = [...new Set(user.courses.map(c => c.category))];
+    const candidateCourseCats = new Set(candidate.courses.map(c => c.category));
+    
+    // Cursos em comum (por categoria)
+    const commonCats = userCourseCats.filter(cat => candidateCourseCats.has(cat));
+    
+    return commonCats.length / userCourseCats.length;
+  }
+
+  /**
+   * Calcula completude do perfil
+   */
+  calculateProfileCompleteness(candidate) {
+    const factors = {
+      hasPhoto: candidate.profilePhoto ? 0.15 : 0,
+      hasBio: candidate.bio && candidate.bio.length > 100 ? 0.15 : 0,
+      hasSkills: candidate.hardSkills && Object.keys(candidate.hardSkills).length > 0 ? 0.2 : 0,
+      hasServices: candidate.services && Object.keys(candidate.services).length > 0 ? 0.2 : 0,
+      hasExperience: candidate.experienceYears !== undefined ? 0.1 : 0,
+      hasCourses: candidate.courses && candidate.courses.length > 0 ? 0.1 : 0,
+      hasEducation: candidate.education && candidate.education.length > 0 ? 0.1 : 0
+    };
+    
+    return Object.values(factors).reduce((sum, val) => sum + val, 0);
+  }
+
+  /**
+   * Calcula multiplicador das habilidades diferenciais
+   */
+  calculateDifferentialMultiplier(candidate) {
+    if (!candidate.differentialSkills || candidate.differentialSkills.length === 0) {
+      return 1.0;
+    }
+    
+    let multiplier = 1.0;
+    const skillCount = candidate.differentialSkills.length;
+    
+    // Ordenar habilidades por peso (maior primeiro)
+    const sortedSkills = candidate.differentialSkills
+      .map(skill => this.differentialMultipliers[skill] || 1.0)
+      .sort((a, b) => b - a);
+    
+    // Aplicar com diminuição marginal
+    sortedSkills.forEach((skillMultiplier, index) => {
+      // Cada habilidade adicional tem menos impacto
+      const diminishingFactor = 1 / Math.sqrt(index + 1);
+      const effectiveMultiplier = 1 + ((skillMultiplier - 1) * diminishingFactor);
+      multiplier *= effectiveMultiplier;
+    });
+    
+    // Limitar multiplicador máximo
+    return Math.min(multiplier, 2.5);
+  }
+
+  /**
+   * Função principal: calcula score de similaridade entre usuário e candidato
+   */
+  calculateSimilarityScore(user, candidate) {
+    // Verificar proximidade geográfica
+    const { withinRadius, proximityFactor } = this.checkAndCalculateProximity(user, candidate);
+    if (!withinRadius) return null;
+    
+    // Calcular componentes de similaridade
+    const serviceScore = this.calculateServicesSimilarity(user, candidate);
+    const skillsScore = this.calculateHardSkillsSimilarity(user, candidate);
+    const experienceScore = this.calculateExperienceSimilarity(user, candidate);
+    const coursesScore = this.calculateCoursesSimilarity(user, candidate);
+    const profileScore = this.calculateProfileCompleteness(candidate);
+    
+    // Calcular score combinado (sem multiplicadores ainda)
+    let combinedScore = 
+      (serviceScore * this.weights.serviceCategories) +
+      (skillsScore * this.weights.hardSkills) +
+      (experienceScore * this.weights.experience) +
+      (coursesScore * this.weights.courses) +
+      (profileScore * this.weights.profileCompleteness);
+    
+    // Aplicar multiplicador de habilidades diferenciais
+    const diffMultiplier = this.calculateDifferentialMultiplier(candidate);
+    combinedScore *= diffMultiplier;
+    
+    // Aplicar fator de proximidade geográfica
+    combinedScore *= proximityFactor;
+    
+    // Normalizar para 0-100
+    const finalScore = Math.min(Math.max(combinedScore * 100, 0), 100);
+    
+    // Retornar score detalhado
+    return {
+      candidateId: candidate.id,
+      candidateName: candidate.name,
+      finalScore: parseFloat(finalScore.toFixed(2)),
+      rank: 0, // Será preenchido depois
+      breakdown: {
+        services: parseFloat((serviceScore * 100).toFixed(2)),
+        hardSkills: parseFloat((skillsScore * 100).toFixed(2)),
+        experience: parseFloat((experienceScore * 100).toFixed(2)),
+        courses: parseFloat((coursesScore * 100).toFixed(2)),
+        profileCompleteness: parseFloat((profileScore * 100).toFixed(2)),
+        differentialMultiplier: parseFloat(diffMultiplier.toFixed(2)),
+        proximityFactor: parseFloat((proximityFactor * 100).toFixed(2))
+      },
+      similarityHighlights: this.generateSimilarityHighlights(user, candidate)
+    };
+  }
+
+  /**
+   * Gera destaques de similaridade para mostrar ao usuário
+   */
+  generateSimilarityHighlights(user, candidate) {
+    const highlights = [];
+    
+    // Verificar serviços em comum
+    Object.keys(user.services || {}).forEach(category => {
+      const userServices = user.services[category];
+      const candidateServices = candidate.services?.[category];
+      
+      if (userServices && candidateServices) {
+        const commonServices = userServices.filter(s => candidateServices.includes(s));
+        if (commonServices.length > 0) {
+          highlights.push({
+            type: 'services',
+            category,
+            count: commonServices.length,
+            items: commonServices
+          });
+        }
+      }
+    });
+    
+    // Verificar habilidades em comum
+    Object.keys(user.hardSkills || {}).forEach(category => {
+      const userSkills = user.hardSkills[category];
+      const candidateSkills = candidate.hardSkills?.[category];
+      
+      if (userSkills && candidateSkills) {
+        const commonSkills = userSkills.filter(s => candidateSkills.includes(s));
+        if (commonSkills.length > 0) {
+          highlights.push({
+            type: 'skills',
+            category,
+            count: commonSkills.length,
+            items: commonSkills.slice(0, 3) // Limitar a 3 itens
+          });
+        }
+      }
+    });
+    
+    return highlights;
+  }
+
+  /**
+   * Ranqueia candidatos em relação ao usuário
+   */
+  async rankCandidatesForUser(user, candidates) {
+    // Calcular scores para todos os candidatos
+    const scoredCandidates = candidates
+      .map(candidate => this.calculateSimilarityScore(user, candidate))
+      .filter(score => score !== null); // Remover candidatos fora do raio
+    
+    // Ordenar por score (maior primeiro)
+    scoredCandidates.sort((a, b) => b.finalScore - a.finalScore);
+    
+    // Adicionar posição no ranking
+    scoredCandidates.forEach((candidate, index) => {
+      candidate.rank = index + 1;
+    });
+    
+    // Incluir o próprio usuário como referência
+    const userSelfScore = {
+      candidateId: user.id,
+      candidateName: user.name || "Você",
+      finalScore: 100,
+      rank: 0,
+      breakdown: {
+        services: 100,
+        hardSkills: 100,
+        experience: 100,
+        courses: 100,
+        profileCompleteness: 100,
+        differentialMultiplier: 1.0,
+        proximityFactor: 100
+      },
+      similarityHighlights: [],
+      isSelf: true
+    };
+    
+    // Combinar e limitar resultados
+    const allResults = [userSelfScore, ...scoredCandidates.slice(0, this.maxCandidates)];
+    
+    return {
+      user: userSelfScore,
+      rankedCandidates: scoredCandidates.slice(0, this.maxCandidates),
+      stats: {
+        totalCandidates: candidates.length,
+        withinRadius: scoredCandidates.length,
+        averageScore: scoredCandidates.length > 0 
+          ? parseFloat((scoredCandidates.reduce((sum, c) => sum + c.finalScore, 0) / scoredCandidates.length).toFixed(2))
+          : 0
+      }
+    };
+  }
+
+  /**
+   * Método para buscar candidatos do Supabase e ranquear
+   */
+  async fetchAndRankCandidates(userId, supabaseClient) {
+    try {
+      // 1. Buscar dados do usuário atual
+      const { data: user, error: userError } = await supabaseClient
+        .from('users')
+        .select(`
+          id,
+          name,
+          location,
+          profile_photo,
+          bio,
+          experience_years,
+          services,
+          hard_skills,
+          courses,
+          differential_skills,
+          education
+        `)
+        .eq('id', userId)
+        .single();
+      
+      if (userError) throw userError;
+      
+      // 2. Buscar candidatos próximos (usando extensão PostGIS se disponível)
+      const { data: nearbyCandidates, error: candidatesError } = await supabaseClient
+        .from('users')
+        .select(`
+          id,
+          name,
+          location,
+          profile_photo,
+          bio,
+          experience_years,
+          services,
+          hard_skills,
+          courses,
+          differential_skills,
+          education
+        `)
+        .neq('id', userId)
+        .limit(100); // Buscar mais para filtrar por distância depois
+      
+      if (candidatesError) throw candidatesError;
+      
+      // 3. Filtrar por distância (se não foi feito no banco)
+      const candidatesWithinRadius = nearbyCandidates.filter(candidate => {
+        if (!user.location || !candidate.location) return true;
+        const distance = this.calculateDistance(
+          user.location.latitude,
+          user.location.longitude,
+          candidate.location.latitude,
+          candidate.location.longitude
+        );
+        return distance <= this.maxDistance;
+      });
+      
+      // 4. Ranquear candidatos
+      const rankingResult = await this.rankCandidatesForUser(user, candidatesWithinRadius);
+      
+      return {
+        success: true,
+        ranking: rankingResult
+      };
+      
+    } catch (error) {
+      console.error('Error fetching and ranking candidates:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+}
+
+// ==================== EXEMPLO DE USO ====================
+
+// Exemplo de dados do usuário
+const exampleUser = {
+  id: 'user_123',
+  name: 'João Silva',
+  location: {
+    latitude: -23.5505,
+    longitude: -46.6333
+  },
+  services: {
+    'mecanico_automotivo': ['carro', 'motocicleta'],
+    'eletricista': ['residencial']
+  },
+  hardSkills: {
+    'mecanico_automotivo': ['motor', 'suspensão', 'freios'],
+    'eletricista': ['instalação', 'manutenção']
+  },
+  experienceYears: 5,
+  courses: [
+    { name: 'Curso de Mecânica Básica', category: 'mecanica' },
+    { name: 'Eletricista Residencial', category: 'eletrica' }
+  ],
+  differentialSkills: ['certificacao_bronze'],
+  bio: 'Mecânico e eletricista com 5 anos de experiência...',
+  profilePhoto: true,
+  education: [
+    { level: 'técnico', field: 'mecânica automotiva' }
+  ]
+};
+
+// Exemplo de candidato similar
+const exampleCandidate = {
+  id: 'candidate_456',
+  name: 'Carlos Oliveira',
+  location: {
+    latitude: -23.5510,
+    longitude: -46.6340
+  },
+  services: {
+    'mecanico_automotivo': ['carro', 'motocicleta', 'caminhao'],
+    'eletricista': ['residencial', 'industrial']
+  },
+  hardSkills: {
+    'mecanico_automotivo': ['motor', 'suspensão', 'freios', 'elétrica veicular'],
+    'eletricista': ['instalação', 'manutenção', 'projetos']
+  },
+  experienceYears: 8,
+  courses: [
+    { name: 'Mecânica Avançada', category: 'mecanica' },
+    { name: 'Eletricista Industrial', category: 'eletrica' }
+  ],
+  differentialSkills: ['certificacao_prata', 'instituicao_reconhecida'],
+  bio: 'Especialista em mecânica automotiva e elétrica...',
+  profilePhoto: true,
+  education: [
+    { level: 'técnico', field: 'mecânica' },
+    { level: 'curso_livre', field: 'elétrica industrial' }
+  ]
+};
+
+// Criar instância do algoritmo
+const rankingAlgo = new CandidateSelfRankingAlgorithm();
+
+// Simular ranking
+const mockCandidates = [exampleCandidate]; // Adicionar mais candidatos na prática
+const rankingResult = rankingAlgo.rankCandidatesForUser(exampleUser, mockCandidates);
+
+console.log('Resultado do Ranking:');
+console.log(JSON.stringify(rankingResult, null, 2));
+
+// Para usar com Supabase na prática:
+/*
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+const rankingAlgo = new CandidateSelfRankingAlgorithm()
+
+// Em um endpoint Next.js API ou server action:
+const result = await rankingAlgo.fetchAndRankCandidates('user_id_123', supabase)
+*/
+
+Características principais deste algoritmo:
+
+    Foco em similaridade entre candidatos: Compara o usuário com outros candidatos, não com requisitos de contratante.
+
+    Hierarquia de categorias: Considera que ter mais subcategorias dentro de uma mesma área é vantajoso no ranking.
+
+    Multiplicador progressivo para habilidades diferenciais: Cada habilidade adicional tem impacto decrescente.
+
+    Proximidade geográfica: Fator de ajuste baseado na distância (não é corte bruto).
+
+    Breakdown detalhado: Mostra como cada componente contribuiu para o score.
+
+    Highlights de similaridade: Identifica pontos específicos em comum para mostrar ao usuário.
+
+    Inclui o próprio usuário: Como referência no ranking (score 100).

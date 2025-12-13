@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthClientProvider } from "@/components/AuthClientProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NEXO - Você merece ouvir a verdade",
-  description: "O jeito mais simples e anônimo de descobrir o que seus clientes realmente pensam sobre seu atendimento, seus produtos e o que eles desejam secretamente que você vendesse.",
+  title: "Facilitô! Vagas",
+  description: "A plataforma de vagas mais fácil e intuitiva do mercado.",
 };
 
 export default function RootLayout({
@@ -23,11 +24,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthClientProvider>
+          {children}
+        </AuthClientProvider>
       </body>
     </html>
   );
