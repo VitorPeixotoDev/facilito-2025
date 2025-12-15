@@ -44,10 +44,58 @@ export function mapAnalysisToAssessmentId(
 }
 
 /**
+ * Extrai IDs de avaliações do array profile_analysis usando prefixos
+ * 
+ * Agora que os triggers SQL adicionam prefixos "five_mind_result -> " e 
+ * "hexa_mind_result -> " a cada entrada, podemos identificar diretamente
+ * quais avaliações foram completadas.
+ * 
+ * IMPORTANTE: Com a nova lógica, apenas UMA avaliação deve existir por vez
+ * (a última realizada substitui todas as anteriores).
+ * 
+ * @param profileAnalysis - Array de strings de análise do perfil com prefixos
+ * @returns Array de IDs de avaliações encontradas ('five-mind', 'hexa-mind')
+ */
+export function extractAssessmentIds(profileAnalysis: string[] | null): string[] {
+    if (!profileAnalysis || profileAnalysis.length === 0) {
+        return [];
+    }
+
+    const assessmentIds = new Set<string>();
+
+    profileAnalysis.forEach(analysis => {
+        if (analysis.startsWith('five_mind_result -> ')) {
+            assessmentIds.add('five-mind');
+        } else if (analysis.startsWith('hexa_mind_result -> ')) {
+            assessmentIds.add('hexa-mind');
+        }
+    });
+
+    return Array.from(assessmentIds);
+}
+
+/**
+ * Gets the most recent assessment ID from profile_analysis
+ * 
+ * With the new logic, only one assessment should exist at a time.
+ * This function returns the first assessment found (which should be the only one).
+ * 
+ * @param profileAnalysis - Array of profile analysis strings
+ * @returns Assessment ID or null if none found
+ */
+export function getLatestAssessmentId(profileAnalysis: string[] | null): string | null {
+    const ids = extractAssessmentIds(profileAnalysis);
+    return ids.length > 0 ? ids[0] : null;
+}
+
+/**
  * Agrupa análises por assessment
  * 
  * @param profileAnalysis - Array de strings de análise do perfil
  * @returns Objeto com análises agrupadas por assessment ID
+ * 
+ * @deprecated Esta função mantida para compatibilidade, mas agora usa extractAssessmentIds
+ * que é mais preciso com os prefixos. Preferir usar extractAssessmentIds diretamente.
  */
 export function groupAnalysisByAssessment(profileAnalysis: string[] | null): Record<string, string[]> {
     if (!profileAnalysis || profileAnalysis.length === 0) {
@@ -56,6 +104,30 @@ export function groupAnalysisByAssessment(profileAnalysis: string[] | null): Rec
 
     const grouped: Record<string, string[]> = {};
 
+    // Primeiro, tentar usar os prefixos (abordagem nova e mais precisa)
+    const assessmentIds = extractAssessmentIds(profileAnalysis);
+
+    if (assessmentIds.length > 0) {
+        // Se temos prefixos, agrupar por prefixo
+        profileAnalysis.forEach(analysis => {
+            if (analysis.startsWith('five_mind_result -> ')) {
+                if (!grouped['five-mind']) {
+                    grouped['five-mind'] = [];
+                }
+                // Remove o prefixo para manter compatibilidade
+                grouped['five-mind'].push(analysis.replace('five_mind_result -> ', ''));
+            } else if (analysis.startsWith('hexa_mind_result -> ')) {
+                if (!grouped['hexa-mind']) {
+                    grouped['hexa-mind'] = [];
+                }
+                // Remove o prefixo para manter compatibilidade
+                grouped['hexa-mind'].push(analysis.replace('hexa_mind_result -> ', ''));
+            }
+        });
+        return grouped;
+    }
+
+    // Fallback: lógica antiga para dados sem prefixos (retrocompatibilidade)
     // Verifica se há HexaMind (tem "Honestidade" que é único)
     const hasHexaMind = profileAnalysis.some(a => a.startsWith('Honestidade:'));
 
@@ -68,10 +140,7 @@ export function groupAnalysisByAssessment(profileAnalysis: string[] | null): Rec
         'Estabilidade Emocional:'
     ];
 
-    // Agrupa análises
-    // Estratégia: Se há "Honestidade:", todas as análises são HexaMind
-    // Se não há "Honestidade:", todas são FiveMind
-    // Isso funciona porque o trigger substitui completamente o array quando um novo resultado é salvo
+    // Agrupa análises usando inferência (lógica antiga)
     profileAnalysis.forEach(analysis => {
         let assessmentId: string | null = null;
 
