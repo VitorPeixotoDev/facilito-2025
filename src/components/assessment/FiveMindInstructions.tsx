@@ -13,7 +13,7 @@ export default function FiveMindInstructions({ onStart, onCancel, image }: FiveM
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-slate-100">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-slate-50 border border-slate-200">
                     {image ? (
                         <img
                             src={image}
@@ -37,7 +37,7 @@ export default function FiveMindInstructions({ onStart, onCancel, image }: FiveM
                 </div>
                 <div className="flex-1">
                     <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">FiveMind</h1>
-                    <span className="inline-block mt-1 px-3 py-1 bg-blue-100 text-blue-800 text-xs sm:text-sm font-semibold rounded-full">
+                    <span className="inline-block mt-1 px-3 py-1 bg-slate-100 text-slate-800 text-xs sm:text-sm font-semibold rounded-full border border-slate-200">
                         Teste de Fit Cultural
                     </span>
                 </div>
@@ -54,11 +54,11 @@ export default function FiveMindInstructions({ onStart, onCancel, image }: FiveM
                     de pré-seleção e recrutamento.
                 </p>
 
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                    <p className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">
+                <div className="bg-slate-50 border-l-4 border-slate-400 p-4 rounded">
+                    <p className="font-semibold text-slate-800 mb-2 text-sm sm:text-base">
                         Para Recrutadores e Contratantes:
                     </p>
-                    <p className="text-blue-700 text-sm sm:text-base">
+                    <p className="text-slate-700 text-sm sm:text-base">
                         Este teste permite identificar candidatos cujos traços de personalidade
                         se alinham melhor com a cultura organizacional da sua empresa,
                         otimizando o processo de seleção.
@@ -90,7 +90,7 @@ export default function FiveMindInstructions({ onStart, onCancel, image }: FiveM
                     </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+                <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <h3 className="font-bold text-slate-800 mb-3 text-sm sm:text-base">
                         Escala de Respostas:
                     </h3>
@@ -103,12 +103,12 @@ export default function FiveMindInstructions({ onStart, onCancel, image }: FiveM
                             { value: 5, label: 'Concordo totalmente', emoji: '💯' },
                         ].map((item) => (
                             <div key={item.value} className="flex items-center gap-2">
-                                <div className="w-8 h-8 flex items-center justify-center bg-white border rounded-md font-semibold text-xs sm:text-sm">
+                                <div className="w-8 h-8 flex items-center justify-center bg-[#5e9ea0] text-white border rounded-md font-semibold text-xs sm:text-sm">
                                     {item.value}
                                 </div>
                                 <div>
                                     <span className="block text-lg sm:text-xl">{item.emoji}</span>
-                                    <span className="block text-xs text-slate-600 max-w-[80px] sm:max-w-none">
+                                    <span className="block font-bold text-xs text-slate-600 max-w-[80px] sm:max-w-none">
                                         {item.label}
                                     </span>
                                 </div>

@@ -2,6 +2,7 @@
 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 import type { FiveMindResult } from '@/types/assessments';
 
 interface FiveMindResultsProps {
@@ -18,6 +19,7 @@ const FACTOR_LABELS = {
 };
 
 export default function FiveMindResults({ results, onRestart }: FiveMindResultsProps) {
+    const router = useRouter();
     const { results: scores } = results;
 
     const getScoreColor = (score: number) => {
@@ -53,7 +55,7 @@ export default function FiveMindResults({ results, onRestart }: FiveMindResultsP
                 </div>
 
                 {/* Score Geral */}
-                <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                {/* <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
                     <div className="text-center">
                         <p className="text-sm text-slate-600 mb-1">Score Geral</p>
                         <p className={`text-4xl font-bold ${getScoreColor(scores.overallScore)}`}>
@@ -63,7 +65,7 @@ export default function FiveMindResults({ results, onRestart }: FiveMindResultsP
                             {getScoreLabel(scores.overallScore)}
                         </p>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Fatores */}
                 <div className="space-y-4">
@@ -117,10 +119,10 @@ export default function FiveMindResults({ results, onRestart }: FiveMindResultsP
                 {/* Botão de ação */}
                 <div className="mt-6 flex gap-4">
                     <Button
-                        onClick={onRestart}
+                        onClick={() => router.push('/applicant/shop')}
                         className="flex-1 bg-[#5e9ea0] hover:bg-[#4a8b8f] text-white"
                     >
-                        Fazer Novamente
+                        Voltar para Avaliações
                     </Button>
                 </div>
             </Card>

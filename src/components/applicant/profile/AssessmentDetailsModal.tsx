@@ -30,7 +30,7 @@ const HEXA_MIND_LABELS: Record<string, { name: string; description: string }> = 
     conscientiousness: { name: 'Conscienciosidade', description: 'Organização, disciplina, responsabilidade' },
     openness: { name: 'Abertura à Experiência', description: 'Criatividade, curiosidade, imaginação' },
     consistency: { name: 'Consistência', description: 'Coerência nas respostas' },
-    responseConsistency: { name: 'Consistência de Resposta', description: 'Consistência nas respostas do questionário' },
+    // responseConsistency: { name: 'Consistência de Resposta', description: 'Consistência nas respostas do questionário' },
 };
 
 export default function AssessmentDetailsModal({
@@ -124,7 +124,7 @@ export default function AssessmentDetailsModal({
                     </div>
 
                     {/* Score Geral */}
-                    {details.overallScore !== undefined && (
+                    {/* {details.overallScore !== undefined && (
                         <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
                             <div className="text-center">
                                 <p className="text-sm text-slate-600 mb-1">Score Geral</p>
@@ -139,7 +139,7 @@ export default function AssessmentDetailsModal({
                                 </p>
                             </div>
                         </div>
-                    )}
+                    )} */}
 
                     {/* Notas detalhadas */}
                     <div className="space-y-3">
