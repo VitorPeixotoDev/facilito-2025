@@ -2,74 +2,96 @@
 
 import { motion } from 'framer-motion'
 
+const benefits = [
+    {
+        icon: '🏆',
+        title: 'Destaque no Ranking',
+        description:
+            'Sua posição melhora com cada habilidade desenvolvida e formação concluída através de nossos parceiros.',
+    },
+    {
+        icon: '🎖️',
+        title: 'Badges de Conquista',
+        description:
+            'Exiba com orgulho cada certificação e conquista em seu perfil, aumentando sua credibilidade.',
+    },
+    {
+        icon: '🎯',
+        title: 'Indicações Personalizadas',
+        description:
+            'Receba sugestões de cursos e formações para continuar crescendo na sua área de atuação.',
+    },
+    {
+        icon: '🚀',
+        title: 'Candidaturas Diretas',
+        description:
+            'Aplique para vagas de emprego anunciadas diretamente na plataforma, com processo simplificado.',
+    },
+    {
+        icon: '📈',
+        title: 'Acompanhamento de Progresso',
+        description:
+            'Monitore seu desenvolvimento profissional e compare-se com outros talentos do mercado.',
+    },
+    {
+        icon: '🤝',
+        title: 'Conexões Relevantes',
+        description:
+            'Conecte-se com empresas que valorizam suas habilidades específicas e histórico de aprendizado.',
+    },
+]
+
 export default function AnimatedBenefitsSection() {
     return (
-        <section className="py-20 lg:py-32 bg-gradient-to-br from-white via-gray-50 to-indigo-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section
+            id="beneficios"
+            className="py-20 lg:py-32 bg-gradient-to-br from-white via-slate-50 to-[#e3f2f3]"
+        >
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <motion.div
-                    className="text-center mb-16"
-                    initial={{ opacity: 0, y: 50 }}
+                    className="text-center mb-12"
+                    initial={{ opacity: 0, y: 40 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
-                    viewport={{ once: true }}
+                    viewport={{ once: true, amount: 0.3 }}
                 >
-                    <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight">
-                        Pare de adivinhar.<br />
-                        <span className="text-indigo-600">Comece a decidir.</span>
-                    </h3>
-                    <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                        Com o painel da NEXO, você toma as rédeas do seu sucesso:
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 leading-tight">
+                        Vantagens exclusivas da nossa plataforma
+                    </h2>
+                    <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                        Cada benefício foi pensado para aumentar sua visibilidade, fortalecer seu perfil e aproximar
+                        você das melhores oportunidades do mercado.
                     </p>
                 </motion.div>
 
-                <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-                    {[
-                        {
-                            title: "Descubra oportunidades ocultas",
-                            description: "Aquele produto que ninguém compra? Talvez esteja no lugar errado. Aquele serviço que você nem anuncia? Pode ser o seu carro-chefe.",
-                            delay: 0.2
-                        },
-                        {
-                            title: "Corrija problemas antes que virém crises",
-                            description: "Saiba instantaneamente se um funcionário está sendo grosseiro, se um produto está com qualidade inferior ou se o banheiro está sujo.",
-                            delay: 0.4
-                        },
-                        {
-                            title: "Fidelize clientes sem precisar pedir",
-                            description: "Mostre que você ouve e se importa. Quando o cliente vê você melhorando algo que ele reclamou, ele se torna um fã para a vida toda.",
-                            delay: 0.6
-                        },
-                        {
-                            title: "Tome decisões com dados, não com 'achismos'",
-                            description: "Invista no que realmente importa, baseado no desejo genuíno do seu público.",
-                            delay: 0.8
-                        }
-                    ].map((benefit, index) => (
+                <div className="grid gap-6 sm:gap-8 md:grid-cols-3">
+                    {benefits.map((benefit, index) => (
                         <motion.div
-                            key={index}
-                            className="flex items-start space-x-6 p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100"
-                            initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: benefit.delay }}
-                            viewport={{ once: true }}
-                            whileHover={{ scale: 1.02, y: -5 }}
+                            key={benefit.title}
+                            className="group relative overflow-hidden rounded-2xl bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-sm hover:shadow-xl border border-slate-100"
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: index * 0.12 }}
+                            viewport={{ once: true, amount: 0.2 }}
+                            whileHover={{ y: -6 }}
                         >
                             <motion.div
-                                className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg"
-                                whileHover={{ rotate: 360, scale: 1.1 }}
-                                transition={{ duration: 0.6 }}
-                            >
-                                <motion.span
-                                    className="text-white text-lg font-bold"
-                                    animate={{ scale: [1, 1.2, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity, delay: index * 0.3 }}
+                                className="absolute inset-0 bg-gradient-to-br from-[#5e9ea0]/0 via-[#e3f2f3]/0 to-[#5e9ea0]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            />
+                            <div className="relative flex flex-col gap-4">
+                                <motion.div
+                                    className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#5e9ea0] to-[#4a8b8f] text-2xl shadow-md"
+                                    animate={{ scale: [1, 1.08, 1] }}
+                                    transition={{ duration: 2.2, repeat: Infinity, delay: index * 0.4 }}
                                 >
-                                    ✓
-                                </motion.span>
-                            </motion.div>
-                            <div>
-                                <h4 className="text-lg font-bold text-gray-900 mb-3 leading-tight">{benefit.title}</h4>
-                                <p className="text-gray-600 leading-relaxed">{benefit.description}</p>
+                                    <span>{benefit.icon}</span>
+                                </motion.div>
+                                <h3 className="text-lg sm:text-xl font-semibold text-slate-900">
+                                    {benefit.title}
+                                </h3>
+                                <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+                                    {benefit.description}
+                                </p>
                             </div>
                         </motion.div>
                     ))}

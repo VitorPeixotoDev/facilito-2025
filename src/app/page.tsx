@@ -6,6 +6,7 @@ import AnimatedSolutionSection from '../components/AnimatedSolutionSection'
 import AnimatedBenefitsSection from '../components/AnimatedBenefitsSection'
 import AnimatedComparisonSection from '../components/AnimatedComparisonSection'
 import AnimatedFinalCTA from '../components/AnimatedFinalCTA'
+import LandingFooter from '../components/LandingFooter'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
@@ -35,6 +36,7 @@ export default async function Home() {
 
         <AnimatedFinalCTA />
 
+        <LandingFooter />
       </div>
     </ModalProvider>
   )
