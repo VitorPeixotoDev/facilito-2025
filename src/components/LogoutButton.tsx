@@ -1,17 +1,30 @@
 'use client'
 
 import { signOut } from '@/app/login/actions'
-import { useRouter } from 'next/navigation'
 
 export default function LogoutButton() {
-    const router = useRouter()
-
     const handleLogout = async () => {
         try {
+            // 1. Limpar storage do cliente ANTES do signOut
+            if (typeof window !== 'undefined') {
+                localStorage.clear()
+                sessionStorage.clear()
+            }
+
+            // 2. Encerrar sessão no servidor (limpa cookies e tokens)
             await signOut()
-            router.push('/')
+
+            // 3. Forçar reload completo do browser para garantir limpeza total
+            // Isso garante que o AuthClientProvider seja reinicializado limpo
+            window.location.href = '/login'
         } catch (error) {
             console.error('Erro ao fazer logout:', error)
+            // Em caso de erro, limpar storage e forçar reload mesmo assim
+            if (typeof window !== 'undefined') {
+                localStorage.clear()
+                sessionStorage.clear()
+            }
+            window.location.href = '/login'
         }
     }
 

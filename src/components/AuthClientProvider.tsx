@@ -38,6 +38,7 @@ interface AuthContextType {
     user: User | null;
     profile: UserProfile | null;
     loading: boolean;
+    profileLoading: boolean;
     refreshProfile: () => Promise<void>;
 }
 
@@ -47,9 +48,11 @@ export function AuthClientProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [profileLoading, setProfileLoading] = useState(false);
     const supabase = createClient();
 
     const fetchProfile = async (userId: string, userEmail?: string | null, userFullName?: string | null) => {
+        setProfileLoading(true);
         try {
             // Timeout de 5 segundos para evitar travamentos
             const timeoutPromise = new Promise((_, reject) =>
@@ -80,25 +83,31 @@ export function AuthClientProvider({ children }: { children: ReactNode }) {
 
                         if (insertError) {
                             console.warn("Erro ao criar perfil:", insertError);
+                            setProfileLoading(false);
                             return;
                         }
 
                         setProfile(newProfile as UserProfile);
+                        setProfileLoading(false);
                         return;
                     } catch (insertErr) {
                         console.warn("Erro ao criar perfil:", insertErr);
+                        setProfileLoading(false);
                         return;
                     }
                 }
                 // Para outros erros, apenas logar (não quebrar a aplicação)
                 console.warn("Erro ao buscar perfil:", error);
+                setProfileLoading(false);
                 return;
             }
 
             setProfile(data as UserProfile);
+            setProfileLoading(false);
         } catch (error) {
             // Erro de timeout ou rede - não quebrar a aplicação
             console.warn("Erro ao buscar perfil (não crítico):", error);
+            setProfileLoading(false);
         }
     };
 
@@ -171,8 +180,10 @@ export function AuthClientProvider({ children }: { children: ReactNode }) {
                     console.warn("Erro ao buscar perfil após mudança de auth:", err);
                 });
             } else {
+                // Limpar estado quando não há sessão
                 setUser(null);
                 setProfile(null);
+                setProfileLoading(false);
             }
         });
 
@@ -183,7 +194,7 @@ export function AuthClientProvider({ children }: { children: ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, profile, loading, refreshProfile }}>
+        <AuthContext.Provider value={{ user, profile, loading, profileLoading, refreshProfile }}>
             {children}
         </AuthContext.Provider>
     );

@@ -7,13 +7,17 @@ import type { UserProfile } from '@/components/AuthClientProvider';
 import type { CandidateRankingResult } from '@/lib/ranking/types';
 
 interface UserRankingProps {
-    profile: UserProfile;
+    profile: UserProfile | null;
     userId: string;
     userRanking?: CandidateRankingResult | null;
     loading?: boolean;
 }
 
 export default function UserRanking({ profile, userId, userRanking, loading = false }: UserRankingProps) {
+    // Proteção: Se não há profile, não renderizar nada
+    if (!profile) {
+        return null;
+    }
     const [assessmentCount, setAssessmentCount] = useState(0);
     const [loadingAssessments, setLoadingAssessments] = useState(true);
 

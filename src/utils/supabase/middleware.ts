@@ -32,46 +32,8 @@ export async function updateSession(request: NextRequest) {
     // issues with users being randomly logged out.
 
     // IMPORTANT: DO NOT REMOVE auth.getUser()
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    // Rotas públicas que não precisam de autenticação
-    const publicRoutes = [
-        '/',
-        '/login',
-        '/auth',
-        '/error',
-        '/_next',
-        '/favicon.ico',
-        '/api'
-    ]
-
-    const isPublicRoute = publicRoutes.some(route =>
-        request.nextUrl.pathname.startsWith(route)
-    )
-
-    // Se não há usuário e não é uma rota pública, redirecionar para login
-    if (!user && !isPublicRoute) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'
-        return NextResponse.redirect(url)
-    }
-
-    // Se há usuário e está tentando acessar login, redirecionar para dashboard
-    if (user && request.nextUrl.pathname === '/login') {
-        const url = request.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return NextResponse.redirect(url)
-    }
-
-    // Se há usuário e está na landing page, redirecionar para dashboard
-    if (user && request.nextUrl.pathname === '/') {
-        const url = request.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return NextResponse.redirect(url)
-    }
+    // This is required to refresh the session and keep the user logged in
+    await supabase.auth.getUser()
 
     // IMPORTANT: You *must* return the supabaseResponse object as it is.
     // If you're creating a new response object with NextResponse.next() make sure to:

@@ -2,7 +2,12 @@ import { type NextRequest } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-    return await updateSession(request)
+    const response = await updateSession(request)
+    // Expor o pathname atual para server components via headers()
+    try {
+        response.headers.set('x-url-pathname', request.nextUrl.pathname)
+    } catch { }
+    return response
 }
 
 export const config = {

@@ -9,35 +9,14 @@ import AnimatedFinalCTA from '../components/AnimatedFinalCTA'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
-export default function Home() {
-  //   searchParams,
-  // }: {
-  //   searchParams: { [key: string]: string | string[] | undefined }
-  // }) {
-  //   const supabase = await createClient()
-  //   const { data: { user } } = await supabase.auth.getUser()
+export default async function Home() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  //   // Se há um usuário autenticado, redirecionar para dashboard
-  //   if (user) {
-  //     redirect('/dashboard')
-  //   }
-
-  //   // Se há parâmetros de autenticação na URL, processar
-  //   const hasAuthParams = searchParams.code || searchParams.access_token
-
-  //   if (hasAuthParams) {
-  //     // Redirecionar para o callback para processar a autenticação
-  //     const callbackUrl = new URL('/auth/callback', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000')
-
-  //     // Preservar todos os parâmetros de query
-  //     Object.entries(searchParams).forEach(([key, value]) => {
-  //       if (value) {
-  //         callbackUrl.searchParams.set(key, Array.isArray(value) ? value[0] : value)
-  //       }
-  //     })
-
-  //     redirect(callbackUrl.toString())
-  //   }
+  // Se há um usuário autenticado, redirecionar diretamente para área do candidato
+  if (user) {
+    redirect('/applicant')
+  }
 
   return (
     <ModalProvider>
