@@ -13,7 +13,7 @@ export default function HexaMindInstructions({ onStart, onCancel, image }: HexaM
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-gradient-to-br from-amber-100 to-indigo-100">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden bg-slate-50 border border-slate-200">
                     {image ? (
                         <img
                             src={image}
@@ -35,7 +35,7 @@ export default function HexaMindInstructions({ onStart, onCancel, image }: HexaM
                 </div>
                 <div className="flex-1">
                     <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">HexaMind</h1>
-                    <span className="inline-block mt-1 px-3 py-1 bg-gradient-to-r from-amber-100 to-indigo-100 text-amber-800 text-xs sm:text-sm font-semibold rounded-full border border-amber-200">
+                    <span className="inline-block mt-1 px-3 py-1 bg-slate-100 text-slate-800 text-xs sm:text-sm font-semibold rounded-full border border-slate-200">
                         Teste de 6 Fatores de Personalidade
                     </span>
                 </div>
@@ -51,11 +51,11 @@ export default function HexaMindInstructions({ onStart, onCancel, image }: HexaM
                     da personalidade humana, projetado especificamente para contextos profissionais e organizacionais.
                 </p>
 
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
-                    <p className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">
+                <div className="bg-slate-50 border-l-4 border-slate-400 p-4 rounded">
+                    <p className="font-semibold text-slate-800 mb-2 text-sm sm:text-base">
                         Para Candidatos e Empresas:
                     </p>
-                    <p className="text-blue-700 text-sm sm:text-base">
+                    <p className="text-slate-700 text-sm sm:text-base">
                         Este teste permite identificar candidatos cujos traços de personalidade
                         se alinham melhor com a cultura organizacional, otimizando o processo de seleção
                         e desenvolvimento profissional.
@@ -109,7 +109,7 @@ export default function HexaMindInstructions({ onStart, onCancel, image }: HexaM
                     </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-gradient-to-r from-amber-50 to-indigo-50 rounded-lg border border-amber-200">
+                <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <h3 className="font-bold text-slate-800 mb-3 text-sm sm:text-base">
                         Escala de Respostas:
                     </h3>
@@ -122,12 +122,12 @@ export default function HexaMindInstructions({ onStart, onCancel, image }: HexaM
                             { value: 5, label: 'Concordo totalmente', emoji: '💯', description: 'Sempre se aplica' },
                         ].map((item) => (
                             <div key={item.value} className="flex items-center gap-2">
-                                <div className="w-8 h-8 flex items-center justify-center bg-white border rounded-md font-semibold text-xs sm:text-sm">
+                                <div className="w-8 h-8 flex items-center justify-center bg-[#5e9ea0] text-white border rounded-md font-semibold text-xs sm:text-sm">
                                     {item.value}
                                 </div>
                                 <div>
                                     <span className="block text-lg sm:text-xl">{item.emoji}</span>
-                                    <span className="block text-xs text-slate-600 max-w-[80px] sm:max-w-none">
+                                    <span className="block font-bold text-xs text-slate-600 max-w-[80px] sm:max-w-none">
                                         {item.label}
                                     </span>
                                     <span className="block text-[10px] text-slate-500 mt-0.5">
@@ -139,21 +139,21 @@ export default function HexaMindInstructions({ onStart, onCancel, image }: HexaM
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                <div className="bg-slate-50 border-l-4 border-slate-400 p-4 rounded">
                     <h3 className="font-bold text-slate-800 mb-3 text-sm sm:text-base">
                         ⚠️ Informações Importantes
                     </h3>
                     <ul className="space-y-2 text-slate-700 text-xs sm:text-sm">
                         <li className="flex items-start gap-2">
-                            <span className="text-green-600 mt-1">•</span>
+                            <span className="text-slate-600 mt-1">•</span>
                             <span><strong>Não há respostas certas ou erradas</strong> - responda com sinceridade</span>
                         </li>
                         <li className="flex items-start gap-2">
-                            <span className="text-green-600 mt-1">•</span>
+                            <span className="text-slate-600 mt-1">•</span>
                             <span><strong>Itens 37-40</strong> são de controle de consistência para validação da avaliação</span>
                         </li>
                         <li className="flex items-start gap-2">
-                            <span className="text-green-600 mt-1">•</span>
+                            <span className="text-slate-600 mt-1">•</span>
                             <span>Os resultados são <strong>confidenciais</strong> e destinados apenas para desenvolvimento profissional</span>
                         </li>
                     </ul>
@@ -164,7 +164,7 @@ export default function HexaMindInstructions({ onStart, onCancel, image }: HexaM
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t">
                 <Button
                     onClick={onStart}
-                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-amber-500 to-indigo-600 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
                 >
                     Iniciar Questionário
                 </Button>

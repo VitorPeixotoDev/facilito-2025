@@ -2,6 +2,7 @@
 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 import type { HexaMindResult } from '@/types/assessments';
 
 interface HexaMindResultsProps {
@@ -49,6 +50,7 @@ const FACTOR_LABELS = {
 };
 
 export default function HexaMindResults({ results, onRestart }: HexaMindResultsProps) {
+    const router = useRouter();
     const { results: scores } = results;
 
     const getScoreColor = (score: number) => {
@@ -88,7 +90,7 @@ export default function HexaMindResults({ results, onRestart }: HexaMindResultsP
                 </div>
 
                 {/* Score Geral */}
-                <div className="mb-8 p-4 bg-gradient-to-r from-amber-50 to-indigo-50 rounded-lg border border-amber-200">
+                {/* <div className="mb-8 p-4 bg-gradient-to-r from-amber-50 to-indigo-50 rounded-lg border border-amber-200">
                     <div className="text-center">
                         <p className="text-sm text-slate-600 mb-1">Score Geral</p>
                         <p className={`text-4xl font-bold bg-gradient-to-r from-amber-600 to-indigo-600 bg-clip-text text-transparent`}>
@@ -98,7 +100,7 @@ export default function HexaMindResults({ results, onRestart }: HexaMindResultsP
                             Consistência: {scores.responseConsistency}%
                         </p>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Fatores */}
                 <div className="space-y-4">
@@ -157,10 +159,10 @@ export default function HexaMindResults({ results, onRestart }: HexaMindResultsP
                 {/* Botão de ação */}
                 <div className="mt-6 flex gap-4">
                     <Button
-                        onClick={onRestart}
-                        className="flex-1 bg-gradient-to-r from-amber-500 to-indigo-600 hover:opacity-90 text-white"
+                        onClick={() => router.push('/applicant/shop')}
+                        className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 text-white"
                     >
-                        Fazer Novamente
+                        Voltar para Avaliações
                     </Button>
                 </div>
             </Card>

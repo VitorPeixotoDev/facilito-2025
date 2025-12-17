@@ -54,6 +54,41 @@ interface CandidateRankingListProps {
 }
 
 /**
+ * Retorna as classes de cor baseadas na posição do ranking
+ */
+function getRankBadgeColors(rank: number) {
+    if (rank === 1) {
+        // Ouro - 1º lugar
+        return {
+            bgGradient: 'from-[#FFD700]/20 to-[#FFA500]/10',
+            border: 'border-[#FFD700]',
+            textColor: 'text-[#7d6a01]',
+        };
+    } else if (rank === 2) {
+        // Prata - 2º lugar
+        return {
+            bgGradient: 'from-[#C0C0C0]/20 to-[#A8A8A8]/10',
+            border: 'border-[#C0C0C0]',
+            textColor: 'text-[#808080]',
+        };
+    } else if (rank === 3) {
+        // Bronze - 3º lugar
+        return {
+            bgGradient: 'from-[#CD7F32]/20 to-[#B87333]/10',
+            border: 'border-[#CD7F32]',
+            textColor: 'text-[#B87333]',
+        };
+    } else {
+        // Cores padrão da aplicação - 4º lugar em diante
+        return {
+            bgGradient: 'from-[#5f9ea0]/20 to-[#5f9ea0]/10',
+            border: 'border-[#5f9ea0]',
+            textColor: 'text-[#5f9ea0]',
+        };
+    }
+}
+
+/**
  * Component to display a ranked list of candidates
  * 
  * Shows candidates in order of similarity score, with visual indicators
@@ -95,6 +130,7 @@ export default function CandidateRankingList({
         <div className="space-y-3">
             {candidates.map((candidate) => {
                 const assessmentIcons = getCandidateAssessmentIcons(candidate.profileAnalysis);
+                const rankColors = getRankBadgeColors(candidate.rank);
                 return (
                     <div
                         key={candidate.candidateId}
@@ -104,8 +140,8 @@ export default function CandidateRankingList({
                             {/* Left side: Rank and Name */}
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-[#5f9ea0]/20 to-[#5f9ea0]/10 flex-shrink-0">
-                                        <span className="text-xs font-bold text-[#5f9ea0]">
+                                    <div className={`flex items-center justify-center w-8 h-8 border-2 ${rankColors.border} rounded-full bg-gradient-to-br ${rankColors.bgGradient} flex-shrink-0`}>
+                                        <span className={`text-xs font-bold ${rankColors.textColor}`}>
                                             #{candidate.rank}
                                         </span>
                                     </div>

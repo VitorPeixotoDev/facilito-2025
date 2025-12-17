@@ -173,7 +173,7 @@ export default function HexaMindQuestionnaire({ onComplete, onCancel }: Assessme
             <div className="mb-2 sm:mb-3 flex-shrink-0">
                 <div className="w-full bg-slate-200 rounded-full h-1 sm:h-1.5 mb-1">
                     <div
-                        className="bg-gradient-to-r from-amber-500 to-indigo-500 h-1 sm:h-1.5 rounded-full transition-all duration-300"
+                        className="bg-gradient-to-r from-amber-500 to-orange-500 h-1 sm:h-1.5 rounded-full transition-all duration-300"
                         style={{ width: `${progress}%` }}
                     />
                 </div>
@@ -218,7 +218,7 @@ export default function HexaMindQuestionnaire({ onComplete, onCancel }: Assessme
                             <div className="flex items-center gap-2 sm:gap-3">
                                 <div
                                     className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-md font-semibold text-xs sm:text-sm flex-shrink-0 ${isSelected
-                                        ? 'bg-gradient-to-r from-amber-500 to-indigo-500 text-white'
+                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
                                         : 'bg-slate-100 text-slate-600'
                                         }`}
                                 >
@@ -257,7 +257,7 @@ export default function HexaMindQuestionnaire({ onComplete, onCancel }: Assessme
                 <Button
                     onClick={handleNext}
                     disabled={!canProceed}
-                    className="flex-1 bg-gradient-to-r from-amber-500 to-indigo-600 hover:opacity-90 text-white h-10 sm:h-11 text-xs sm:text-sm"
+                    className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 text-white h-10 sm:h-11 text-xs sm:text-sm"
                 >
                     {isLastQuestion ? 'Finalizar' : 'Próxima'}
                 </Button>
