@@ -19,7 +19,7 @@ export async function login(email: string, password: string) {
     }
 
     revalidatePath('/', 'layout')
-    redirect('/')
+    redirect('/applicant')
 }
 
 export async function signup(email: string, password: string) {
@@ -91,12 +91,14 @@ export async function updatePassword(newPassword: string) {
 export async function signOut() {
     const supabase = await createClient()
 
-    const { error } = await supabase.auth.signOut()
+    // Usar scope: 'global' para limpar TODOS os tokens (incluindo OAuth)
+    const { error } = await supabase.auth.signOut({ scope: 'global' })
 
     if (error) {
         throw new Error(error.message)
     }
 
     revalidatePath('/', 'layout')
-    redirect('/login')
+    // Não fazer redirect aqui - deixar o client component fazer o redirect
+    // Isso evita conflitos e garante que o storage seja limpo antes
 }

@@ -75,7 +75,7 @@ export default function ResetPasswordForm() {
             await updatePassword(password)
             setMessage('Senha atualizada com sucesso! Redirecionando...')
             setTimeout(() => {
-                router.push('/')
+                router.push('/applicant')
             }, 2000)
         } catch (error) {
             setMessage('Erro ao atualizar senha. Tente novamente.')

@@ -1,11 +1,11 @@
-import { DashboardMobileLayout } from "@/components/dashboard/DashboardMobileLayout";
-import { DashboardDesktopLayout } from "@/components/dashboard/DashboardDesktopLayout";
+import { redirect } from 'next/navigation';
 
+/**
+ * Página de dashboard removida - todos os usuários são redirecionados
+ * diretamente para a área do candidato (/applicant)
+ * 
+ * Esta página é mantida apenas para compatibilidade com links/bookmarks antigos
+ */
 export default function Dashboard() {
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-            <DashboardMobileLayout />
-            <DashboardDesktopLayout />
-        </div>
-    );
+    redirect('/applicant');
 } 
