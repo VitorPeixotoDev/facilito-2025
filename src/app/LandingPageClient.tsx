@@ -5,7 +5,7 @@ import LoginModal from '../components/LoginModal'
 
 interface ModalContextType {
     isOpen: boolean
-    openModal: () => void
+    openModal: (mode?: 'login' | 'signup') => void
     closeModal: () => void
 }
 
@@ -25,8 +25,10 @@ interface ModalProviderProps {
 
 export function ModalProvider({ children }: ModalProviderProps) {
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+    const [initialMode, setInitialMode] = useState<'login' | 'signup'>('login')
 
-    const openModal = () => {
+    const openModal = (mode: 'login' | 'signup' = 'login') => {
+        setInitialMode(mode)
         setIsLoginModalOpen(true)
     }
 
@@ -46,6 +48,7 @@ export function ModalProvider({ children }: ModalProviderProps) {
             <LoginModal
                 isOpen={isLoginModalOpen}
                 onClose={closeModal}
+                initialMode={initialMode}
             />
         </ModalContext.Provider>
     )
@@ -55,13 +58,14 @@ export function ModalProvider({ children }: ModalProviderProps) {
 interface ModalButtonProps {
     children: ReactNode
     className?: string
+    mode?: 'login' | 'signup'
 }
 
-export function ModalButton({ children, className }: ModalButtonProps) {
+export function ModalButton({ children, className, mode = 'login' }: ModalButtonProps) {
     const { openModal } = useModal()
 
     return (
-        <button onClick={openModal} className={className}>
+        <button onClick={() => openModal(mode)} className={className}>
             {children}
         </button>
     )

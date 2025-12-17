@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from "next/image"
+import Image from 'next/image'
 import { ModalButton } from '../app/LandingPageClient'
 
 export default function AnimatedHeader() {
@@ -14,68 +14,105 @@ export default function AnimatedHeader() {
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
+                    {/* Logo */}
                     <motion.div
                         className="flex items-center"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ type: "spring", stiffness: 300 }}
+                        whileHover={{ scale: 1.03 }}
+                        transition={{ type: 'spring', stiffness: 260 }}
                     >
                         <Image
-                            src="/images/logo_without_bg_g.png"
-                            alt="NEXO Logo"
-                            width={120}
+                            src="/logo_horizontal.png"
+                            alt="Facilitô! Vagas"
+                            width={140}
                             height={40}
-                            className="h-8 w-auto"
+                            className="h-10 w-auto"
                         />
                     </motion.div>
-                    <nav className="hidden md:flex space-x-8">
+
+                    {/* Navegação */}
+                    <nav className="hidden md:flex items-center space-x-8">
                         <motion.a
-                            href="#home"
-                            className="text-indigo-600 font-medium relative group"
+                            href="#solucao"
+                            className="text-sm font-medium text-[#5e9ea0] relative group"
                             whileHover={{ y: -2 }}
-                            transition={{ type: "spring", stiffness: 300 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
                         >
-                            Home
-                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-300 group-hover:w-full"></span>
+                            Solução
+                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#5e9ea0] transition-all duration-300 group-hover:w-full" />
                         </motion.a>
                         <motion.a
-                            href="#work"
-                            className="text-gray-600 hover:text-gray-900 transition-colors relative group"
+                            href="#beneficios"
+                            className="text-sm font-medium text-slate-600 hover:text-[#5e9ea0] transition-colors relative group"
                             whileHover={{ y: -2 }}
-                            transition={{ type: "spring", stiffness: 300 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
                         >
-                            Work
-                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gray-900 transition-all duration-300 group-hover:w-full"></span>
+                            Benefícios
+                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#5e9ea0] transition-all duration-300 group-hover:w-full" />
                         </motion.a>
                         <motion.a
-                            href="#shop"
-                            className="text-gray-600 hover:text-gray-900 transition-colors relative group"
+                            href="#diferenciais"
+                            className="text-sm font-medium text-slate-600 hover:text-[#5e9ea0] transition-colors relative group"
                             whileHover={{ y: -2 }}
-                            transition={{ type: "spring", stiffness: 300 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
                         >
-                            Shop
-                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gray-900 transition-all duration-300 group-hover:w-full"></span>
+                            Diferenciais
+                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#5e9ea0] transition-all duration-300 group-hover:w-full" />
                         </motion.a>
                         <motion.a
-                            href="#contact"
-                            className="text-gray-600 hover:text-gray-900 transition-colors relative group"
+                            href="#ranking"
+                            className="text-sm font-medium text-slate-600 hover:text-[#5e9ea0] transition-colors relative group"
                             whileHover={{ y: -2 }}
-                            transition={{ type: "spring", stiffness: 300 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
                         >
-                            Contact
-                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gray-900 transition-all duration-300 group-hover:w-full"></span>
+                            Ranking
+                            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#5e9ea0] transition-all duration-300 group-hover:w-full" />
                         </motion.a>
                     </nav>
-                    <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                    >
-                        <ModalButton className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2.5 rounded-full hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">
-                            Entrar
-                        </ModalButton>
-                    </motion.div>
+
+                    {/* Ações do header */}
+                    {/* Mobile (< md): apenas logo + botão Entrar */}
+                    <div className="flex md:hidden items-center">
+                        <motion.div
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.96 }}
+                            transition={{ type: 'spring', stiffness: 260 }}
+                        >
+                            <ModalButton className="bg-[#5e9ea0] text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-[#4a8b8f] transition-colors shadow-md hover:shadow-lg">
+                                Entrar
+                            </ModalButton>
+                        </motion.div>
+                    </div>
+
+                    {/* Desktop / tablet (>= md): Entrar + Cadastrar-se */}
+                    <div className="hidden md:flex items-center gap-3">
+                        {/* Entrar (botão secundário / outline) */}
+                        <motion.div
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.96 }}
+                            transition={{ type: 'spring', stiffness: 260 }}
+                        >
+                            <ModalButton className="px-4 py-2 rounded-full border border-[#5e9ea0] text-[#5e9ea0] text-sm font-medium bg-white hover:bg-[#5e9ea0]/5 transition-colors">
+                                Entrar
+                            </ModalButton>
+                        </motion.div>
+
+                        {/* Cadastrar-se (botão primário) */}
+                        <motion.div
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.96 }}
+                            transition={{ type: 'spring', stiffness: 260 }}
+                        >
+                            <ModalButton
+                                mode="signup"
+                                className="bg-[#5e9ea0] text-white px-4 sm:px-6 py-2 rounded-full text-sm font-semibold hover:bg-[#4a8b8f] transition-colors shadow-md hover:shadow-lg"
+                            >
+                                Cadastrar-se
+                            </ModalButton>
+                        </motion.div>
+                    </div>
                 </div>
             </div>
         </motion.header>
     )
 }
+

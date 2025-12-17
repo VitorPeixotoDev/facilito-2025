@@ -1,16 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { login, signup, resetPassword, signInWithGoogle } from '../app/login/actions'
 
 interface LoginModalProps {
     isOpen: boolean
     onClose: () => void
+    initialMode?: 'login' | 'signup'
 }
 
-export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
-    const [isLogin, setIsLogin] = useState(true)
+export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModalProps) {
+    const [isLogin, setIsLogin] = useState(initialMode !== 'signup')
     const [isResetPassword, setIsResetPassword] = useState(false)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -20,6 +21,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [emailSent, setEmailSent] = useState(false)
+
+    // Ajustar o modo inicial (login ou criar conta) sempre que o modal abrir
+    useEffect(() => {
+        if (!isOpen) return
+        setIsResetPassword(false)
+        setIsLogin(initialMode !== 'signup')
+        setEmailSent(false)
+        setMessage('')
+    }, [isOpen, initialMode])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

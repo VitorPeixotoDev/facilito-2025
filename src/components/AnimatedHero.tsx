@@ -5,85 +5,116 @@ import { ModalButton } from '../app/LandingPageClient'
 
 export default function AnimatedHero() {
     return (
-        <section id="home" className="relative bg-gradient-to-br from-white via-gray-50 to-blue-50 py-20 lg:py-32 overflow-hidden">
+        <section
+            id="inicio"
+            className="relative bg-gradient-to-br from-white via-slate-50 to-[#e3f2f3] py-16 sm:py-20 lg:py-28 overflow-hidden"
+        >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="relative">
-                    {/* Animated Geometric Shapes */}
-                    <motion.div
-                        className="absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-yellow-400 to-orange-400 transform rotate-12 rounded-lg shadow-lg"
-                        animate={{
-                            rotate: [12, 24, 12],
-                            scale: [1, 1.1, 1],
-                            y: [0, -10, 0]
-                        }}
-                        transition={{
-                            duration: 6,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                        }}
+                    {/* Formas geométricas animadas em background sutil, alinhadas ao novo tema */}
+                    {/* <motion.div
+                        className="absolute top-0 right-0 w-20 h-20 md:w-28 md:h-28 bg-gradient-to-br from-amber-300 to-orange-400 transform rotate-12 rounded-xl shadow-lg"
+                        animate={{ rotate: [10, 20, 10], scale: [1, 1.08, 1], y: [0, -8, 0] }}
+                        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
                     />
                     <motion.div
-                        className="absolute bottom-0 right-0 w-0 h-0 border-l-[150px] md:border-l-[200px] border-l-transparent border-b-[120px] md:border-b-[150px] border-b-red-500 shadow-lg"
-                        animate={{
-                            x: [0, 10, 0],
-                            y: [0, -5, 0]
-                        }}
-                        transition={{
-                            duration: 8,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: 1
-                        }}
+                        className="absolute bottom-0 right-0 w-0 h-0 border-l-[140px] md:border-l-[200px] border-l-transparent border-b-[110px] md:border-b-[150px] border-b-[#5e9ea0] opacity-80"
+                        animate={{ x: [0, 8, 0], y: [0, -4, 0] }}
+                        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
                     />
                     <motion.div
-                        className="absolute bottom-0 left-0 w-full h-12 md:h-16 bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg"
-                        animate={{
-                            scaleX: [1, 1.02, 1]
-                        }}
-                        transition={{
-                            duration: 10,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: 2
-                        }}
-                    />
+                        className="absolute bottom-0 left-0 w-full h-10 md:h-14 bg-gradient-to-r from-[#5e9ea0] to-[#4a8b8f] opacity-90"
+                        animate={{ scaleX: [1, 1.02, 1] }}
+                        transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+                    /> */}
 
-                    <div className="relative z-10 max-w-4xl">
+                    <div className="relative z-10 max-w-3xl">
                         <motion.h1
-                            className="text-4xl sm:text-5xl md:text-6xl lg:text-6xl font-bold text-gray-900 leading-tight"
-                            initial={{ opacity: 0, y: 50 }}
+                            className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold text-slate-900 leading-tight"
+                            initial={{ opacity: 0, y: 40 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
                         >
-                            Seu cliente sai da sua loja
-                            e critica você pelo celular.
+                            Sua carreira no próximo nível com a{' '}
+                            <span className="text-[#5e9ea0]">
+                                Facilitô! Vagas
+                            </span>
                         </motion.h1>
-                        <motion.h2
-                            className="text-2xl sm:text-3xl md:text-7xl font-bold text-indigo-600 mt-4"
+
+                        <motion.p
+                            className="text-base sm:text-lg md:text-xl text-slate-600 mt-6 max-w-2xl leading-relaxed"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.4 }}
                         >
-                            Agora você vai ouvir.
-                        </motion.h2>
-                        <motion.p
-                            className="text-lg sm:text-xl text-gray-600 mt-8 max-w-2xl leading-relaxed"
+                            Conectamos talentos excepcionais a oportunidades que realmente importam.
+                            Preencha seu perfil, destaque-se no ranking e tenha acesso a vagas exclusivas.
+                        </motion.p>
+
+                        {/* CTAs */}
+                        <motion.div
+                            className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.6 }}
                         >
-                            O NEXO é o jeito mais simples e anônimo de descobrir o que seus clientes <em className="text-indigo-600 font-semibold">realmente</em> pensam sobre seu atendimento, seus produtos e o que eles desejam secretamente que você vendesse.
-                        </motion.p>
+                            <motion.div
+                                whileHover={{ scale: 1.04 }}
+                                whileTap={{ scale: 0.96 }}
+                                transition={{ type: 'spring', stiffness: 260 }}
+                                className="w-full sm:w-auto"
+                            >
+                                <ModalButton
+                                    mode="signup"
+                                    className="w-full bg-[#5e9ea0] text-white px-6 sm:px-8 py-3 rounded-full text-sm sm:text-base font-semibold hover:bg-[#4a8b8f] transition-colors shadow-md hover:shadow-lg"
+                                >
+                                    Criar meu perfil grátis
+                                </ModalButton>
+                            </motion.div>
+
+                            <motion.div
+                                whileHover={{ scale: 1.04 }}
+                                whileTap={{ scale: 0.96 }}
+                                transition={{ type: 'spring', stiffness: 260 }}
+                                className="w-full sm:w-auto"
+                            >
+                                <ModalButton className="w-full px-6 sm:px-8 py-3 rounded-full text-sm sm:text-base font-medium border border-[#5e9ea0] text-[#5e9ea0] bg-white hover:bg-[#5e9ea0]/5 transition-colors">
+                                    Ver vagas disponíveis
+                                </ModalButton>
+                            </motion.div>
+                        </motion.div>
+
+                        {/* Estatísticas */}
                         <motion.div
+                            className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.8 }}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
                         >
-                            <ModalButton className="mt-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">
-                                Experimente Grátis - Leva 1 Minuto
-                            </ModalButton>
+                            {/* <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl px-4 py-3 sm:px-5 sm:py-4 shadow-sm"> */}
+                            {/* <span className="block text-xl sm:text-2xl font-bold text-slate-900">
+                                    +5.000
+                                </span>
+                                <span className="block text-xs sm:text-sm text-slate-600">
+                                    Candidatos destacados
+                                </span>
+                            </div>
+                            <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl px-4 py-3 sm:px-5 sm:py-4 shadow-sm">
+                                <span className="block text-xl sm:text-2xl font-bold text-slate-900">
+                                    +800
+                                </span>
+                                <span className="block text-xs sm:text-sm text-slate-600">
+                                    Vagas preenchidas
+                                </span>
+                            </div>
+                            <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl px-4 py-3 sm:px-5 sm:py-4 shadow-sm">
+                                <span className="block text-xl sm:text-2xl font-bold text-slate-900">
+                                    +50
+                                </span>
+                                <span className="block text-xs sm:text-sm text-slate-600">
+                                    Empresas parceiras
+                                </span> */}
+                            {/* </div> */}
                         </motion.div>
                     </div>
                 </div>
