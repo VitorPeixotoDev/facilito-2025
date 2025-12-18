@@ -72,34 +72,33 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100">
-                <div className="p-6 sm:p-8">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6">
+            <div className="bg-white/95 backdrop-blur-md rounded-3xl w-full max-w-md sm:max-w-lg max-h-[92vh] overflow-y-auto shadow-xl border border-slate-200">
+                <div className="p-5 sm:p-7">
                     {/* Logo */}
-                    <div className="flex justify-center mb-6">
-                        <h1>TEMPLATE NEW APP</h1>
-                        {/*<Image
-                            src="/images/logo_without_bg_g.png"
-                            alt="NEXO Logo"
-                            width={140}
+                    <div className="flex justify-center mb-4">
+                        <Image
+                            src="/logo_horizontal.png"
+                            alt="Facilitô! Vagas"
+                            width={150}
                             height={40}
-                            className="h-10 w-auto"
-                        />*/}
+                            className="h-8 w-auto"
+                        />
                     </div>
 
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900">
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                        <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">
                             {isResetPassword ? 'Recuperar Senha' : isLogin ? 'Entrar' : 'Criar Conta'}
                         </h2>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 text-2xl p-1 hover:bg-gray-100 rounded-full transition-colors"
+                            className="text-slate-400 hover:text-slate-600 text-xl p-1.5 hover:bg-slate-100 rounded-full transition-colors"
                         >
                             ×
                         </button>
                     </div>
 
-                    <p className="text-sm text-gray-600 mb-6">
+                    <p className="text-sm text-slate-600 mb-5 leading-relaxed">
                         {isResetPassword
                             ? 'Digite seu email para receber instruções de recuperação'
                             : isLogin
@@ -110,7 +109,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
 
                     <form className="space-y-4" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Email
                             </label>
                             <input
@@ -120,14 +119,14 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="text-gray-900 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="text-slate-900 w-full px-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#5e9ea0] focus:border-[#5e9ea0] text-sm sm:text-base"
                                 placeholder="seu@email.com"
                             />
                         </div>
 
                         {!isResetPassword && (
                             <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Senha
                                 </label>
                                 <div className="relative">
@@ -138,13 +137,13 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="text-gray-900 w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="text-slate-900 w-full px-3 py-2 pr-10 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#5e9ea0] focus:border-[#5e9ea0] text-sm sm:text-base"
                                         placeholder="Sua senha"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
                                     >
                                         {showPassword ? (
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,7 +162,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
 
                         {!isLogin && !isResetPassword && (
                             <div>
-                                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                                <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Confirmar Senha
                                 </label>
                                 <div className="relative">
@@ -174,13 +173,13 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                                         required
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="text-gray-900 w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="text-slate-900 w-full px-3 py-2 pr-10 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#5e9ea0] focus:border-[#5e9ea0] text-sm sm:text-base"
                                         placeholder="Confirme sua senha"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
                                     >
                                         {showConfirmPassword ? (
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,7 +197,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                         )}
 
                         {emailSent && (
-                            <div className="bg-green-100 text-green-700 text-sm p-3 rounded-md">
+                            <div className="bg-emerald-50 text-emerald-700 text-xs sm:text-sm p-3 rounded-lg border border-emerald-100">
                                 <div className="flex items-center">
                                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -209,8 +208,12 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                         )}
 
                         {message && !emailSent && (
-                            <div className={`text-sm p-3 rounded-md ${message.includes('Erro') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                                }`}>
+                            <div
+                                className={`text-xs sm:text-sm p-3 rounded-lg border ${message.includes('Erro')
+                                    ? 'bg-rose-50 text-rose-700 border-rose-100'
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                    }`}
+                            >
                                 {message}
                             </div>
                         )}
@@ -218,7 +221,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
+                            className="w-full py-3 px-4 bg-gradient-to-r from-[#5e9ea0] to-[#4a8b8f] text-white rounded-full hover:from-[#4a8b8f] hover:to-[#3b7477] focus:outline-none focus:ring-2 focus:ring-[#5e9ea0] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold shadow-lg hover:shadow-xl text-sm sm:text-base mt-2"
                         >
                             {isLoading ? 'Processando...' : isResetPassword ? 'Enviar Email' : isLogin ? 'Entrar' : 'Criar Conta'}
                         </button>
@@ -228,7 +231,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                                 type="button"
                                 onClick={handleGoogleSignIn}
                                 disabled={isLoading}
-                                className="w-full py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-300 font-medium"
+                                className="w-full py-3 px-4 border border-slate-200 text-slate-700 rounded-full hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#5e9ea0] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-300 font-medium text-sm sm:text-base"
                             >
                                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -250,15 +253,19 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                                             setEmailSent(false)
                                             setMessage('')
                                         }}
-                                        className="text-indigo-600 hover:text-indigo-500 text-sm font-medium transition-colors"
+                                        className="text-[#5e9ea0] hover:text-[#4a8b8f] text-xs sm:text-sm font-medium transition-colors"
                                     >
-                                        {isLogin ? (<>Não tem conta? <span className="text-indigo-600 font-bold">Criar conta</span></>) : (<>Já tem conta? <span className="text-indigo-600 font-semibold">Entrar</span></>)}
+                                        {isLogin ? (
+                                            <>Não tem conta? <span className="font-semibold">Criar conta</span></>
+                                        ) : (
+                                            <>Já tem conta? <span className="font-semibold">Entrar</span></>
+                                        )}
                                     </button>
                                     <div>
                                         <button
                                             type="button"
                                             onClick={() => setIsResetPassword(true)}
-                                            className="text-gray-600 hover:text-gray-500 text-sm transition-colors"
+                                            className="text-slate-500 hover:text-slate-600 text-xs sm:text-sm transition-colors"
                                         >
                                             Esqueceu sua senha?
                                         </button>
@@ -272,7 +279,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                                         setMessage('')
                                         setEmailSent(false)
                                     }}
-                                    className="text-indigo-600 hover:text-indigo-500 text-sm font-medium transition-colors"
+                                    className="text-[#5e9ea0] hover:text-[#4a8b8f] text-xs sm:text-sm font-medium transition-colors"
                                 >
                                     Voltar ao login
                                 </button>
