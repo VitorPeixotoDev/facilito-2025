@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, ChevronDown } from 'lucide-react';
 import ProfileAnalysisBadge from '@/components/applicant/profile/ProfileAnalysisBadge';
 import AssessmentDetailsModal from '@/components/applicant/profile/AssessmentDetailsModal';
 import UserInfo from '@/components/applicant/profile/UserInfo';
@@ -30,6 +30,7 @@ export default function ApplicantHomeClient({
     const [userAssessments] = useState<UserAssessment[]>(initialAssessments);
     const [rankingResult, setRankingResult] = useState<RankingResult | null>(null);
     const [loadingRanking, setLoadingRanking] = useState(true);
+    const [isRankingExpanded, setIsRankingExpanded] = useState(false);
 
     // Busca e ranqueia candidatos (ainda no client-side pois usa Web Workers)
     useEffect(() => {
@@ -86,57 +87,80 @@ export default function ApplicantHomeClient({
                 </div>
             )}
 
-            {/* Ranked Candidates List */}
+            {/* Ranked Candidates List (com expansão/recolhimento) */}
             {rankingResult && (
                 <div className="mb-6">
-                    <h2 className="text-lg sm:text-xl font-bold text-[#111] mb-4">
-                        Top 20 Candidatos Similares
-                    </h2>
-                    {rankingResult.rankedCandidates.length > 0 ? (
-                        <>
-                            <div className="mb-4">
-                                <p className="text-sm text-[#111]/60">
-                                    {rankingResult.stats.relevantCandidates || rankingResult.stats.withinRadius} candidatos com habilidades similares em um raio de 20km
+                    <div className="bg-white rounded-lg border border-[#5f9ea0]/20 shadow-sm">
+                        <button
+                            type="button"
+                            onClick={() => setIsRankingExpanded((prev) => !prev)}
+                            className="w-full flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3.5"
+                        >
+                            <div className="text-left">
+                                <h2 className="text-sm sm:text-base font-semibold text-[#111]">
+                                    Top 20 Candidatos Similares
+                                </h2>
+                                <p className="mt-1 text-xs sm:text-sm text-[#111]/60">
+                                    {rankingResult.rankedCandidates.length > 0
+                                        ? `${rankingResult.stats.relevantCandidates || rankingResult.stats.withinRadius
+                                        } candidatos com habilidades similares em um raio de 20km`
+                                        : 'Veja como você se posiciona em relação a outros candidatos semelhantes.'}
                                 </p>
                             </div>
-
-                            {/* Alerta se usuário não está nos top 20 */}
-                            {!rankingResult.userInTop20 && rankingResult.user && (
-                                <div className="mb-4 bg-gradient-to-br from-[#5f9ea0]/10 to-[#5f9ea0]/5 rounded-lg border-l-[3px] border-[#5f9ea0] p-4">
-                                    <div className="flex items-start gap-3">
-                                        <AlertCircle className="w-5 h-5 text-[#5f9ea0] flex-shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="text-sm sm:text-base font-semibold text-[#111] mb-1">
-                                                Você não está entre os top 20 candidatos similares
-                                            </p>
-                                            <p className="text-xs sm:text-sm text-[#111]/70">
-                                                Continue desenvolvendo suas habilidades e completando avaliações para melhorar sua posição no ranking.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <CandidateRankingList
-                                candidates={rankingResult.rankedCandidates}
-                                loading={loadingRanking}
-                            />
-                        </>
-                    ) : (
-                        <div className="bg-white rounded-lg border border-[#5f9ea0]/20 p-6 text-center">
-                            <div className="mb-3">
-                                <AlertCircle className="w-12 h-12 text-[#5f9ea0]/40 mx-auto" />
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-[#5f9ea0]">
+                                <span>{isRankingExpanded ? 'Recolher' : 'Ver ranking'}</span>
+                                <ChevronDown
+                                    className={`w-4 h-4 transition-transform duration-200 ${isRankingExpanded ? 'rotate-180' : ''
+                                        }`}
+                                />
                             </div>
-                            <p className="text-sm sm:text-base font-semibold text-[#111] mb-2">
-                                Nenhum candidato similar encontrado
-                            </p>
-                            <p className="text-xs sm:text-sm text-[#111]/60">
-                                {rankingResult.stats.totalCandidates === 0
-                                    ? 'Não há outros candidatos cadastrados no momento.'
-                                    : `Não encontramos candidatos com habilidades similares dentro de um raio de 20km. Total de candidatos no sistema: ${rankingResult.stats.totalCandidates}`}
-                            </p>
-                        </div>
-                    )}
+                        </button>
+
+                        {isRankingExpanded && (
+                            <div className="border-t border-[#5f9ea0]/15 px-4 py-4 sm:px-5 sm:py-5">
+                                {rankingResult.rankedCandidates.length > 0 ? (
+                                    <>
+                                        {/* Alerta se usuário não está nos top 20 */}
+                                        {!rankingResult.userInTop20 && rankingResult.user && (
+                                            <div className="mb-4 bg-gradient-to-br from-[#5f9ea0]/10 to-[#5f9ea0]/5 rounded-lg border-l-[3px] border-[#5f9ea0] p-4">
+                                                <div className="flex items-start gap-3">
+                                                    <AlertCircle className="w-5 h-5 text-[#5f9ea0] flex-shrink-0 mt-0.5" />
+                                                    <div>
+                                                        <p className="text-sm sm:text-base font-semibold text-[#111] mb-1">
+                                                            Você não está entre os top 20 candidatos similares
+                                                        </p>
+                                                        <p className="text-xs sm:text-sm text-[#111]/70">
+                                                            Continue desenvolvendo suas habilidades e completando
+                                                            avaliações para melhorar sua posição no ranking.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <CandidateRankingList
+                                            candidates={rankingResult.rankedCandidates}
+                                            loading={loadingRanking}
+                                        />
+                                    </>
+                                ) : (
+                                    <div className="text-center">
+                                        <div className="mb-3">
+                                            <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-[#5f9ea0]/40 mx-auto" />
+                                        </div>
+                                        <p className="text-sm sm:text-base font-semibold text-[#111] mb-2">
+                                            Nenhum candidato similar encontrado
+                                        </p>
+                                        <p className="text-xs sm:text-sm text-[#111]/60">
+                                            {rankingResult.stats.totalCandidates === 0
+                                                ? 'Não há outros candidatos cadastrados no momento.'
+                                                : `Não encontramos candidatos com habilidades similares dentro de um raio de 20km. Total de candidatos no sistema: ${rankingResult.stats.totalCandidates}`}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
