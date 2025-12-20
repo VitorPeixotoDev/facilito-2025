@@ -13,9 +13,10 @@ type TabId = (typeof TABS)[number]["id"];
 interface ShopTabsProps {
     activeTab: TabId;
     onTabChange: (tab: TabId) => void;
+    initialSearchTerm?: string;
 }
 
-export function ShopTabs({ activeTab, onTabChange }: ShopTabsProps) {
+export function ShopTabs({ activeTab, onTabChange, initialSearchTerm }: ShopTabsProps) {
     return (
         <div className="space-y-4 sm:space-y-5">
             {/* Top Tabs */}
@@ -41,9 +42,9 @@ export function ShopTabs({ activeTab, onTabChange }: ShopTabsProps) {
             {/* Conteúdo por aba */}
             <div>
                 {activeTab === "avaliacoes" ? (
-                    <AssessmentFilters />
+                    <AssessmentFilters initialSearchTerm={initialSearchTerm} />
                 ) : (
-                    <CourseFilters />
+                    <CourseFilters initialSearchTerm={initialSearchTerm} />
                 )}
             </div>
         </div>

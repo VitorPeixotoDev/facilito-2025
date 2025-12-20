@@ -7,40 +7,26 @@ import { ASSESSMENTS_CONFIG } from '@/lib/assessment/assessmentsConfig';
 import AssessmentCard from '@/components/assessment/AssessmentCard';
 import { getLatestResult } from '@/lib/assessment/resultsStorage';
 import { useAuth } from '@/components/AuthClientProvider';
+import { MAIN_ASSESSMENT_TAGS, TAG_ASSESSMENTS_MAP } from '@/lib/constants/assessment_tags';
 
-const MAIN_ASSESSMENT_TAGS: string[] = [
-    'Fit Cultural',
-    'Cultural Add',
-    'Soft Skills e Competências',
-    'Testes de Personalidade (Big Five/IPIP)',
-    'Mapeamento Comportamental (DISC)',
-    'Integridade e Ética Profissional',
-    'Avaliação de Potencial e Liderança',
-    'Testes de Raciocínio e Cognitivos',
-    'Assessment Center e Simulações',
-    'Avaliação de Valores e Motivação',
-    'Saúde Psicológica e Bem-estar',
-    'Competências Técnicas e Especializadas',
-    'Análise de Perfil Motivacional',
-    'Testes de Estilo de Tomada de Decisão',
-    'Avaliação de Resiliência e Adaptabilidade',
-    'Dinâmica de Grupo e Colaboração',
-    'Feedback 360° e Avaliação por Pares',
-];
+interface AssessmentFiltersProps {
+    initialSearchTerm?: string;
+}
 
-const TAG_ASSESSMENTS_MAP: Record<string, string[]> = {
-    'Fit Cultural': ['five-mind', 'hexa-mind'],
-    // As demais tags ainda não possuem avaliações associadas
-};
-
-export function AssessmentFilters() {
+export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps) {
     const router = useRouter();
     const { user } = useAuth();
 
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(initialSearchTerm ?? '');
     const [selectedTag, setSelectedTag] = useState<string>('Todas');
     const [selectedTagWarning, setSelectedTagWarning] = useState<string | null>(null);
     const [completedAssessments, setCompletedAssessments] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        if (initialSearchTerm !== undefined) {
+            setSearchTerm(initialSearchTerm);
+        }
+    }, [initialSearchTerm]);
 
     const allAssessments = useMemo(() => ASSESSMENTS_CONFIG, []);
 
@@ -86,7 +72,7 @@ export function AssessmentFilters() {
         setSelectedTag(tag);
         setSearchTerm('');
 
-        const mappedIds = TAG_ASSESSMENTS_MAP[tag] ?? [];
+        const mappedIds = TAG_ASSESSMENTS_MAP[tag as keyof typeof TAG_ASSESSMENTS_MAP] ?? [];
         if (tag !== 'Todas' && mappedIds.length === 0) {
             setSelectedTagWarning(tag);
         } else {
@@ -97,7 +83,7 @@ export function AssessmentFilters() {
     const filteredByTag = useMemo(() => {
         if (selectedTag === 'Todas') return allAssessments;
 
-        const ids = TAG_ASSESSMENTS_MAP[selectedTag] ?? [];
+        const ids = TAG_ASSESSMENTS_MAP[selectedTag as keyof typeof TAG_ASSESSMENTS_MAP] ?? [];
         if (!ids.length) return [];
 
         return allAssessments.filter((assessment) => ids.includes(assessment.id));
@@ -219,4 +205,3 @@ export function AssessmentFilters() {
         </section>
     );
 }
-
