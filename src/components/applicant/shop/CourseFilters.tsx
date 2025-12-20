@@ -1,12 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, Info } from 'lucide-react';
 import { EDUCATION_COURSES } from '@/lib/constants/education_courses';
+import { MAIN_EDUCATION_TAGS } from '@/lib/constants/education_tags';
 
 type EducationGroupKey = keyof typeof EDUCATION_COURSES;
 
 interface CourseFiltersProps {
+    initialSearchTerm?: string;
     onCourseSelect?: (
         courseName: string,
         meta: {
@@ -17,30 +19,17 @@ interface CourseFiltersProps {
     onCategorySelect?: (mainTag: string) => void;
 }
 
-const MAIN_EDUCATION_TAGS: string[] = [
-    'Administração e Negócios',
-    'Agricultura, Agropecuária e Agronegócio',
-    'Artes, Design e Moda',
-    'Ciências Biológicas e Saúde',
-    'Ciências Exatas e Tecnologia da Informação',
-    'Ciências Humanas e Sociais',
-    'Comunicação e Marketing',
-    'Direito e Ciências Jurídicas',
-    'Educação e Pedagogia',
-    'Engenharia e Arquitetura',
-    'Gastronomia e Nutrição',
-    'Idiomas e Linguística',
-    'Indústria e Produção',
-    'Meio Ambiente e Sustentabilidade',
-    'Saúde e Bem-estar',
-    'Serviços e Atendimento',
-    'Turismo, Hotelaria e Eventos',
-];
-
-export function CourseFilters({ onCourseSelect, onCategorySelect }: CourseFiltersProps) {
-    const [searchTerm, setSearchTerm] = useState('');
+export function CourseFilters({ initialSearchTerm, onCourseSelect, onCategorySelect }: CourseFiltersProps) {
+    const [searchTerm, setSearchTerm] = useState(initialSearchTerm ?? '');
     const [selectedTag, setSelectedTag] = useState<string>('Todas');
     const [selectedCourseWarning, setSelectedCourseWarning] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (initialSearchTerm !== undefined) {
+            setSearchTerm(initialSearchTerm);
+            setSelectedCourseWarning(null);
+        }
+    }, [initialSearchTerm]);
 
     const allCourses = useMemo(
         () =>

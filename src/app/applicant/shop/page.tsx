@@ -1,27 +1,17 @@
-"use client";
-
-import { useState } from "react";
-import { ShopHeader } from "@/components/applicant/shop/ShopHeader";
-import { ShopTabs, TabId } from "@/components/applicant/shop/ShopTabs";
+import { Suspense } from 'react';
+import ShopPageClient from '@/components/applicant/shop/ShopPageClient';
 
 /**
  * Página de Carreira (Shop)
  *
- * Exibe as avaliações disponíveis para o usuário completar
- * e filtros de Educação Profissional.
- *
- * @see /docs/ASSESSMENT/ASSESSMENTS_README.md para mais informações sobre o sistema de avaliações
+ * Server Component que delega a lógica de estado e leitura de search params
+ * para o componente client-side `ShopPageClient`, envolvido em Suspense
+ * conforme recomendação do Next para hooks como `useSearchParams`.
  */
 export default function ShopPage() {
-    const [activeTab, setActiveTab] = useState<TabId>("avaliacoes");
-
     return (
-        <div className="min-h-screen bg-slate-50 pb-24">
-            <ShopHeader activeTab={activeTab} />
-
-            <div className="max-w-4xl mx-auto p-4 lg:p-6">
-                <ShopTabs activeTab={activeTab} onTabChange={setActiveTab} />
-            </div>
-        </div>
+        <Suspense fallback={<div className="min-h-screen bg-slate-50 pb-24" />}>
+            <ShopPageClient />
+        </Suspense>
     );
 }

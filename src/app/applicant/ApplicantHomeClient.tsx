@@ -8,6 +8,7 @@ import AssessmentDetailsModal from '@/components/applicant/profile/AssessmentDet
 import UserInfo from '@/components/applicant/profile/UserInfo';
 import UserRanking from '@/components/applicant/profile/UserRanking';
 import CandidateRankingList from '@/components/applicant/profile/CandidateRankingList';
+import { RecommendationsSection } from '@/components/applicant/profile/RecommendationsSection';
 import { fetchAndRankCandidates } from '@/lib/ranking/service';
 import type { AssessmentConfig } from '@/types/assessments';
 import type { RankingResult } from '@/lib/ranking/types';
@@ -162,6 +163,15 @@ export default function ApplicantHomeClient({
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* Recomendações personalizadas (entre ranking e perfil) */}
+            {profile && (
+                <RecommendationsSection
+                    profile={profile}
+                    rankingResult={rankingResult}
+                    userAssessments={userAssessments}
+                />
             )}
 
             {/* Informações do Usuário */}
