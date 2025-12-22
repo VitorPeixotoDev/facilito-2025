@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { login, signup, resetPassword, signInWithGoogle } from './actions'
 
 export default function LoginPageClient() {
@@ -11,6 +12,15 @@ export default function LoginPageClient() {
     const [confirmPassword, setConfirmPassword] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [message, setMessage] = useState('')
+    const searchParams = useSearchParams()
+
+    // Verificar se há erro na URL (app_type mismatch)
+    useEffect(() => {
+        const error = searchParams.get('error')
+        if (error === 'app_type_mismatch') {
+            setMessage('Esta conta pertence a outra aplicação e não pode acessar este painel.')
+        }
+    }, [searchParams])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -32,7 +42,9 @@ export default function LoginPageClient() {
                 await signup(email, password)
             }
         } catch (error) {
-            setMessage('Erro ao processar solicitação. Tente novamente.')
+            // Exibir mensagem de erro específica se for sobre app_type, senão mensagem genérica
+            const errorMessage = error instanceof Error ? error.message : 'Erro ao processar solicitação. Tente novamente.'
+            setMessage(errorMessage)
         } finally {
             setIsLoading(false)
         }

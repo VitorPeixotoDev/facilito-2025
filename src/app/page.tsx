@@ -14,8 +14,8 @@ export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Se há um usuário autenticado, redirecionar diretamente para área do candidato
-  if (user) {
+  // Se há um usuário autenticado com app_type válido, redirecionar diretamente para área do candidato
+  if (user && user.user_metadata?.app_type === 'user') {
     redirect('/applicant')
   }
 

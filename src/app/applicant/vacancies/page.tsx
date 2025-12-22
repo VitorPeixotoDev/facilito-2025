@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { fetchAvailableJobs, fetchUserApplications } from '@/lib/vacancies/serverVacancyService';
 import VagasPageClient from '@/components/applicant/vacancies/VagasPageClient';
+import { isValidUserApp } from '@/utils/auth/appType';
 
 /**
  * Página de Vagas (Server Component)
@@ -14,9 +15,9 @@ export default async function VagasPage() {
         data: { user },
     } = await supabase.auth.getUser();
 
-    // Redireciona se não autenticado
-    if (!user) {
-        redirect('/');
+    // Redireciona se não autenticado ou não tem app_type válido
+    if (!user || !isValidUserApp(user)) {
+        redirect('/login');
     }
 
     // Buscar dados em paralelo

@@ -11,6 +11,27 @@ export async function GET(request: NextRequest) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
 
         if (!error) {
+            // Verificar app_type após OAuth bem-sucedido
+            const { data: { user } } = await supabase.auth.getUser()
+
+            if (user) {
+                // Se app_type existe e é diferente de 'user', fazer signOut
+                if (user.user_metadata?.app_type && user.user_metadata.app_type !== 'user') {
+                    await supabase.auth.signOut({ scope: 'global' })
+                    return NextResponse.redirect(`${origin}/login?error=app_type_mismatch`)
+                }
+
+                // Se não existe app_type, adicionar (usuário criado via OAuth)
+                if (!user.user_metadata?.app_type) {
+                    await supabase.auth.updateUser({
+                        data: {
+                            ...user.user_metadata,
+                            app_type: 'user',
+                        },
+                    })
+                }
+            }
+
             return NextResponse.redirect(`${origin}${next}`)
         }
     }

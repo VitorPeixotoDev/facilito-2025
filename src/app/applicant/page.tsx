@@ -5,6 +5,7 @@ import { getOrCreateUserProfile } from '@/lib/user/serverUserService'
 import { getUserAssessmentsServer, type UserAssessment } from '@/lib/assessment/serverAssessmentService'
 import { Loader2 } from 'lucide-react'
 import type { UserProfile } from '@/components/AuthClientProvider'
+import { isValidUserApp } from '@/utils/auth/appType'
 
 /**
  * Página server-side que busca TODOS os dados antes de renderizar
@@ -14,8 +15,8 @@ export default async function ApplicantHome() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Se não há usuário autenticado, redirecionar para login
-    if (!user) {
+    // Se não há usuário autenticado ou não tem app_type válido, redirecionar para login
+    if (!user || !isValidUserApp(user)) {
         redirect('/login')
     }
 
