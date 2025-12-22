@@ -18,6 +18,15 @@ export async function login(email: string, password: string) {
         throw new Error(error.message)
     }
 
+    // Verificar app_type após login bem-sucedido
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user && user.user_metadata?.app_type && user.user_metadata.app_type !== 'user') {
+        // Esta conta pertence a outra aplicação (recruiter, etc)
+        await supabase.auth.signOut({ scope: 'global' })
+        throw new Error('Esta conta pertence a outra aplicação e não pode acessar este painel.')
+    }
+
     revalidatePath('/', 'layout')
     redirect('/applicant')
 }
@@ -30,6 +39,9 @@ export async function signup(email: string, password: string) {
         password,
         options: {
             emailRedirectTo: `${getURL()}auth/callback`,
+            data: {
+                app_type: 'user',
+            },
         },
     })
 

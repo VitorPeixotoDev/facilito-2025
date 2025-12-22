@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isValidUserApp } from '@/utils/auth/appType'
 
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
@@ -33,7 +34,22 @@ export async function updateSession(request: NextRequest) {
 
     // IMPORTANT: DO NOT REMOVE auth.getUser()
     // This is required to refresh the session and keep the user logged in
-    await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Verificar app_type: apenas usuários com app_type = 'user' podem acessar esta aplicação
+    // Se o usuário existe mas não tem app_type válido, fazer signOut e redirecionar para login
+    const pathname = request.nextUrl.pathname
+    const isProtectedRoute = pathname.startsWith('/applicant') || pathname.startsWith('/auth/reset-password')
+
+    if (user && isProtectedRoute && !isValidUserApp(user)) {
+        // Usuário não pertence a esta aplicação, fazer signOut
+        await supabase.auth.signOut({ scope: 'global' })
+
+        // Redirecionar para login
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('error', 'app_type_mismatch')
+        return NextResponse.redirect(loginUrl)
+    }
 
     // IMPORTANT: You *must* return the supabaseResponse object as it is.
     // If you're creating a new response object with NextResponse.next() make sure to:
