@@ -23,11 +23,13 @@ export default function AssessmentsList({ category = 'avaliacoes' }: Assessments
     // Verificar quais avaliações foram completadas
     useEffect(() => {
         const checkCompletedAssessments = async () => {
+            if (!user?.id) return; // Só busca se houver usuário autenticado
+
             const completed = new Set<string>();
 
             for (const assessment of assessments) {
                 try {
-                    const latestResult = await getLatestResult(assessment.id, user?.id || null);
+                    const latestResult = await getLatestResult(assessment.id, user.id);
                     if (latestResult) {
                         completed.add(assessment.id);
                     }
@@ -39,24 +41,14 @@ export default function AssessmentsList({ category = 'avaliacoes' }: Assessments
             setCompletedAssessments(completed);
         };
 
-        if (assessments.length > 0) {
+        if (assessments.length > 0 && user?.id) {
             checkCompletedAssessments();
         }
     }, [assessments, user?.id]);
 
     const handleStartAssessment = async (assessmentId: string) => {
-        // Verificar se já existe resultado
-        try {
-            const latestResult = await getLatestResult(assessmentId, user?.id || null);
-            if (latestResult) {
-                router.push(`/applicant/shop/assessment/${assessmentId}?view=results`);
-            } else {
-                router.push(`/applicant/shop/assessment/${assessmentId}?view=instructions`);
-            }
-        } catch (error) {
-            console.error('Erro ao verificar resultado:', error);
-            router.push(`/applicant/shop/assessment/${assessmentId}?view=instructions`);
-        }
+        // Sempre permite iniciar/refazer a avaliação
+        router.push(`/applicant/shop/assessment/${assessmentId}?view=instructions`);
     };
 
     // Lista de avaliações

@@ -8,6 +8,9 @@ import type { FiveMindResult } from '@/types/assessments';
 interface FiveMindResultsProps {
     results: FiveMindResult;
     onRestart: () => void;
+    onViewSuggestions?: () => void;
+    hasAuthorizedCompetencies?: boolean;
+    onBackToShop?: () => void;
 }
 
 const FACTOR_LABELS = {
@@ -18,7 +21,13 @@ const FACTOR_LABELS = {
     neuroticism: { name: 'Estabilidade Emocional', description: 'Resiliência, calma e controle emocional' },
 };
 
-export default function FiveMindResults({ results, onRestart }: FiveMindResultsProps) {
+export default function FiveMindResults({
+    results,
+    onRestart,
+    onViewSuggestions,
+    hasAuthorizedCompetencies = false,
+    onBackToShop
+}: FiveMindResultsProps) {
     const router = useRouter();
     const { results: scores } = results;
 
@@ -117,13 +126,24 @@ export default function FiveMindResults({ results, onRestart }: FiveMindResultsP
                 </div>
 
                 {/* Botão de ação */}
-                <div className="mt-6 flex gap-4">
-                    <Button
-                        onClick={() => router.push('/applicant/shop')}
-                        className="flex-1 bg-[#5e9ea0] hover:bg-[#4a8b8f] text-white"
-                    >
-                        Voltar para Avaliações
-                    </Button>
+                <div className="mt-6 flex flex-col sm:flex-row gap-4">
+                    {!hasAuthorizedCompetencies && onViewSuggestions && (
+                        <Button
+                            onClick={onViewSuggestions}
+                            className="flex-1 bg-gradient-to-r from-[#5e9ea0] to-[#4a8b8f] hover:opacity-90 text-white"
+                        >
+                            Ver Sugestões de Competências
+                        </Button>
+                    )}
+                    {hasAuthorizedCompetencies && onBackToShop && (
+                        <Button
+                            onClick={onBackToShop}
+                            variant="outline"
+                            className="flex-1 border-slate-300 text-slate-700 hover:bg-slate-50"
+                        >
+                            Voltar para Avaliações
+                        </Button>
+                    )}
                 </div>
             </Card>
 

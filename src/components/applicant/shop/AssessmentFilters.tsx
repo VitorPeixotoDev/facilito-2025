@@ -33,11 +33,13 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
     // Carregar informações de avaliações concluídas
     useEffect(() => {
         const checkCompletedAssessments = async () => {
+            if (!user?.id) return; // Só busca se houver usuário autenticado
+
             const completed = new Set<string>();
 
             for (const assessment of allAssessments) {
                 try {
-                    const latestResult = await getLatestResult(assessment.id, user?.id || null);
+                    const latestResult = await getLatestResult(assessment.id, user.id);
                     if (latestResult) {
                         completed.add(assessment.id);
                     }
@@ -49,23 +51,14 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
             setCompletedAssessments(completed);
         };
 
-        if (allAssessments.length > 0) {
+        if (allAssessments.length > 0 && user?.id) {
             void checkCompletedAssessments();
         }
     }, [allAssessments, user?.id]);
 
     const handleStartAssessment = async (assessmentId: string) => {
-        try {
-            const latestResult = await getLatestResult(assessmentId, user?.id || null);
-            if (latestResult) {
-                router.push(`/applicant/shop/assessment/${assessmentId}?view=results`);
-            } else {
-                router.push(`/applicant/shop/assessment/${assessmentId}?view=instructions`);
-            }
-        } catch (error) {
-            console.error('Erro ao verificar resultado:', error);
-            router.push(`/applicant/shop/assessment/${assessmentId}?view=instructions`);
-        }
+        // Sempre permite iniciar/refazer a avaliação
+        router.push(`/applicant/shop/assessment/${assessmentId}?view=instructions`);
     };
 
     const handleTagClick = (tag: string) => {

@@ -8,6 +8,7 @@ interface SkillsAndCoursesSectionProps {
     skills: string[];
     courses: string[];
     profileAnalysis: string[];
+    authorizedCompetencies?: string[];
     userId: string;
     onAssessmentClick?: (assessment: AssessmentConfig) => void;
 }
@@ -21,11 +22,13 @@ export default function SkillsAndCoursesSection({
     skills,
     courses,
     profileAnalysis,
+    authorizedCompetencies = [],
     userId,
     onAssessmentClick,
 }: SkillsAndCoursesSectionProps) {
     const hasSkills = skills && skills.length > 0;
     const hasCourses = courses && courses.length > 0;
+    const hasAuthorizedCompetencies = authorizedCompetencies && authorizedCompetencies.length > 0;
     const [assessmentItems, setAssessmentItems] = useState<AssessmentDisplayItem[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -61,7 +64,7 @@ export default function SkillsAndCoursesSection({
         }
     }, [userId]);
 
-    if (!hasSkills && !hasCourses && assessmentItems.length === 0 && !loading) {
+    if (!hasSkills && !hasCourses && !hasAuthorizedCompetencies && assessmentItems.length === 0 && !loading) {
         return null;
     }
 
@@ -105,6 +108,21 @@ export default function SkillsAndCoursesSection({
                                 </div>
                             );
                         })}
+                    </div>
+                </div>
+            )}
+            {hasAuthorizedCompetencies && (
+                <div>
+                    <p className="text-xs text-[#5f9ea0] mb-1.5 font-medium uppercase tracking-wide">Competências Autorizadas</p>
+                    <div className="flex flex-wrap gap-2">
+                        {authorizedCompetencies.map((competency, index) => (
+                            <span
+                                key={index}
+                                className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-[#5f9ea0]/10 text-[#111] border border-[#5f9ea0]/30"
+                            >
+                                {competency}
+                            </span>
+                        ))}
                     </div>
                 </div>
             )}

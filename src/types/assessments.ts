@@ -39,6 +39,10 @@ export interface FiveMindResult extends AssessmentResult {
         neuroticism: number;
         overallScore: number;
     };
+    // Campos de autorização (opcionais, definidos durante o salvamento)
+    authorizedForSuggestions?: boolean;
+    authorizedToShowResults?: boolean;
+    expiresAt?: Date;
 }
 
 export interface HexaMindResult extends AssessmentResult {
@@ -55,10 +59,31 @@ export interface HexaMindResult extends AssessmentResult {
         overallScore: number;
         responseConsistency: number;
     };
+    // Campos de autorização (opcionais, definidos durante o salvamento)
+    authorizedForSuggestions?: boolean;
+    authorizedToShowResults?: boolean;
+    expiresAt?: Date;
 }
 
 export interface AssessmentComponentProps {
     onComplete: (result: AssessmentResult) => void;
     onCancel?: () => void;
+}
+
+/**
+ * Interface para competências sugeridas baseadas em resultados de avaliação
+ */
+export interface CompetencySuggestion {
+    competency: string;
+    selected: boolean;
+}
+
+/**
+ * Interface para dados de autorização de uma avaliação
+ */
+export interface AssessmentAuthorization {
+    authorizedForSuggestions: boolean;
+    authorizedToShowResults: boolean;
+    suggestedCompetencies: string[];
 }
 

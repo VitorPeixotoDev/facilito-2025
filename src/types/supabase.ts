@@ -34,6 +34,7 @@ export interface Database {
                     contact_email: string | null;
                     portfolio: string | null;
                     profile_completed: boolean;
+                    authorized_competencies: string[];
                 };
                 Insert: {
                     id: string;
@@ -59,6 +60,7 @@ export interface Database {
                     contact_email?: string | null;
                     portfolio?: string | null;
                     profile_completed?: boolean;
+                    authorized_competencies?: string[];
                 };
                 Update: {
                     id?: string;
@@ -84,6 +86,7 @@ export interface Database {
                     contact_email?: string | null;
                     portfolio?: string | null;
                     profile_completed?: boolean;
+                    authorized_competencies?: string[];
                 };
             };
             assessment_results: {
@@ -134,6 +137,9 @@ export interface Database {
                     completed_at: string;
                     created_at: string;
                     updated_at: string | null;
+                    authorized_for_suggestions: boolean;
+                    authorized_to_show_results: boolean;
+                    expires_at: string | null;
                 };
                 Insert: {
                     id?: string;
@@ -147,6 +153,9 @@ export interface Database {
                     completed_at?: string;
                     created_at?: string;
                     updated_at?: string | null;
+                    authorized_for_suggestions?: boolean;
+                    authorized_to_show_results?: boolean;
+                    expires_at?: string | null;
                 };
                 Update: {
                     id?: string;
@@ -160,6 +169,9 @@ export interface Database {
                     completed_at?: string;
                     created_at?: string;
                     updated_at?: string | null;
+                    authorized_for_suggestions?: boolean;
+                    authorized_to_show_results?: boolean;
+                    expires_at?: string | null;
                 };
             };
             hexa_mind_results: {
@@ -178,6 +190,9 @@ export interface Database {
                     completed_at: string;
                     created_at: string;
                     updated_at: string | null;
+                    authorized_for_suggestions: boolean;
+                    authorized_to_show_results: boolean;
+                    expires_at: string | null;
                 };
                 Insert: {
                     id?: string;
@@ -194,6 +209,9 @@ export interface Database {
                     completed_at?: string;
                     created_at?: string;
                     updated_at?: string | null;
+                    authorized_for_suggestions?: boolean;
+                    authorized_to_show_results?: boolean;
+                    expires_at?: string | null;
                 };
                 Update: {
                     id?: string;
@@ -210,6 +228,9 @@ export interface Database {
                     completed_at?: string;
                     created_at?: string;
                     updated_at?: string | null;
+                    authorized_for_suggestions?: boolean;
+                    authorized_to_show_results?: boolean;
+                    expires_at?: string | null;
                 };
             };
         };
