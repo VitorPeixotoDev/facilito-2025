@@ -100,9 +100,9 @@ export default function SkillsAndCoursesSection({
                                             />
                                         </div>
                                     )}
-                                    {item.predominantTerm && (
+                                    {item.assessment.assessmentConfig?.name && (
                                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-[#5f9ea0]/10 text-[#111] border border-[#5f9ea0]/30 ${isClickable ? 'hover:bg-[#5f9ea0]/20 transition-colors' : ''}`}>
-                                            {item.predominantTerm}
+                                            {item.assessment.assessmentConfig.name}
                                         </span>
                                     )}
                                 </div>

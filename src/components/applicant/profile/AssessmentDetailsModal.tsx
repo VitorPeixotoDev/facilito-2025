@@ -5,6 +5,7 @@ import AssessmentModal from '@/components/assessment/AssessmentModal';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { getAssessmentDetails, type AssessmentDetails } from '@/lib/assessment/assessmentDetailsService';
+import { getAuthorizedCompetencies } from '@/lib/assessment/authorizedCompetenciesService';
 import type { AssessmentConfig } from '@/types/assessments';
 
 interface AssessmentDetailsModalProps {
@@ -42,14 +43,21 @@ export default function AssessmentDetailsModal({
     const [details, setDetails] = useState<AssessmentDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [authorizedCompetencies, setAuthorizedCompetencies] = useState<string[]>([]);
 
     useEffect(() => {
         if (isOpen && userId) {
             setLoading(true);
             setError(null);
-            getAssessmentDetails(userId, assessment.id)
-                .then((data) => {
+
+            // Buscar detalhes da avaliação e competências autorizadas em paralelo
+            Promise.all([
+                getAssessmentDetails(userId, assessment.id),
+                getAuthorizedCompetencies(userId)
+            ])
+                .then(([data, competencies]) => {
                     setDetails(data);
+                    setAuthorizedCompetencies(competencies || []);
                     if (!data) {
                         setError('Não foi possível carregar os detalhes da avaliação.');
                     }
@@ -63,6 +71,7 @@ export default function AssessmentDetailsModal({
                 });
         } else {
             setDetails(null);
+            setAuthorizedCompetencies([]);
             setLoading(false);
         }
     }, [isOpen, userId, assessment.id]);
@@ -141,6 +150,25 @@ export default function AssessmentDetailsModal({
                         </div>
                     )} */}
 
+                    {/* Competências Autorizadas */}
+                    {authorizedCompetencies.length > 0 && (
+                        <div className="space-y-3 mt-6">
+                            <h3 className="text-lg font-bold text-slate-900 mb-3">Competências Autorizadas</h3>
+                            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                <div className="flex flex-wrap gap-2">
+                                    {authorizedCompetencies.map((competency, index) => (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-[#5f9ea0]/10 text-[#111] border border-[#5f9ea0]/30"
+                                        >
+                                            {competency}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Notas detalhadas */}
                     <div className="space-y-3">
                         <h3 className="text-lg font-bold text-slate-900 mb-3">Notas Detalhadas</h3>
@@ -182,6 +210,8 @@ export default function AssessmentDetailsModal({
                             );
                         })}
                     </div>
+
+
                 </div>
             )}
         </AssessmentModal>
