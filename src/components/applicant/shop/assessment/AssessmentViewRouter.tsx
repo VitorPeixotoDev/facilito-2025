@@ -19,6 +19,9 @@ interface AssessmentViewRouterProps {
     onComplete: (result: AssessmentResult) => void;
     onRestart: () => void;
     onCancel: () => void;
+    onViewSuggestions?: () => void;
+    hasAuthorizedCompetencies?: boolean;
+    onBackToShop?: () => void;
 }
 
 /**
@@ -34,6 +37,9 @@ export function AssessmentViewRouter({
     onComplete,
     onRestart,
     onCancel,
+    onViewSuggestions,
+    hasAuthorizedCompetencies = false,
+    onBackToShop,
 }: AssessmentViewRouterProps) {
     // FiveMind Views
     if (assessmentId === "five-mind") {
@@ -56,6 +62,9 @@ export function AssessmentViewRouter({
                 <FiveMindResults
                     results={results as FiveMindResult}
                     onRestart={onRestart}
+                    onViewSuggestions={onViewSuggestions}
+                    hasAuthorizedCompetencies={hasAuthorizedCompetencies}
+                    onBackToShop={onBackToShop}
                 />
             );
         }
@@ -82,6 +91,9 @@ export function AssessmentViewRouter({
                 <HexaMindResults
                     results={results as HexaMindResult}
                     onRestart={onRestart}
+                    onViewSuggestions={onViewSuggestions}
+                    hasAuthorizedCompetencies={hasAuthorizedCompetencies}
+                    onBackToShop={onBackToShop}
                 />
             );
         }

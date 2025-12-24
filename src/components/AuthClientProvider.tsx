@@ -30,6 +30,7 @@ export interface UserProfile {
     portfolio: string | null;
     profile_completed: boolean;
     profile_analysis: string[];
+    authorized_competencies?: string[];
     created_at: string;
     updated_at: string | null;
 }

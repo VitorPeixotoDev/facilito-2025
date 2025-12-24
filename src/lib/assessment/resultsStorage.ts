@@ -1,11 +1,13 @@
 /**
- * Utilitário para armazenar resultados de avaliações
+ * Utilitário para armazenar e buscar resultados de avaliações
  * 
- * Este módulo fornece uma camada de abstração que combina
- * armazenamento local (localStorage) e persistência no banco de dados.
+ * Este módulo trabalha EXCLUSIVAMENTE com o banco de dados.
+ * Todos os resultados são salvos e buscados diretamente das tabelas:
+ * - five_mind_results para FiveMind
+ * - hexa_mind_results para HexaMind
  * 
- * Prioriza o banco de dados, mas mantém localStorage como fallback
- * para casos offline ou quando o usuário não está autenticado.
+ * Os triggers SQL automaticamente atualizam users.profile_analysis
+ * com as características convertidas dos resultados.
  */
 
 import type { AssessmentResult } from '@/types/assessments';
@@ -14,11 +16,7 @@ import {
     getAssessmentResultsByAssessment,
     getLatestAssessmentResult,
     convertRowToAssessmentResult,
-    convertRowToFiveMindResult,
 } from './assessmentService';
-import type { FiveMindResult } from '@/types/assessments';
-
-const STORAGE_KEY = 'facilito_assessment_results';
 
 /**
  * Salva os resultados de uma avaliação APENAS no banco de dados
@@ -65,128 +63,90 @@ export async function saveResults(
 }
 
 /**
- * Salva resultado no localStorage
- */
-function saveToLocalStorage(result: AssessmentResult): void {
-    try {
-        const existingResults = getStoredResultsFromLocalStorage();
-        const updatedResults = [...existingResults, result];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedResults));
-    } catch (error) {
-        console.error('Erro ao salvar no localStorage:', error);
-    }
-}
-
-/**
- * Recupera todos os resultados armazenados
- * Prioriza banco de dados, depois localStorage
+ * Recupera todos os resultados armazenados do banco de dados
  * 
- * @param userId - ID do usuário (opcional)
+ * @param userId - ID do usuário (obrigatório)
+ * @param assessmentId - ID da avaliação (opcional, se não fornecido busca todos)
  * @returns Promise com array de resultados
  */
 export async function getStoredResults(
-    userId?: string | null
+    userId: string,
+    assessmentId?: string
 ): Promise<AssessmentResult[]> {
-    // Tenta buscar no banco de dados primeiro
-    if (userId) {
-        try {
-            const dbResults = await getAssessmentResultsByAssessment(userId, 'five-mind');
-            if (dbResults && dbResults.length > 0) {
-                return dbResults.map(convertRowToAssessmentResult);
-            }
-        } catch (error) {
-            console.warn('Erro ao buscar no banco, usando localStorage:', error);
-        }
+    if (!userId) {
+        console.warn('getStoredResults: userId é obrigatório');
+        return [];
     }
 
-    // Fallback para localStorage
-    return getStoredResultsFromLocalStorage();
-}
-
-/**
- * Recupera resultados do localStorage
- */
-function getStoredResultsFromLocalStorage(): AssessmentResult[] {
     try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (!stored) return [];
-
-        const results = JSON.parse(stored);
-        // Converter datas de string para Date
-        return results.map((result: any) => ({
-            ...result,
-            completedAt: new Date(result.completedAt),
-        }));
+        if (assessmentId) {
+            const dbResults = await getAssessmentResultsByAssessment(userId, assessmentId);
+            return dbResults.map(convertRowToAssessmentResult);
+        } else {
+            // Se não especificou assessmentId, busca todos (FiveMind e HexaMind)
+            const fiveMindResults = await getAssessmentResultsByAssessment(userId, 'five-mind');
+            const hexaMindResults = await getAssessmentResultsByAssessment(userId, 'hexa-mind');
+            return [
+                ...fiveMindResults.map(convertRowToAssessmentResult),
+                ...hexaMindResults.map(convertRowToAssessmentResult),
+            ];
+        }
     } catch (error) {
-        console.error('Erro ao recuperar do localStorage:', error);
+        console.error('Erro ao buscar resultados do banco de dados:', error);
         return [];
     }
 }
 
 /**
- * Recupera resultados de uma avaliação específica
+ * Recupera resultados de uma avaliação específica do banco de dados
  * 
  * @param assessmentId - ID da avaliação
- * @param userId - ID do usuário (opcional)
+ * @param userId - ID do usuário (obrigatório)
  * @returns Promise com array de resultados
  */
 export async function getResultsByAssessment(
     assessmentId: string,
-    userId?: string | null
+    userId: string
 ): Promise<AssessmentResult[]> {
-    // Tenta buscar no banco de dados primeiro
-    if (userId) {
-        try {
-            const dbResults = await getAssessmentResultsByAssessment(userId, assessmentId);
-            if (dbResults.length > 0) {
-                return dbResults.map(convertRowToAssessmentResult);
-            }
-        } catch (error) {
-            console.warn('Erro ao buscar no banco, usando localStorage:', error);
-        }
+    if (!userId) {
+        console.warn('getResultsByAssessment: userId é obrigatório');
+        return [];
     }
 
-    // Fallback para localStorage
-    const allResults = getStoredResultsFromLocalStorage();
-    return allResults.filter(result => result.assessmentId === assessmentId);
+    try {
+        const dbResults = await getAssessmentResultsByAssessment(userId, assessmentId);
+        return dbResults.map(convertRowToAssessmentResult);
+    } catch (error) {
+        console.error('Erro ao buscar resultados do banco de dados:', error);
+        return [];
+    }
 }
 
 /**
- * Recupera o resultado mais recente de uma avaliação específica
+ * Recupera o resultado mais recente de uma avaliação específica do banco de dados
  * 
  * @param assessmentId - ID da avaliação
- * @param userId - ID do usuário (opcional)
+ * @param userId - ID do usuário (obrigatório)
  * @returns Promise com o resultado mais recente ou null
  */
 export async function getLatestResult(
     assessmentId: string,
-    userId?: string | null
+    userId: string | null
 ): Promise<AssessmentResult | null> {
-    // Tenta buscar no banco de dados primeiro
-    if (userId) {
-        try {
-            const latest = await getLatestAssessmentResult(userId, assessmentId);
-            if (latest) {
-                return convertRowToAssessmentResult(latest);
-            }
-        } catch (error) {
-            console.warn('Erro ao buscar no banco, usando localStorage:', error);
-        }
+    if (!userId) {
+        console.warn('getLatestResult: userId é obrigatório');
+        return null;
     }
 
-    // Fallback para localStorage
-    const results = await getResultsByAssessment(assessmentId, userId);
-    return results.length > 0 ? results[0] : null;
-}
-
-/**
- * Limpa todos os resultados armazenados no localStorage
- * Nota: Não limpa do banco de dados por segurança
- */
-export function clearResults(): void {
     try {
-        localStorage.removeItem(STORAGE_KEY);
+        const latest = await getLatestAssessmentResult(userId, assessmentId);
+        if (latest) {
+            return convertRowToAssessmentResult(latest);
+        }
+        return null;
     } catch (error) {
-        console.error('Erro ao limpar localStorage:', error);
+        console.error('Erro ao buscar resultado mais recente do banco de dados:', error);
+        return null;
     }
 }
+

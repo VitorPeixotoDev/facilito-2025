@@ -37,11 +37,17 @@ export interface AssessmentResultRow {
  * 
  * @param userId - ID do usuário que realizou a avaliação
  * @param result - Resultado da avaliação a ser salvo
+ * @param authorization - Dados de autorização (opcional)
  * @returns Promise com o resultado salvo ou null em caso de erro
  */
 export async function saveAssessmentResult(
     userId: string,
-    result: AssessmentResult
+    result: AssessmentResult,
+    authorization?: {
+        authorizedForSuggestions?: boolean;
+        authorizedToShowResults?: boolean;
+        expiresAt?: Date;
+    }
 ): Promise<AssessmentResultRow | null> {
     try {
         const supabase = createClient();
@@ -99,7 +105,7 @@ export async function saveAssessmentResult(
             const fiveMindResult = result as FiveMindResult;
             console.log('📊 FiveMindResult completo:', fiveMindResult);
 
-            const fiveMindData = await saveFiveMindResult(userId, fiveMindResult);
+            const fiveMindData = await saveFiveMindResult(userId, fiveMindResult, authorization);
             if (!fiveMindData) {
                 const error = new Error('Falha ao salvar resultado do FiveMind na tabela five_mind_results.');
                 console.error('❌', error.message);
@@ -123,7 +129,7 @@ export async function saveAssessmentResult(
             const hexaMindResult = result as HexaMindResult;
             console.log('📊 HexaMindResult completo:', hexaMindResult);
 
-            const hexaMindData = await saveHexaMindResult(userId, hexaMindResult);
+            const hexaMindData = await saveHexaMindResult(userId, hexaMindResult, authorization);
             if (!hexaMindData) {
                 const error = new Error('Falha ao salvar resultado do HexaMind na tabela hexa_mind_results.');
                 console.error('❌', error.message);
@@ -163,14 +169,25 @@ export async function saveAssessmentResult(
  * 
  * @param userId - ID do usuário que realizou a avaliação
  * @param result - Resultado do FiveMind
+ * @param authorization - Dados de autorização (opcional)
  * @returns Promise com o resultado salvo ou null em caso de erro
  */
 export async function saveFiveMindResult(
     userId: string,
-    result: FiveMindResult
+    result: FiveMindResult,
+    authorization?: {
+        authorizedForSuggestions?: boolean;
+        authorizedToShowResults?: boolean;
+        expiresAt?: Date;
+    }
 ): Promise<any | null> {
     try {
         const supabase = createClient();
+
+        // Calcular expires_at (padrão: 1 ano após completed_at se não fornecido)
+        const expiresAt = authorization?.expiresAt
+            ? authorization.expiresAt.toISOString()
+            : new Date(result.completedAt.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString();
 
         const insertData = {
             user_id: userId,
@@ -181,6 +198,9 @@ export async function saveFiveMindResult(
             neuroticism: result.results.neuroticism,
             overall_score: result.results.overallScore || null,
             completed_at: result.completedAt.toISOString(),
+            authorized_for_suggestions: authorization?.authorizedForSuggestions ?? true,
+            authorized_to_show_results: authorization?.authorizedToShowResults ?? false,
+            expires_at: expiresAt,
         };
 
         console.log('📝 Inserindo em five_mind_results:', insertData);
@@ -242,10 +262,54 @@ export async function getAssessmentResultsByUser(
 }
 
 /**
+ * Converte um resultado do five_mind_results para AssessmentResult
+ */
+function convertFiveMindRowToAssessmentResult(row: any): AssessmentResult {
+    return {
+        assessmentId: 'five-mind',
+        assessmentName: 'FiveMind',
+        completedAt: new Date(row.completed_at),
+        score: row.overall_score || undefined,
+        results: {
+            openness: Number(row.openness),
+            conscientiousness: Number(row.conscientiousness),
+            extraversion: Number(row.extraversion),
+            agreeableness: Number(row.agreeableness),
+            neuroticism: Number(row.neuroticism),
+            overallScore: row.overall_score || 0,
+        },
+    };
+}
+
+/**
+ * Converte um resultado do hexa_mind_results para AssessmentResult
+ */
+function convertHexaMindRowToAssessmentResult(row: any): AssessmentResult {
+    return {
+        assessmentId: 'hexa-mind',
+        assessmentName: 'HexaMind',
+        completedAt: new Date(row.completed_at),
+        score: row.overall_score || undefined,
+        results: {
+            honesty: Number(row.honesty),
+            emotional_stability: Number(row.emotional_stability),
+            extraversion: Number(row.extraversion),
+            agreeableness: Number(row.agreeableness),
+            conscientiousness: Number(row.conscientiousness),
+            openness: Number(row.openness),
+            consistency: Number(row.consistency),
+            overallScore: row.overall_score || 0,
+            responseConsistency: Number(row.response_consistency),
+        },
+    };
+}
+
+/**
  * Busca resultados de uma avaliação específica para um usuário
+ * Busca diretamente nas tabelas específicas (five_mind_results ou hexa_mind_results)
  * 
  * @param userId - ID do usuário
- * @param assessmentId - ID da avaliação
+ * @param assessmentId - ID da avaliação ('five-mind' ou 'hexa-mind')
  * @returns Promise com array de resultados
  */
 export async function getAssessmentResultsByAssessment(
@@ -254,20 +318,71 @@ export async function getAssessmentResultsByAssessment(
 ): Promise<AssessmentResultRow[]> {
     try {
         const supabase = createClient();
+        const results: AssessmentResultRow[] = [];
 
-        const { data, error } = await supabase
-            .from('assessment_results')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('assessment_id', assessmentId)
-            .order('completed_at', { ascending: false });
+        // Buscar diretamente na tabela específica
+        if (assessmentId === 'five-mind') {
+            const { data, error } = await supabase
+                .from('five_mind_results')
+                .select('*')
+                .eq('user_id', userId)
+                .order('completed_at', { ascending: false });
 
-        if (error) {
-            console.error('Erro ao buscar resultados da avaliação:', error);
-            throw error;
+            if (error) {
+                console.error('Erro ao buscar resultados do FiveMind:', error);
+                return [];
+            }
+
+            if (data && data.length > 0) {
+                for (const row of data as any[]) {
+                    const result = convertFiveMindRowToAssessmentResult(row);
+                    results.push({
+                        id: row.id,
+                        user_id: userId,
+                        assessment_id: 'five-mind',
+                        assessment_name: 'FiveMind',
+                        results: result.results,
+                        score: result.score || null,
+                        completed_at: result.completedAt.toISOString(),
+                        created_at: new Date(row.created_at).toISOString(),
+                        updated_at: row.updated_at ? new Date(row.updated_at).toISOString() : null,
+                    } as AssessmentResultRow);
+                }
+            }
+        } else if (assessmentId === 'hexa-mind') {
+            const { data, error } = await supabase
+                .from('hexa_mind_results')
+                .select('*')
+                .eq('user_id', userId)
+                .order('completed_at', { ascending: false });
+
+            if (error) {
+                console.error('Erro ao buscar resultados do HexaMind:', error);
+                return [];
+            }
+
+            if (data && data.length > 0) {
+                for (const row of data as any[]) {
+                    const result = convertHexaMindRowToAssessmentResult(row);
+                    results.push({
+                        id: row.id,
+                        user_id: userId,
+                        assessment_id: 'hexa-mind',
+                        assessment_name: 'HexaMind',
+                        results: result.results,
+                        score: result.score || null,
+                        completed_at: result.completedAt.toISOString(),
+                        created_at: new Date(row.created_at).toISOString(),
+                        updated_at: row.updated_at ? new Date(row.updated_at).toISOString() : null,
+                    } as AssessmentResultRow);
+                }
+            }
+        } else {
+            console.warn(`Tipo de avaliação não suportado: ${assessmentId}`);
+            return [];
         }
 
-        return (data || []) as AssessmentResultRow[];
+        return results;
     } catch (error) {
         console.error('Erro ao buscar resultados da avaliação:', error);
         return [];
@@ -276,9 +391,10 @@ export async function getAssessmentResultsByAssessment(
 
 /**
  * Busca o resultado mais recente de uma avaliação específica para um usuário
+ * Busca diretamente nas tabelas específicas (five_mind_results ou hexa_mind_results)
  * 
  * @param userId - ID do usuário
- * @param assessmentId - ID da avaliação
+ * @param assessmentId - ID da avaliação ('five-mind' ou 'hexa-mind')
  * @returns Promise com o resultado mais recente ou null
  */
 export async function getLatestAssessmentResult(
@@ -286,8 +402,79 @@ export async function getLatestAssessmentResult(
     assessmentId: string
 ): Promise<AssessmentResultRow | null> {
     try {
-        const results = await getAssessmentResultsByAssessment(userId, assessmentId);
-        return results.length > 0 ? results[0] : null;
+        const supabase = createClient();
+
+        // Buscar diretamente na tabela específica
+        if (assessmentId === 'five-mind') {
+            const { data, error } = await supabase
+                .from('five_mind_results')
+                .select('*')
+                .eq('user_id', userId)
+                .order('completed_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (error) {
+                // Se não encontrar, retorna null (não é erro crítico)
+                if (error.code === 'PGRST116') {
+                    return null;
+                }
+                console.error('Erro ao buscar resultado do FiveMind:', error);
+                return null;
+            }
+
+            if (!data) return null;
+
+            // Converter para o formato AssessmentResultRow
+            const result = convertFiveMindRowToAssessmentResult(data as any);
+            return {
+                id: (data as any).id,
+                user_id: userId,
+                assessment_id: 'five-mind',
+                assessment_name: 'FiveMind',
+                results: result.results,
+                score: result.score || null,
+                completed_at: result.completedAt.toISOString(),
+                created_at: new Date((data as any).created_at).toISOString(),
+                updated_at: (data as any).updated_at ? new Date((data as any).updated_at).toISOString() : null,
+            } as AssessmentResultRow;
+        } else if (assessmentId === 'hexa-mind') {
+            const { data, error } = await supabase
+                .from('hexa_mind_results')
+                .select('*')
+                .eq('user_id', userId)
+                .order('completed_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (error) {
+                // Se não encontrar, retorna null (não é erro crítico)
+                if (error.code === 'PGRST116') {
+                    return null;
+                }
+                console.error('Erro ao buscar resultado do HexaMind:', error);
+                return null;
+            }
+
+            if (!data) return null;
+
+            // Converter para o formato AssessmentResultRow
+            const result = convertHexaMindRowToAssessmentResult(data as any);
+            return {
+                id: (data as any).id,
+                user_id: userId,
+                assessment_id: 'hexa-mind',
+                assessment_name: 'HexaMind',
+                results: result.results,
+                score: result.score || null,
+                completed_at: result.completedAt.toISOString(),
+                created_at: new Date((data as any).created_at).toISOString(),
+                updated_at: (data as any).updated_at ? new Date((data as any).updated_at).toISOString() : null,
+            } as AssessmentResultRow;
+        }
+
+        console.warn(`Tipo de avaliação não suportado: ${assessmentId}`);
+        return null;
     } catch (error) {
         console.error('Erro ao buscar resultado mais recente:', error);
         return null;
@@ -319,10 +506,20 @@ export function convertRowToAssessmentResult(row: AssessmentResultRow): Assessme
  */
 export async function saveHexaMindResult(
     userId: string,
-    result: HexaMindResult
+    result: HexaMindResult,
+    authorization?: {
+        authorizedForSuggestions?: boolean;
+        authorizedToShowResults?: boolean;
+        expiresAt?: Date;
+    }
 ): Promise<any | null> {
     try {
         const supabase = createClient();
+
+        // Calcular expires_at (padrão: 1 ano após completed_at se não fornecido)
+        const expiresAt = authorization?.expiresAt
+            ? authorization.expiresAt.toISOString()
+            : new Date(result.completedAt.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString();
 
         const insertData = {
             user_id: userId,
@@ -336,6 +533,9 @@ export async function saveHexaMindResult(
             response_consistency: result.results.responseConsistency,
             overall_score: result.results.overallScore || null,
             completed_at: result.completedAt.toISOString(),
+            authorized_for_suggestions: authorization?.authorizedForSuggestions ?? true,
+            authorized_to_show_results: authorization?.authorizedToShowResults ?? false,
+            expires_at: expiresAt,
         };
 
         console.log('📝 Inserindo em hexa_mind_results:', insertData);
@@ -396,5 +596,102 @@ export function convertRowToHexaMindResult(row: AssessmentResultRow): HexaMindRe
         assessmentName: 'HexaMind',
         results: row.results as HexaMindResult['results'],
     };
+}
+
+/**
+ * Atualiza apenas os campos de autorização do resultado mais recente de uma avaliação
+ * 
+ * @param userId - ID do usuário
+ * @param assessmentId - ID da avaliação ('five-mind' ou 'hexa-mind')
+ * @param authorization - Dados de autorização
+ * @returns Promise<boolean> - true se atualizado com sucesso
+ */
+export async function updateAssessmentAuthorization(
+    userId: string,
+    assessmentId: 'five-mind' | 'hexa-mind',
+    authorization: {
+        authorizedForSuggestions: boolean;
+        authorizedToShowResults: boolean;
+        expiresAt: Date;
+    }
+): Promise<boolean> {
+    try {
+        const supabase = createClient();
+
+        // Buscar o registro mais recente do usuário para essa avaliação
+        if (assessmentId === 'five-mind') {
+            const { data: latestResult, error: fetchError } = await supabase
+                .from('five_mind_results')
+                .select('id')
+                .eq('user_id', userId)
+                .order('completed_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (fetchError || !latestResult) {
+                console.error(`❌ Erro ao buscar resultado mais recente de ${assessmentId}:`, fetchError);
+                return false;
+            }
+
+            // Atualizar apenas os campos de autorização
+            const updateData: any = {
+                authorized_for_suggestions: authorization.authorizedForSuggestions,
+                authorized_to_show_results: authorization.authorizedToShowResults,
+                expires_at: authorization.expiresAt.toISOString(),
+                updated_at: new Date().toISOString(),
+            };
+            const query = supabase.from('five_mind_results') as any;
+            const { error: updateError } = await query
+                .update(updateData)
+                .eq('id', (latestResult as any).id);
+
+            if (updateError) {
+                console.error(`❌ Erro ao atualizar autorização de ${assessmentId}:`, updateError);
+                return false;
+            }
+
+            console.log(`✅ Autorização de ${assessmentId} atualizada com sucesso`);
+            return true;
+        } else if (assessmentId === 'hexa-mind') {
+            const { data: latestResult, error: fetchError } = await supabase
+                .from('hexa_mind_results')
+                .select('id')
+                .eq('user_id', userId)
+                .order('completed_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (fetchError || !latestResult) {
+                console.error(`❌ Erro ao buscar resultado mais recente de ${assessmentId}:`, fetchError);
+                return false;
+            }
+
+            // Atualizar apenas os campos de autorização
+            const updateData: any = {
+                authorized_for_suggestions: authorization.authorizedForSuggestions,
+                authorized_to_show_results: authorization.authorizedToShowResults,
+                expires_at: authorization.expiresAt.toISOString(),
+                updated_at: new Date().toISOString(),
+            };
+            const query = supabase.from('hexa_mind_results') as any;
+            const { error: updateError } = await query
+                .update(updateData)
+                .eq('id', (latestResult as any).id);
+
+            if (updateError) {
+                console.error(`❌ Erro ao atualizar autorização de ${assessmentId}:`, updateError);
+                return false;
+            }
+
+            console.log(`✅ Autorização de ${assessmentId} atualizada com sucesso`);
+            return true;
+        } else {
+            console.error(`❌ Tipo de avaliação não suportado: ${assessmentId}`);
+            return false;
+        }
+    } catch (error) {
+        console.error(`❌ Erro ao atualizar autorização de ${assessmentId}:`, error);
+        return false;
+    }
 }
 

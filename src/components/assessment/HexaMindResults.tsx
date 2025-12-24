@@ -8,6 +8,9 @@ import type { HexaMindResult } from '@/types/assessments';
 interface HexaMindResultsProps {
     results: HexaMindResult;
     onRestart: () => void;
+    onViewSuggestions?: () => void;
+    hasAuthorizedCompetencies?: boolean;
+    onBackToShop?: () => void;
 }
 
 const FACTOR_LABELS = {
@@ -49,7 +52,13 @@ const FACTOR_LABELS = {
     },
 };
 
-export default function HexaMindResults({ results, onRestart }: HexaMindResultsProps) {
+export default function HexaMindResults({
+    results,
+    onRestart,
+    onViewSuggestions,
+    hasAuthorizedCompetencies = false,
+    onBackToShop
+}: HexaMindResultsProps) {
     const router = useRouter();
     const { results: scores } = results;
 
@@ -157,13 +166,24 @@ export default function HexaMindResults({ results, onRestart }: HexaMindResultsP
                 </div>
 
                 {/* Botão de ação */}
-                <div className="mt-6 flex gap-4">
-                    <Button
-                        onClick={() => router.push('/applicant/shop')}
-                        className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 text-white"
-                    >
-                        Voltar para Avaliações
-                    </Button>
+                <div className="mt-6 flex flex-col sm:flex-row gap-4">
+                    {!hasAuthorizedCompetencies && onViewSuggestions && (
+                        <Button
+                            onClick={onViewSuggestions}
+                            className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90 text-white"
+                        >
+                            Ver Sugestões de Competências
+                        </Button>
+                    )}
+                    {hasAuthorizedCompetencies && onBackToShop && (
+                        <Button
+                            onClick={onBackToShop}
+                            variant="outline"
+                            className="flex-1 border-slate-300 text-slate-700 hover:bg-slate-50"
+                        >
+                            Voltar para Avaliações
+                        </Button>
+                    )}
                 </div>
             </Card>
 

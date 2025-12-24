@@ -36,6 +36,7 @@ export default function UserInfo({ profile, onAssessmentClick }: UserInfoProps) 
                         skills={profile.skills}
                         courses={profile.courses}
                         profileAnalysis={profile.profile_analysis}
+                        authorizedCompetencies={profile.authorized_competencies}
                         userId={profile.id}
                         onAssessmentClick={onAssessmentClick}
                     />
@@ -88,7 +89,8 @@ export default function UserInfo({ profile, onAssessmentClick }: UserInfoProps) 
             if (section.title === 'Habilidades e Cursos') {
                 return (profile.skills?.length ?? 0) > 0 ||
                     (profile.courses?.length ?? 0) > 0 ||
-                    (profile.profile_analysis?.length ?? 0) > 0;
+                    (profile.profile_analysis?.length ?? 0) > 0 ||
+                    (profile.authorized_competencies?.length ?? 0) > 0;
             }
             if (section.title === 'Experiência e Formação') {
                 return profile.experience || profile.academic_background;

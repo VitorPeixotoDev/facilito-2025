@@ -69,9 +69,8 @@ export default function AssessmentCard({ assessment, onStart, completed }: Asses
                 <Button
                     onClick={onStart}
                     className="w-full bg-[#5e9ea0] hover:bg-[#4a8b8f] text-white"
-                    variant={completed ? 'outline' : 'default'}
                 >
-                    {completed ? 'Ver Resultados' : 'Iniciar Avaliação'}
+                    {completed ? 'Refazer Avaliação' : 'Iniciar Avaliação'}
                 </Button>
             </div>
         </Card>

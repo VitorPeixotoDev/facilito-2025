@@ -34,11 +34,17 @@ async function getAuthenticatedUserId(): Promise<string | null> {
  * 
  * @param userId - ID do usuário autenticado
  * @param result - Resultado do HexaMind
+ * @param authorization - Dados de autorização (opcional)
  * @returns Promise<boolean> - true se salvou com sucesso
  */
 export async function saveHexaMindToDatabase(
     userId: string | null,
-    result: HexaMindResult
+    result: HexaMindResult,
+    authorization?: {
+        authorizedForSuggestions?: boolean;
+        authorizedToShowResults?: boolean;
+        expiresAt?: Date;
+    }
 ): Promise<boolean> {
     try {
         // Se userId não foi fornecido, tentar obter da sessão
@@ -72,6 +78,11 @@ export async function saveHexaMindToDatabase(
             console.log('🔄 [HexaMind] Usando userId da sessão:', finalUserId);
         }
 
+        // Calcular expires_at (padrão: 1 ano após completed_at se não fornecido)
+        const expiresAt = authorization?.expiresAt 
+            ? authorization.expiresAt.toISOString()
+            : new Date(result.completedAt.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString();
+
         // 1. Salvar na tabela hexa_mind_results (tabela específica)
         console.log('📝 [HexaMind] Inserindo em hexa_mind_results...');
         const { data: hexaMindData, error: hexaMindError } = await supabase
@@ -88,6 +99,9 @@ export async function saveHexaMindToDatabase(
                 response_consistency: result.results.responseConsistency,
                 overall_score: result.results.overallScore || null,
                 completed_at: result.completedAt.toISOString(),
+                authorized_for_suggestions: authorization?.authorizedForSuggestions ?? true,
+                authorized_to_show_results: authorization?.authorizedToShowResults ?? false,
+                expires_at: expiresAt,
             })
             .select()
             .single();
