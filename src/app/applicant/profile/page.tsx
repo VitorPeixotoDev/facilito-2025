@@ -10,6 +10,9 @@ import { ProfileFormSteps, type ProfileFormData } from "@/components/applicant/p
 import { ProfileHeader, ONBOARDING_STEPS } from "@/components/applicant/profile/ProfileHeader";
 import { getLocationDescription, getCoordsFromAddress } from "@/utils/geocoding";
 
+// Chave para localStorage
+const PROFILE_DRAFT_KEY = 'profile_draft_data';
+
 export default function ProfilePage() {
     const { user, profile, refreshProfile, loading: authLoading } = useAuth();
     const router = useRouter();
@@ -52,8 +55,45 @@ export default function ProfilePage() {
         field: K,
         value: ProfileFormData[K]
     ) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
+        setFormData((prev) => {
+            const newData = { ...prev, [field]: value };
+            // Salva no localStorage como backup durante primeiro preenchimento
+            if (isFirstTime && typeof window !== 'undefined') {
+                try {
+                    localStorage.setItem(PROFILE_DRAFT_KEY, JSON.stringify(newData));
+                } catch (error) {
+                    console.warn('Erro ao salvar rascunho no localStorage:', error);
+                }
+            }
+            return newData;
+        });
     };
+
+    // Carregar rascunho do localStorage se existir
+    const loadDraftFromLocalStorage = useCallback(() => {
+        if (typeof window === 'undefined') return null;
+
+        try {
+            const draft = localStorage.getItem(PROFILE_DRAFT_KEY);
+            if (draft) {
+                return JSON.parse(draft) as ProfileFormData;
+            }
+        } catch (error) {
+            console.warn('Erro ao carregar rascunho do localStorage:', error);
+        }
+        return null;
+    }, []);
+
+    // Limpar rascunho do localStorage
+    const clearDraftFromLocalStorage = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.removeItem(PROFILE_DRAFT_KEY);
+            } catch (error) {
+                console.warn('Erro ao limpar rascunho do localStorage:', error);
+            }
+        }
+    }, []);
 
     // Função para verificar se é primeira vez preenchendo o perfil
     const checkIfFirstTime = useCallback((profileData: typeof profile) => {
@@ -83,8 +123,10 @@ export default function ProfilePage() {
             return;
         }
 
+        let profileData: ProfileFormData;
+
         if (profile) {
-            const profileData: ProfileFormData = {
+            profileData = {
                 full_name: profile.full_name || user.user_metadata?.full_name || "",
                 email: profile.email || user.email || "",
                 description: profile.description || "",
@@ -105,14 +147,30 @@ export default function ProfilePage() {
                 portfolio: profile.portfolio || "",
             };
 
-            setFormData(profileData);
-            lastSavedDataRef.current = JSON.stringify(profileData);
-
             if (profile.home_address?.description) {
                 setEnderecoManual(profile.home_address.description);
             }
 
-            checkIfFirstTime(profile);
+            const isFirst = checkIfFirstTime(profile);
+
+            // Se é primeira vez, tenta carregar rascunho do localStorage
+            if (isFirst) {
+                const draft = loadDraftFromLocalStorage();
+                if (draft) {
+                    // Mescla dados do banco com rascunho (rascunho tem prioridade)
+                    profileData = {
+                        ...profileData,
+                        ...draft,
+                        // Mantém dados básicos do perfil
+                        full_name: draft.full_name || profileData.full_name,
+                        email: draft.email || profileData.email,
+                    };
+
+                    if (draft.home_address?.description) {
+                        setEnderecoManual(draft.home_address.description);
+                    }
+                }
+            }
         } else {
             const basicData: ProfileFormData = {
                 full_name: user.user_metadata?.full_name || "",
@@ -135,16 +193,25 @@ export default function ProfilePage() {
                 portfolio: "",
             };
 
-            setFormData(basicData);
-            lastSavedDataRef.current = JSON.stringify(basicData);
+            // Tenta carregar rascunho do localStorage
+            const draft = loadDraftFromLocalStorage();
+            profileData = draft || basicData;
+
+            if (draft?.home_address?.description) {
+                setEnderecoManual(draft.home_address.description);
+            }
+
             setIsFirstTime(true);
         }
+
+        setFormData(profileData);
+        lastSavedDataRef.current = JSON.stringify(profileData);
 
         setIsLoading(false);
         setTimeout(() => {
             setIsInitializing(false);
         }, 500);
-    }, [user, profile, checkIfFirstTime]);
+    }, [user, profile, checkIfFirstTime, loadDraftFromLocalStorage]);
 
     // Funções para endereço
     const obterLocalizacao = async () => {
@@ -201,10 +268,13 @@ export default function ProfilePage() {
                 longitude: coords.longitude,
                 description: enderecoManual.trim(),
             });
-            alert("Endereço encontrado!");
+            // Remove alert - feedback visual já é suficiente
         } catch (error) {
             console.error("Erro ao buscar endereço:", error);
-            alert("Não foi possível encontrar o endereço. Verifique se está correto.");
+            const errorMessage = error instanceof Error
+                ? error.message
+                : "Não foi possível encontrar o endereço. Verifique se está correto.";
+            alert(errorMessage);
         } finally {
             setBuscandoEndereco(false);
         }
@@ -283,8 +353,9 @@ export default function ProfilePage() {
     };
 
     // Salvamento automático com debounce
+    // Agora funciona também no primeiro preenchimento (com debounce maior)
     useEffect(() => {
-        if (!user || isLoading || authLoading || isFirstTime || isInitializing) {
+        if (!user || isLoading || authLoading || isInitializing) {
             return;
         }
 
@@ -298,9 +369,12 @@ export default function ProfilePage() {
             return;
         }
 
+        // Debounce maior no primeiro preenchimento (5s vs 2s)
+        const debounceTime = isFirstTime ? 5000 : 2000;
+
         saveTimeoutRef.current = setTimeout(() => {
             saveProfile(formData, false, false);
-        }, 2000);
+        }, debounceTime);
 
         return () => {
             if (saveTimeoutRef.current) {
