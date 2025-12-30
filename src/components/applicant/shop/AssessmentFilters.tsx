@@ -100,14 +100,14 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
             aria-label="Filtros de avaliações"
             className="mb-6 sm:mb-8"
         >
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-3.5 py-3 sm:px-4 sm:py-4">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-4 sm:px-5 lg:px-6 py-5 sm:py-5 lg:py-6">
                 {/* Campo de busca */}
-                <div className="mb-3 sm:mb-4">
+                <div className="mb-5 sm:mb-6">
                     <label htmlFor="assessment-search" className="sr-only">
                         Buscar avaliações
                     </label>
-                    <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2.5 sm:px-4 sm:py-2.5">
-                        <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                    <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-4 py-3 sm:px-4 sm:py-3">
+                        <Search className="w-5 h-5 sm:w-5 sm:h-5 text-slate-400 flex-shrink-0" />
                         <input
                             id="assessment-search"
                             type="search"
@@ -117,26 +117,26 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <p className="mt-1.5 text-[11px] sm:text-xs text-slate-500">
+                    <p className="mt-2.5 text-xs sm:text-xs text-slate-500 pl-1">
                         Ex.: &quot;Fit Cultural&quot;, &quot;FiveMind&quot;, &quot;HexaMind&quot;
                     </p>
                 </div>
 
                 {/* Carrossel de categorias de avaliação */}
-                <div className="mb-3 sm:mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs sm:text-sm font-medium text-slate-700">
+                <div className="mb-5 sm:mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                        <p className="text-sm sm:text-sm font-semibold text-slate-700">
                             Categorias de avaliação
                         </p>
                     </div>
-                    <div className="-mx-3.5 sm:-mx-4">
-                        <div className="flex gap-2 sm:gap-2.5 px-3.5 sm:px-4 pb-1 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent snap-x snap-mandatory">
+                    <div className="-mx-4 sm:-mx-5 lg:-mx-6">
+                        <div className="flex gap-2.5 sm:gap-3 px-4 sm:px-5 lg:px-6 pb-2 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent snap-x snap-mandatory">
                             <button
                                 type="button"
                                 onClick={() => handleTagClick('Todas')}
-                                className={`snap-start whitespace-nowrap rounded-full border px-3 py-1.5 text-xs sm:text-sm font-medium transition-colors ${selectedTag === 'Todas'
-                                    ? 'bg-[#5e9ea0] text-white border-[#5e9ea0]'
-                                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                className={`snap-start whitespace-nowrap rounded-full border px-4 py-2 text-sm sm:text-sm font-semibold transition-all ${selectedTag === 'Todas'
+                                    ? 'bg-[#5e9ea0] text-white border-[#5e9ea0] shadow-sm'
+                                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                                     }`}
                             >
                                 Todas
@@ -146,9 +146,9 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
                                     key={tag}
                                     type="button"
                                     onClick={() => handleTagClick(tag)}
-                                    className={`snap-start whitespace-nowrap rounded-full border px-3 py-1.5 text-xs sm:text-sm font-medium transition-colors ${selectedTag === tag
-                                        ? 'bg-[#5e9ea0] text-white border-[#5e9ea0]'
-                                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                                    className={`snap-start whitespace-nowrap rounded-full border px-4 py-2 text-sm sm:text-sm font-semibold transition-all ${selectedTag === tag
+                                        ? 'bg-[#5e9ea0] text-white border-[#5e9ea0] shadow-sm'
+                                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                                         }`}
                                 >
                                     {tag}
@@ -159,9 +159,9 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
 
                     {/* Aviso de indisponibilidade para tags sem avaliações */}
                     {selectedTagWarning && (
-                        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 sm:px-4 sm:py-3 flex items-start gap-2.5">
-                            <Info className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mt-0.5 flex-shrink-0" />
-                            <p className="text-[11px] sm:text-xs text-amber-900 leading-relaxed">
+                        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 sm:px-4 sm:py-3.5 flex items-start gap-3">
+                            <Info className="w-5 h-5 sm:w-5 sm:h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                            <p className="text-xs sm:text-xs text-amber-900 leading-relaxed">
                                 No momento, ainda não temos avaliações mapeadas para a categoria
                                 <span className="font-semibold"> {selectedTagWarning}</span>. Estamos trabalhando para
                                 trazer assessments dessa área para você em breve.
@@ -173,7 +173,7 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
                 {/* Lista de avaliações filtradas */}
                 <div>
                     {filteredAssessments.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4">
                             {filteredAssessments.map((assessment) => {
                                 const completed = completedAssessments.has(assessment.id);
                                 return (
@@ -187,7 +187,7 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
                             })}
                         </div>
                     ) : (
-                        <p className="text-xs sm:text-sm text-slate-500">
+                        <p className="text-sm sm:text-sm text-slate-500 py-2">
                             {selectedTag === 'Todas' && !searchTerm.trim()
                                 ? 'Nenhuma avaliação disponível no momento.'
                                 : 'Nenhuma avaliação encontrada para os filtros selecionados.'}

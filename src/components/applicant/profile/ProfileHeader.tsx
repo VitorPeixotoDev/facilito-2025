@@ -83,7 +83,7 @@ export function ProfileHeader({ currentStep, saveStatus, onStepClick }: ProfileH
                     </div>
 
                     {/* Indicadores de etapas */}
-                    <div className="flex gap-1.5 sm:gap-2 mt-2 sm:mt-3 overflow-x-auto pb-1 sm:pb-2">
+                    <div className="grid grid-cols-6 gap-1.5 sm:flex sm:gap-2 mt-2 sm:mt-3 pb-1 sm:pb-2">
                         {ONBOARDING_STEPS.map((step) => {
                             const StepIcon = step.icon;
                             const isActive = currentStep === step.id;
@@ -94,14 +94,14 @@ export function ProfileHeader({ currentStep, saveStatus, onStepClick }: ProfileH
                                     key={step.id}
                                     type="button"
                                     onClick={() => onStepClick(step.id)}
-                                    className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer hover:scale-105 active:scale-95 ${isActive
+                                    className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-3 sm:py-2 rounded-lg text-xs sm:text-sm whitespace-nowrap transition-all cursor-pointer hover:scale-105 active:scale-95 min-h-[60px] sm:min-h-0 w-full sm:w-auto ${isActive
                                         ? "bg-[#5e9ea0] text-white shadow-md"
                                         : isCompleted
                                             ? "bg-green-100 text-green-700 hover:bg-green-200"
                                             : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                         }`}
                                 >
-                                    <StepIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    <StepIcon className="w-5 h-5 sm:w-4 sm:h-4 flex-shrink-0" />
                                     <span className="hidden sm:inline">{step.title}</span>
                                 </button>
                             );
