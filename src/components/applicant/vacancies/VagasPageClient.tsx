@@ -5,6 +5,7 @@ import { VagasHeader } from './VagasHeader';
 import { VagaCard } from './VagaCard';
 import { VagaDetailsModal } from './VagaDetailsModal';
 import { VagasEmptyState } from './VagasEmptyState';
+import { MissingDataModal } from './MissingDataModal';
 import type { JobDisplay } from '@/lib/vacancies/types';
 import { getCandidaturasFromStorage, addCandidaturaToStorage, removeCandidaturaFromStorage } from '@/lib/vacancies/clientVacancyService';
 import { applyToJob, removeApplication } from '@/app/applicant/vacancies/actions';
@@ -24,6 +25,12 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
     const [vagaSelecionada, setVagaSelecionada] = useState<JobDisplay | null>(null);
     const [showModalDetalhes, setShowModalDetalhes] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showMissingDataModal, setShowMissingDataModal] = useState(false);
+    const [missingFields, setMissingFields] = useState<{
+        whatsapp?: boolean;
+        email?: boolean;
+        address?: boolean;
+    }>({});
 
     // Sincronizar com localStorage (fallback)
     useEffect(() => {
@@ -83,39 +90,56 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
     const handleToggleCandidatura = async (jobId: string) => {
         const isCurrentlyApplied = candidaturas.includes(jobId);
 
-        // Atualiza UI imediatamente (otimistic update)
-        const updated = isCurrentlyApplied
-            ? candidaturas.filter((id) => id !== jobId)
-            : [...candidaturas, jobId];
-        setCandidaturas(updated);
+        // Se for remover candidatura, não precisa validar dados
+        if (isCurrentlyApplied) {
+            // Atualiza UI imediatamente (otimistic update)
+            const updated = candidaturas.filter((id) => id !== jobId);
+            setCandidaturas(updated);
 
+            try {
+                const result = await removeApplication(jobId);
+                if (result.success) {
+                    removeCandidaturaFromStorage(jobId);
+                } else {
+                    addCandidaturaToStorage(jobId);
+                    console.warn('Falha ao remover candidatura no servidor, usando localStorage:', result.error);
+                }
+            } catch (error) {
+                addCandidaturaToStorage(jobId);
+                console.error('Erro ao remover candidatura:', error);
+            }
+            return;
+        }
+
+        // Para candidatar-se, precisa validar dados primeiro
         try {
-            // Tenta fazer no servidor
-            const result = isCurrentlyApplied ? await removeApplication(jobId) : await applyToJob(jobId);
+            const result = await applyToJob(jobId);
+
+            // Verifica se é erro de dados faltantes
+            if (!result.success && 'error' in result && result.error === 'MISSING_DATA' && 'missingFields' in result) {
+                // Reverte o optimistic update (não havia feito ainda, mas garantindo)
+                setCandidaturas(candidaturas);
+                // Mostra modal de dados faltantes
+                setMissingFields(result.missingFields);
+                setShowMissingDataModal(true);
+                return;
+            }
 
             if (!result.success) {
-                // Se falhar no servidor, usa localStorage como fallback
-                if (isCurrentlyApplied) {
-                    removeCandidaturaFromStorage(jobId);
-                } else {
-                    addCandidaturaToStorage(jobId);
-                }
+                // Se falhar no servidor com outro erro, usa localStorage como fallback
+                const updated = [...candidaturas, jobId];
+                setCandidaturas(updated);
+                addCandidaturaToStorage(jobId);
                 console.warn('Falha ao processar candidatura no servidor, usando localStorage:', result.error);
             } else {
-                // Se sucesso no servidor, sincroniza localStorage
-                if (isCurrentlyApplied) {
-                    removeCandidaturaFromStorage(jobId);
-                } else {
-                    addCandidaturaToStorage(jobId);
-                }
-            }
-        } catch (error) {
-            // Em caso de erro, usa localStorage como fallback
-            if (isCurrentlyApplied) {
-                removeCandidaturaFromStorage(jobId);
-            } else {
+                // Se sucesso no servidor, atualiza estado e sincroniza localStorage
+                const updated = [...candidaturas, jobId];
+                setCandidaturas(updated);
                 addCandidaturaToStorage(jobId);
             }
+        } catch (error) {
+            // Em caso de erro, reverte qualquer mudança
+            setCandidaturas(candidaturas);
             console.error('Erro ao processar candidatura:', error);
         }
     };
@@ -168,6 +192,13 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
                 isCandidatada={vagaSelecionada ? candidaturas.includes(vagaSelecionada.id) : false}
                 onClose={() => setShowModalDetalhes(false)}
                 onToggleCandidatura={handleToggleCandidatura}
+            />
+
+            {/* Modal de Dados Faltantes */}
+            <MissingDataModal
+                isOpen={showMissingDataModal}
+                missingFields={missingFields}
+                onClose={() => setShowMissingDataModal(false)}
             />
         </div>
     );
