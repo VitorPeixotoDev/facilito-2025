@@ -19,12 +19,15 @@ interface VagasPageClientProps {
  * Componente client da página de vagas
  * Gerencia estado, filtros, busca e candidaturas
  */
+type WorkModelFilter = 'todos' | 'presencial' | 'remoto' | 'hibrido';
+
 export default function VagasPageClient({ initialJobs, initialCandidaturas }: VagasPageClientProps) {
     const [activeTab, setActiveTab] = useState<'vagas' | 'candidaturas'>('vagas');
     const [candidaturas, setCandidaturas] = useState<string[]>(initialCandidaturas);
     const [vagaSelecionada, setVagaSelecionada] = useState<JobDisplay | null>(null);
     const [showModalDetalhes, setShowModalDetalhes] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [workModelFilter, setWorkModelFilter] = useState<WorkModelFilter>('todos');
     const [showMissingDataModal, setShowMissingDataModal] = useState(false);
     const [missingFields, setMissingFields] = useState<{
         whatsapp?: boolean;
@@ -65,12 +68,21 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
         return initialJobs.filter((job) => candidaturas.includes(job.id));
     }, [initialJobs, candidaturas]);
 
-    // Filtrar vagas por busca e tab
+    // Filtrar vagas por busca, tab e tipo de trabalho
     const vagasFiltradas = useMemo(() => {
         let filtradas = activeTab === 'vagas'
             ? initialJobs.filter((v) => !candidaturas.includes(v.id))
             : vagasCandidatadas;
 
+        // Filtro por tipo de trabalho (work_model)
+        if (workModelFilter !== 'todos') {
+            filtradas = filtradas.filter((vaga) => {
+                // Compara diretamente o work_model (já está no formato correto)
+                return vaga.work_model === workModelFilter;
+            });
+        }
+
+        // Filtro por busca
         if (searchTerm.trim()) {
             const termoLower = searchTerm.toLowerCase();
             filtradas = filtradas.filter(
@@ -84,7 +96,7 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
         }
 
         return filtradas;
-    }, [activeTab, candidaturas, vagasCandidatadas, searchTerm, initialJobs]);
+    }, [activeTab, candidaturas, vagasCandidatadas, searchTerm, workModelFilter, initialJobs]);
 
     // Toggle candidatura (tenta no servidor, fallback para localStorage)
     const handleToggleCandidatura = async (jobId: string) => {
@@ -157,6 +169,8 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 candidaturasCount={candidaturas.length}
+                workModelFilter={workModelFilter}
+                onWorkModelFilterChange={setWorkModelFilter}
             />
 
             <div className="p-4 space-y-4">
