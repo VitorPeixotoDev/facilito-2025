@@ -14,6 +14,68 @@ import type { AssessmentResult, FiveMindResult, HexaMindResult } from '@/types/a
 import type { Database } from '@/types/supabase';
 
 /**
+ * Adiciona uma certificação ao histórico do usuário
+ * Garante que cada certificação seja única (não importa quantas vezes o usuário concluiu)
+ * 
+ * @param userId - ID do usuário
+ * @param certificationName - Nome da certificação ('fivemind' ou 'sixmind')
+ */
+async function addUserCertification(userId: string, certificationName: 'fivemind' | 'sixmind'): Promise<void> {
+    try {
+        const supabase = createClient();
+
+        // Buscar certificações atuais do usuário
+        const { data: userData, error: fetchError } = await supabase
+            .from('users')
+            .select('certifications')
+            .eq('id', userId)
+            .single();
+
+        if (fetchError) {
+            console.warn(`⚠️ Erro ao buscar certificações do usuário ${userId}:`, fetchError);
+            return;
+        }
+
+        // Obter array atual de certificações (ou array vazio se null)
+        // Usar type assertion pois a coluna pode não estar no tipo gerado ainda
+        const currentCertifications = ((userData as any)?.certifications || []) as string[];
+
+        // Verificar se a certificação já existe (case-insensitive)
+        const certificationLower = certificationName.toLowerCase();
+        const alreadyExists = currentCertifications.some(
+            cert => cert.toLowerCase() === certificationLower
+        );
+
+        if (alreadyExists) {
+            console.log(`ℹ️ Certificação '${certificationName}' já existe para o usuário ${userId}`);
+            return;
+        }
+
+        // Adicionar nova certificação ao array
+        const updatedCertifications = [...currentCertifications, certificationName];
+
+        // Atualizar no banco de dados
+        // Usar type assertion pois a coluna certifications pode não estar no tipo gerado ainda
+        const updateData = {
+            certifications: updatedCertifications,
+            updated_at: new Date().toISOString()
+        };
+        const { error: updateError } = await (supabase
+            .from('users') as any)
+            .update(updateData)
+            .eq('id', userId);
+
+        if (updateError) {
+            console.error(`❌ Erro ao atualizar certificações do usuário ${userId}:`, updateError);
+        } else {
+            console.log(`✅ Certificação '${certificationName}' adicionada ao usuário ${userId}`);
+        }
+    } catch (error) {
+        console.error(`❌ Erro ao adicionar certificação '${certificationName}' ao usuário ${userId}:`, error);
+    }
+}
+
+/**
  * Interface para o resultado de avaliação no banco de dados
  */
 export interface AssessmentResultRow {
@@ -114,6 +176,9 @@ export async function saveAssessmentResult(
 
             console.log('✅ Resultado do FiveMind salvo em five_mind_results:', fiveMindData);
             console.log('🔄 Trigger SQL deve atualizar users.profile_analysis automaticamente com características convertidas');
+
+            // Adicionar certificação 'fivemind' ao histórico do usuário
+            await addUserCertification(userId, 'fivemind');
         }
         // Se for HexaMind, salvar na tabela específica (obrigatório)
         else if (result.assessmentId === 'hexa-mind') {
@@ -138,6 +203,9 @@ export async function saveAssessmentResult(
 
             console.log('✅ Resultado do HexaMind salvo em hexa_mind_results:', hexaMindData);
             console.log('🔄 Trigger SQL deve atualizar users.profile_analysis automaticamente com características convertidas');
+
+            // Adicionar certificação 'sixmind' ao histórico do usuário
+            await addUserCertification(userId, 'sixmind');
         }
         else {
             const error = new Error(`Tipo de avaliação não suportado: ${result.assessmentId}. Apenas 'five-mind' e 'hexa-mind' são suportados.`);
