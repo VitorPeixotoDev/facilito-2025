@@ -107,11 +107,10 @@ export function VagasHeader({
                                                     onWorkModelFilterChange(option.value);
                                                     setIsDropdownOpen(false);
                                                 }}
-                                                className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                                                    workModelFilter === option.value
+                                                className={`w-full text-left px-4 py-2 text-sm transition-colors ${workModelFilter === option.value
                                                         ? 'bg-[#5e9ea0] text-white'
                                                         : 'text-slate-700 hover:bg-slate-100'
-                                                }`}
+                                                    }`}
                                             >
                                                 {option.label}
                                             </button>

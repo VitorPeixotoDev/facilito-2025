@@ -2,7 +2,8 @@
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, BookOpen, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Briefcase, BookOpen, X, Plus } from "lucide-react";
 import { useState } from "react";
 import type { ProfileFormData } from "../ProfileFormSteps";
 import { SKILLS_CATEGORIES } from "@/lib/constants/skills_categories";
@@ -22,6 +23,11 @@ export function SkillsAndCoursesStep({ formData, updateFormField }: SkillsAndCou
     const [novaCategoriaHabilidade, setNovaCategoriaHabilidade] = useState("");
     const [novaCategoriaCurso, setNovaCategoriaCurso] = useState("");
     const [novaCategoriaServico, setNovaCategoriaServico] = useState("");
+
+    // Estados para campos de inserção livre
+    const [customHabilidade, setCustomHabilidade] = useState("");
+    const [customCurso, setCustomCurso] = useState("");
+    const [customServico, setCustomServico] = useState("");
 
     const skills = formData.skills || [];
     const courses = formData.courses || [];
@@ -55,6 +61,53 @@ export function SkillsAndCoursesStep({ formData, updateFormField }: SkillsAndCou
 
     const removerServico = (index: number) => {
         updateFormField("freelancer_services", freelancerServices.filter((_, i) => i !== index));
+    };
+
+    // Funções para adicionar valores customizados
+    const adicionarHabilidadeCustom = () => {
+        const valor = customHabilidade.trim();
+        if (valor && !skills.includes(valor)) {
+            adicionarHabilidade(valor);
+            setCustomHabilidade("");
+        }
+    };
+
+    const adicionarCursoCustom = () => {
+        const valor = customCurso.trim();
+        if (valor && !courses.includes(valor)) {
+            adicionarCurso(valor);
+            setCustomCurso("");
+        }
+    };
+
+    const adicionarServicoCustom = () => {
+        const valor = customServico.trim();
+        if (valor && !freelancerServices.includes(valor)) {
+            adicionarServico(valor);
+            setCustomServico("");
+        }
+    };
+
+    // Handlers para Enter nos inputs customizados
+    const handleHabilidadeKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            adicionarHabilidadeCustom();
+        }
+    };
+
+    const handleCursoKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            adicionarCursoCustom();
+        }
+    };
+
+    const handleServicoKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            adicionarServicoCustom();
+        }
     };
 
     return (
@@ -97,6 +150,32 @@ export function SkillsAndCoursesStep({ formData, updateFormField }: SkillsAndCou
                         categoryLabel="Escolha de categorias:"
                         categoryIcon={Briefcase}
                     />
+
+                    {/* Campo para adicionar habilidade customizada */}
+                    <div className="border-t border-slate-200 pt-4">
+                        <label className="text-sm font-semibold text-slate-700 mb-2 block">
+                            Ou adicione uma habilidade personalizada:
+                        </label>
+                        <div className="flex gap-2">
+                            <Input
+                                type="text"
+                                placeholder="Digite o nome da habilidade..."
+                                value={customHabilidade}
+                                onChange={(e) => setCustomHabilidade(e.target.value)}
+                                onKeyPress={handleHabilidadeKeyPress}
+                                className="flex-1"
+                            />
+                            <button
+                                type="button"
+                                onClick={adicionarHabilidadeCustom}
+                                disabled={!customHabilidade.trim() || skills.includes(customHabilidade.trim())}
+                                className="px-4 py-2 bg-[#5f9ea0] text-white rounded-md hover:bg-[#4a8b8f] disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span className="hidden sm:inline">Adicionar</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </Card>
 
@@ -138,6 +217,32 @@ export function SkillsAndCoursesStep({ formData, updateFormField }: SkillsAndCou
                         categoryLabel="Escolha de categorias:"
                         categoryIcon={BookOpen}
                     />
+
+                    {/* Campo para adicionar curso customizado */}
+                    <div className="border-t border-slate-200 pt-4">
+                        <label className="text-sm font-semibold text-slate-700 mb-2 block">
+                            Ou adicione uma formação personalizada:
+                        </label>
+                        <div className="flex gap-2">
+                            <Input
+                                type="text"
+                                placeholder="Digite o nome do curso ou formação..."
+                                value={customCurso}
+                                onChange={(e) => setCustomCurso(e.target.value)}
+                                onKeyPress={handleCursoKeyPress}
+                                className="flex-1"
+                            />
+                            <button
+                                type="button"
+                                onClick={adicionarCursoCustom}
+                                disabled={!customCurso.trim() || courses.includes(customCurso.trim())}
+                                className="px-4 py-2 bg-[#5f9ea0] text-white rounded-md hover:bg-[#4a8b8f] disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span className="hidden sm:inline">Adicionar</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </Card>
 
@@ -179,6 +284,32 @@ export function SkillsAndCoursesStep({ formData, updateFormField }: SkillsAndCou
                         categoryLabel="Escolha de categorias:"
                         categoryIcon={Briefcase}
                     />
+
+                    {/* Campo para adicionar serviço customizado */}
+                    <div className="border-t border-slate-200 pt-4">
+                        <label className="text-sm font-semibold text-slate-700 mb-2 block">
+                            Ou adicione um serviço personalizado:
+                        </label>
+                        <div className="flex gap-2">
+                            <Input
+                                type="text"
+                                placeholder="Digite o nome do serviço..."
+                                value={customServico}
+                                onChange={(e) => setCustomServico(e.target.value)}
+                                onKeyPress={handleServicoKeyPress}
+                                className="flex-1"
+                            />
+                            <button
+                                type="button"
+                                onClick={adicionarServicoCustom}
+                                disabled={!customServico.trim() || freelancerServices.includes(customServico.trim())}
+                                className="px-4 py-2 bg-[#5f9ea0] text-white rounded-md hover:bg-[#4a8b8f] disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span className="hidden sm:inline">Adicionar</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </Card>
         </>
