@@ -31,6 +31,7 @@ export interface UserProfile {
     profile_completed: boolean;
     profile_analysis: string[];
     authorized_competencies?: string[];
+    graduations?: string[];
     created_at: string;
     updated_at: string | null;
 }
