@@ -30,6 +30,7 @@ export interface CandidateProfile {
     home_address: UserLocation | null;
     profile_analysis: string[] | null;
     profile_completed: boolean;
+    graduations?: string[];
     // Future fields (optional for gradual implementation)
     experience_years?: number | null;
     profile_photo?: boolean | null;
@@ -128,6 +129,7 @@ export interface CandidateRankingResult {
     coursesCount?: number;      // Number of courses (for display)
     skillsCount?: number;       // Number of skills (for display)
     profileAnalysis?: string[] | null; // Profile analysis strings (for display)
+    graduations?: string[];     // Graduations array (for display)
 }
 
 /**

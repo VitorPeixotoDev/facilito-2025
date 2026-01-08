@@ -29,7 +29,8 @@ async function fetchCandidatesFromDatabaseServer(
                 academic_background,
                 home_address,
                 profile_analysis,
-                profile_completed
+                profile_completed,
+                graduations
             `)
             .neq('id', userId)
             .limit(limit)
@@ -61,6 +62,7 @@ async function fetchCandidatesFromDatabaseServer(
                 : null,
             profile_analysis: row.profile_analysis || [],
             profile_completed: row.profile_completed || false,
+            graduations: row.graduations || [],
         }))
     } catch (error) {
         console.error('Error in fetchCandidatesFromDatabaseServer:', error)
@@ -88,7 +90,8 @@ async function fetchUserProfileServer(userId: string): Promise<CandidateProfile 
                 academic_background,
                 home_address,
                 profile_analysis,
-                profile_completed
+                profile_completed,
+                graduations
             `)
             .eq('id', userId)
             .single()
@@ -121,6 +124,7 @@ async function fetchUserProfileServer(userId: string): Promise<CandidateProfile 
                 : null,
             profile_analysis: profile.profile_analysis || [],
             profile_completed: profile.profile_completed || false,
+            graduations: profile.graduations || [],
         }
     } catch (error) {
         console.error('Error in fetchUserProfileServer:', error)

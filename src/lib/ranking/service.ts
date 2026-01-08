@@ -40,7 +40,8 @@ export async function fetchCandidatesFromDatabase(
                 academic_background,
                 home_address,
                 profile_analysis,
-                profile_completed
+                profile_completed,
+                graduations
             `)
             .neq('id', userId)
             .limit(limit);
@@ -73,6 +74,7 @@ export async function fetchCandidatesFromDatabase(
                 : null,
             profile_analysis: row.profile_analysis || [],
             profile_completed: row.profile_completed || false,
+            graduations: row.graduations || [],
         }));
     } catch (error) {
         console.error('Error in fetchCandidatesFromDatabase:', error);
@@ -103,7 +105,8 @@ export async function fetchUserProfile(userId: string): Promise<CandidateProfile
                 academic_background,
                 home_address,
                 profile_analysis,
-                profile_completed
+                profile_completed,
+                graduations
             `)
             .eq('id', userId)
             .single();
@@ -136,6 +139,7 @@ export async function fetchUserProfile(userId: string): Promise<CandidateProfile
                 : null,
             profile_analysis: profile.profile_analysis || [],
             profile_completed: profile.profile_completed || false,
+            graduations: profile.graduations || [],
         };
     } catch (error) {
         console.error('Error in fetchUserProfile:', error);
@@ -367,7 +371,8 @@ function runRankingInWorker(
                         // Display-only fields (for UI, does not affect ranking logic)
                         coursesCount: candidate.courses?.length || 0,
                         skillsCount: candidate.skills?.length || 0,
-                        profileAnalysis: candidate.profile_analysis || null
+                        profileAnalysis: candidate.profile_analysis || null,
+                        graduations: candidate.graduations || []
                     }));
                     
                     // Step 3: Sort all candidates by score (descending)
@@ -403,7 +408,8 @@ function runRankingInWorker(
                                 // Display-only fields (for UI, does not affect ranking logic)
                                 coursesCount: user.courses?.length || 0,
                                 skillsCount: user.skills?.length || 0,
-                                profileAnalysis: user.profile_analysis || null
+                                profileAnalysis: user.profile_analysis || null,
+                                graduations: user.graduations || []
                             },
                             rankedCandidates: top20,
                             userInTop20: userInTop20 || false,

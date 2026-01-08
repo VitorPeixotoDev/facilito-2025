@@ -3,12 +3,15 @@
 import { useState, useEffect } from 'react';
 import { getUserAssessments, getPredominantAnalysisForAssessment, type UserAssessment } from '@/lib/assessment/userAssessmentsService';
 import type { AssessmentConfig } from '@/types/assessments';
+import { getGraduationsInfo } from '@/lib/constants/graduations';
+import GraduationModal from './GraduationModal';
 
 interface SkillsAndCoursesSectionProps {
     skills: string[];
     courses: string[];
     profileAnalysis: string[];
     authorizedCompetencies?: string[];
+    graduations?: string[];
     userId: string;
     onAssessmentClick?: (assessment: AssessmentConfig) => void;
 }
@@ -23,14 +26,18 @@ export default function SkillsAndCoursesSection({
     courses,
     profileAnalysis,
     authorizedCompetencies = [],
+    graduations = [],
     userId,
     onAssessmentClick,
 }: SkillsAndCoursesSectionProps) {
     const hasSkills = skills && skills.length > 0;
     const hasCourses = courses && courses.length > 0;
     const hasAuthorizedCompetencies = authorizedCompetencies && authorizedCompetencies.length > 0;
+    const hasGraduations = graduations && graduations.length > 0;
     const [assessmentItems, setAssessmentItems] = useState<AssessmentDisplayItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedGraduation, setSelectedGraduation] = useState<string | null>(null);
+    const [isGraduationModalOpen, setIsGraduationModalOpen] = useState(false);
 
     // Busca todas as avaliações realizadas e suas análises predominantes
     useEffect(() => {
@@ -64,7 +71,19 @@ export default function SkillsAndCoursesSection({
         }
     }, [userId]);
 
-    if (!hasSkills && !hasCourses && !hasAuthorizedCompetencies && assessmentItems.length === 0 && !loading) {
+    const graduationsInfo = hasGraduations ? getGraduationsInfo(graduations) : [];
+
+    const handleGraduationClick = (graduationKey: string) => {
+        setSelectedGraduation(graduationKey);
+        setIsGraduationModalOpen(true);
+    };
+
+    const handleCloseGraduationModal = () => {
+        setIsGraduationModalOpen(false);
+        setSelectedGraduation(null);
+    };
+
+    if (!hasSkills && !hasCourses && !hasAuthorizedCompetencies && !hasGraduations && assessmentItems.length === 0 && !loading) {
         return null;
     }
 
@@ -156,6 +175,41 @@ export default function SkillsAndCoursesSection({
                     </div>
                 </div>
             )}
+            {hasGraduations && graduationsInfo.length > 0 && (
+                <div>
+                    <p className="text-xs text-[#5f9ea0] mb-1.5 font-medium uppercase tracking-wide">Graduações</p>
+                    <div className="flex flex-wrap items-start gap-4">
+                        {graduationsInfo.map((graduation) => (
+                            <div
+                                key={graduation.key}
+                                className="flex flex-col items-center gap-1 cursor-pointer"
+                                onClick={() => handleGraduationClick(graduation.key)}
+                            >
+                                {graduation.imageSrc && (
+                                    <div className="w-12 h-12 rounded-full border-2 border-[#5f9ea0]/20 flex items-center justify-center overflow-hidden bg-white flex-shrink-0 hover:border-[#5f9ea0] transition-colors">
+                                        <img
+                                            src={graduation.imageSrc}
+                                            alt={graduation.label}
+                                            className="w-full h-full object-contain"
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-[#5f9ea0]/10 text-[#111] border border-[#5f9ea0]/30 hover:bg-[#5f9ea0]/20 transition-colors">
+                                    {graduation.label}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+            <GraduationModal
+                isOpen={isGraduationModalOpen}
+                graduationKey={selectedGraduation}
+                onClose={handleCloseGraduationModal}
+            />
         </section>
     );
 }

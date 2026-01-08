@@ -1,10 +1,11 @@
 "use client";
 
-import { Trophy, Award, MapPin, Briefcase, BookOpen, TrendingUp } from 'lucide-react';
+import { Trophy, Award, MapPin, Briefcase, BookOpen, TrendingUp, GraduationCap } from 'lucide-react';
 import type { CandidateRankingResult } from '@/lib/ranking/types';
 import CandidateRankingRightSide from './CandidateRankingRightSide';
 import { extractAssessmentIds } from '@/lib/assessment/profileAnalysisMapper';
 import { getAssessmentById } from '@/lib/assessment/assessmentsConfig';
+import { getGraduationsInfo } from '@/lib/constants/graduations';
 
 /**
  * Helper function to get assessment image path by ID
@@ -131,6 +132,9 @@ export default function CandidateRankingList({
             {candidates.map((candidate) => {
                 const assessmentIcons = getCandidateAssessmentIcons(candidate.profileAnalysis);
                 const rankColors = getRankBadgeColors(candidate.rank);
+                const graduationsInfo = candidate.graduations && candidate.graduations.length > 0
+                    ? getGraduationsInfo(candidate.graduations)
+                    : [];
                 return (
                     <div
                         key={candidate.candidateId}
@@ -178,6 +182,39 @@ export default function CandidateRankingList({
                                                 </div>
                                                 <span className="text-xs text-[#111]/80 text-center font-medium leading-tight">
                                                     {assessment.name}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Graduations */}
+                                {graduationsInfo.length > 0 && (
+                                    <div className="flex items-start gap-4 flex-wrap mb-2">
+                                        {graduationsInfo.map((graduation) => (
+                                            <div
+                                                key={graduation.key}
+                                                className="flex flex-col items-center gap-2 min-w-[70px]"
+                                            >
+                                                <div className="w-14 h-14 rounded-full border-2 border-[#5f9ea0]/20 flex items-center justify-center overflow-hidden bg-white flex-shrink-0 shadow-sm">
+                                                    {graduation.imageSrc ? (
+                                                        <img
+                                                            src={graduation.imageSrc}
+                                                            alt={graduation.label}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                e.currentTarget.style.display = 'none';
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                                                            <GraduationCap className="w-6 h-6 text-[#5f9ea0]" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="inline-flex items-center gap-1.5 text-xs text-[#111]/80 text-center font-medium leading-tight">
+                                                    <GraduationCap className="w-3 h-3 text-[#5f9ea0]" />
+                                                    {graduation.label}
                                                 </span>
                                             </div>
                                         ))}
