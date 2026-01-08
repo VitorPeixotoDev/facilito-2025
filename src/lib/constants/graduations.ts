@@ -65,6 +65,20 @@ Impacto Social: Prioriza mulheres, PCDs, pessoas pretas, pessoas com mais de 45 
             name: 'ADA',
             url: 'serratec.org'
         }
+    },
+    bis: {
+        key: 'bis',
+        label: '14 BIS - Business Intelligence Specialist - Serratec',
+        imageSrc: '/bis_14.png',
+        description: {
+            title: 'Distinção 14 Bis: O Selo dos Pioneiros que Decolam Ideias do Papel',
+            header: 'Uma honraria conferida aos residentes do Serratecque, como Santos Dumont, transformam teoria em realidade palpável, fundando a startup interna de prototipagem e engenharia ágil que tira projetos do papel e os faz "decolar" no mercado.',
+            body: 'No ecossistema empreendedor do Serratec, a Startup 14 Bis é o grupo dos realizadores visionários. Batizada em homenagem ao feito histórico do inventor petropolitano de coração Alberto Santos Dumont, esta distinção é para aqueles que possuem a coragem de construir, testar e iterar. Seu domínio não é apenas a teoria, mas a aplicação prática: prototipagem rápida, desenvolvimento de MVP (Produto Mínimo Viável), engenharia de hardware embarcado e soluções IoT. Os integrantes da 14 Bis são os que pegam um desafio complexo de uma empresa parceira e, em tempo recorde, apresentam um protótipo funcional que valida a viabilidade da ideia — dando o "primeiro voo" a uma solução que parecia impossível. Receber este selo é ser reconhecido não só como um excelente desenvolvedor, mas como um pioneiro que entrega resultados tangíveis e inaugura novos caminhos.'
+        },
+        developer: {
+            name: '14 BIS',
+            url: 'serratec.org'
+        }
     }
 };
 
