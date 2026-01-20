@@ -11,7 +11,7 @@ export function ApplicantTopNav() {
     const { user, loading } = useAuth();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-    // acrescentando apenas para o commit
+
     // Só mostra a navbar depois de carregar o estado de auth
     // e apenas se houver usuário logado
     if (loading || !user) {
