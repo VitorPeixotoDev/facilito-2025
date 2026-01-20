@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ export default function ProfilePage() {
         contact_email: "",
         portfolio: "",
     });
+    const [stepError, setStepError] = useState<string | null>(null);
 
     const updateFormField = <K extends keyof ProfileFormData>(
         field: K,
@@ -347,6 +349,81 @@ export default function ProfilePage() {
     );
 
     // Salvar perfil (submit manual)
+    const validateStep = (step: number): boolean => {
+        // Validações simples por etapa. Ajuste conforme necessidade de negócio.
+        switch (step) {
+            case 1: {
+                const errors: string[] = [];
+                if (!formData.full_name?.trim()) {
+                    errors.push("Informe seu nome completo.");
+                }
+                if (!formData.birth_date?.trim()) {
+                    errors.push("Informe sua data de nascimento.");
+                }
+                if (!formData.email?.trim()) {
+                    errors.push("Informe um email.");
+                } else {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(formData.email)) {
+                        errors.push("Informe um email válido.");
+                    }
+                }
+                if (errors.length) {
+                    setStepError(errors.join(" "));
+                    return false;
+                }
+                break;
+            }
+            case 2: {
+                if (
+                    (!formData.skills || formData.skills.length === 0) &&
+                    (!formData.courses || formData.courses.length === 0) &&
+                    (!formData.freelancer_services || formData.freelancer_services.length === 0)
+                ) {
+                    setStepError("Adicione pelo menos uma habilidade, curso ou serviço freelance.");
+                    return false;
+                }
+                break;
+            }
+            case 3: {
+                if (!formData.experience?.trim() && !formData.academic_background?.trim()) {
+                    setStepError("Preencha sua experiência ou formação acadêmica.");
+                    return false;
+                }
+                break;
+            }
+            case 4: {
+                if (!formData.home_address || !formData.home_address.description?.trim()) {
+                    setStepError("Informe seu endereço ou use a localização para prosseguir.");
+                    return false;
+                }
+                break;
+            }
+            case 5: {
+                const errors: string[] = [];
+
+                if (!formData.contact_email?.trim()) {
+                    errors.push("Informe um email para contato.");
+                }
+
+                if (!formData.whatsapp?.trim()) {
+                    errors.push("Informe seu WhatsApp.");
+                }
+
+                if (errors.length) {
+                    setStepError(errors.join(" "));
+                    return false;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        setStepError(null);
+        return true;
+    };
+
     const onSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         await saveProfile(formData, true, true);
@@ -392,7 +469,7 @@ export default function ProfilePage() {
     ]);
 
     const nextStep = () => {
-        if (currentStep < ONBOARDING_STEPS.length) {
+        if (currentStep < ONBOARDING_STEPS.length && validateStep(currentStep)) {
             setCurrentStep(currentStep + 1);
         }
     };
@@ -404,7 +481,17 @@ export default function ProfilePage() {
     };
 
     const goToStep = (stepId: number) => {
-        if (stepId >= 1 && stepId <= ONBOARDING_STEPS.length) {
+        if (stepId < 1 || stepId > ONBOARDING_STEPS.length) return;
+
+        if (stepId <= currentStep) {
+            // Sempre permite voltar ou ir para etapas anteriores
+            setCurrentStep(stepId);
+            setStepError(null);
+            return;
+        }
+
+        // Para avançar para etapas futuras, valida a etapa atual
+        if (validateStep(currentStep)) {
             setCurrentStep(stepId);
         }
     };
@@ -437,7 +524,7 @@ export default function ProfilePage() {
                 onStepClick={goToStep}
             />
 
-            <div className="max-w-4xl mx-auto p-4 lg:p-6">
+            <div className="max-w-6xl mx-auto p-4 lg:p-8">
                 {/* Aviso para primeira vez preenchendo o perfil */}
                 {isFirstTime && (
                     <div className="mb-6 rounded-xl border-l-4 border-amber-500 bg-gradient-to-br from-amber-50 to-amber-50/50 p-4 sm:p-5 shadow-sm">
@@ -473,6 +560,12 @@ export default function ProfilePage() {
                         onBuscarEndereco={buscarEnderecoManual}
                     />
 
+                    {stepError && (
+                        <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                            {stepError}
+                        </div>
+                    )}
+
                     {/* Botões de navegação */}
                     <div className="flex gap-3 pt-4">
                         {currentStep > 1 && (
@@ -495,25 +588,33 @@ export default function ProfilePage() {
                                 Próximo
                             </Button>
                         ) : (
-                            isFirstTime && (
-                                <Button
-                                    type="submit"
-                                    className="flex-1 bg-[#5e9ea0] hover:bg-[#4a8b8f] text-white h-12 text-base font-semibold"
-                                    disabled={isSaving}
+                            <div className="flex flex-1 gap-3">
+                                {isFirstTime && (
+                                    <Button
+                                        type="submit"
+                                        className="flex-1 bg-[#5e9ea0] hover:bg-[#4a8b8f] text-white h-12 text-base font-semibold"
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                                Salvando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-5 h-5 mr-2" />
+                                                Finalizar e Salvar
+                                            </>
+                                        )}
+                                    </Button>
+                                )}
+                                <Link
+                                    href="/applicant/vacancies"
+                                    className="flex-1 inline-flex items-center justify-center rounded-md border border-slate-300 bg-white h-12 text-base font-medium text-slate-700 hover:bg-slate-50 transition-colors"
                                 >
-                                    {isSaving ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                            Salvando...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="w-5 h-5 mr-2" />
-                                            Finalizar e Salvar
-                                        </>
-                                    )}
-                                </Button>
-                            )
+                                    Ir para Vagas
+                                </Link>
+                            </div>
                         )}
                     </div>
 

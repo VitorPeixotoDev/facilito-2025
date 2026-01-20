@@ -25,7 +25,9 @@ export function PersonalInfoStep({ formData, updateFormField }: PersonalInfoStep
                 <div>
                     <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
                         <User className="w-4 h-4 text-[#5e9ea0]" />
-                        Nome Completo
+                        <span>
+                            Nome Completo <span className="text-red-500">*</span>
+                        </span>
                     </label>
                     <Input
                         placeholder="Seu nome completo"
@@ -37,7 +39,9 @@ export function PersonalInfoStep({ formData, updateFormField }: PersonalInfoStep
                 <div>
                     <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
                         <Mail className="w-4 h-4 text-[#5e9ea0]" />
-                        Email
+                        <span>
+                            Email <span className="text-red-500">*</span>
+                        </span>
                     </label>
                     <Input
                         type="email"
@@ -50,7 +54,9 @@ export function PersonalInfoStep({ formData, updateFormField }: PersonalInfoStep
                 <div>
                     <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
                         <Calendar className="w-4 h-4 text-[#5e9ea0]" />
-                        Data de Nascimento
+                        <span>
+                            Data de Nascimento <span className="text-red-500">*</span>
+                        </span>
                     </label>
                     <Input
                         type="date"

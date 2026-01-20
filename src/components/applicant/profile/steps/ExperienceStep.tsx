@@ -18,7 +18,9 @@ export function ExperienceStep({ formData, updateFormField }: ExperienceStepProp
             <Card className="p-4 sm:p-6 shadow-lg mb-4">
                 <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                     <Briefcase className="w-5 h-5 text-[#5e9ea0]" />
-                    Experiência Profissional
+                    <span>
+                        Experiência Profissional <span className="text-red-500">*</span>
+                    </span>
                 </h2>
 
                 <textarea
@@ -32,7 +34,9 @@ export function ExperienceStep({ formData, updateFormField }: ExperienceStepProp
             <Card className="p-4 sm:p-6 shadow-lg">
                 <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                     <GraduationCap className="w-5 h-5 text-[#5e9ea0]" />
-                    Formação Acadêmica
+                    <span>
+                        Formação Acadêmica <span className="text-red-500">*</span>
+                    </span>
                 </h2>
 
                 <textarea

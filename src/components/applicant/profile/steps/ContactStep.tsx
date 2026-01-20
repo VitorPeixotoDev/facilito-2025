@@ -74,7 +74,9 @@ export function ContactStep({ formData, updateFormField }: ContactStepProps) {
                 <div>
                     <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
                         <Mail className="w-4 h-4 text-[#5e9ea0]" />
-                        Email para Contato
+                        <span>
+                            Email para Contato <span className="text-red-500">*</span>
+                        </span>
                     </label>
                     <Input
                         type="email"
