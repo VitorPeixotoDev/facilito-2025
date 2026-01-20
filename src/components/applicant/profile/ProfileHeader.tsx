@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { User, Briefcase, GraduationCap, MapPin, Mail, FileText, CheckCircle2, X, Loader2, Menu } from "lucide-react";
+import { User, Briefcase, GraduationCap, MapPin, Mail, FileText, CheckCircle2, X, Loader2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { ProfileMenuDrawer } from "./ProfileMenuDrawer";
 
 export interface OnboardingStep {
     id: number;
@@ -27,14 +25,13 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ currentStep, saveStatus, onStepClick }: ProfileHeaderProps) {
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const progressPercentage = (currentStep / ONBOARDING_STEPS.length) * 100;
     const currentStepData = ONBOARDING_STEPS[currentStep - 1];
 
     return (
         <>
             <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm pt-2 sm:pt-4">
-                <div className="max-w-4xl mx-auto px-4 py-2 sm:py-3">
+                <div className="max-w-6xl mx-auto px-4 py-2 sm:py-3">
                     <div className="flex items-center justify-between mb-2 sm:mb-3">
                         <div className="flex-1">
                             <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
@@ -60,17 +57,8 @@ export function ProfileHeader({ currentStep, saveStatus, onStepClick }: ProfileH
                                 </div>
                             )}
                         </div>
-                        <div className="flex items-center gap-2 sm:gap-3">
-                            <div className="text-xs sm:text-sm text-slate-600">
-                                {currentStep} de {ONBOARDING_STEPS.length}
-                            </div>
-                            <button
-                                onClick={() => setIsDrawerOpen(true)}
-                                className="p-2 hover:bg-slate-100 rounded-full transition-colors flex-shrink-0"
-                                aria-label="Abrir menu"
-                            >
-                                <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-slate-700" />
-                            </button>
+                        <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-slate-600">
+                            {currentStep} de {ONBOARDING_STEPS.length}
                         </div>
                     </div>
 
@@ -110,10 +98,6 @@ export function ProfileHeader({ currentStep, saveStatus, onStepClick }: ProfileH
                 </div>
             </div>
 
-            <ProfileMenuDrawer
-                isOpen={isDrawerOpen}
-                onClose={() => setIsDrawerOpen(false)}
-            />
         </>
     );
 }

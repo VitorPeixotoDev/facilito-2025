@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { FileText, Baby, Car } from "lucide-react";
 import type { ProfileFormData } from "../ProfileFormSteps";
@@ -75,6 +76,19 @@ export function AdditionalInfoStep({ formData, updateFormField }: AdditionalInfo
                             </button>
                         ))}
                     </div>
+                </div>
+
+                {/* CTA para vagas */}
+                <div className="pt-4 border-t border-slate-200">
+                    <p className="text-sm text-slate-600 mb-3">
+                        Pronto! Agora que suas informações adicionais estão completas, você já pode visualizar e se candidatar às vagas disponíveis.
+                    </p>
+                    <Link
+                        href="/applicant/vacancies"
+                        className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-[#5e9ea0] text-white text-sm font-medium hover:bg-[#4a8b8f] transition-colors shadow-sm"
+                    >
+                        Ir para Vagas
+                    </Link>
                 </div>
             </div>
         </Card>
