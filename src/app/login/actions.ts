@@ -38,7 +38,7 @@ export async function signup(email: string, password: string) {
         email,
         password,
         options: {
-            emailRedirectTo: `${getURL()}auth/callback`,
+            emailRedirectTo: 'https://facilitovagas.com/auth/callback',
             data: {
                 app_type: 'user',
             },
