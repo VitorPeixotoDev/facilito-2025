@@ -61,19 +61,19 @@ export function RecommendationsSection({ profile, rankingResult, userAssessments
                     className="w-full flex items-start justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4"
                 >
                     <div className="flex items-start gap-3">
-                        <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-[#5e9ea0]/10 text-[#5e9ea0]">
-                            <Lightbulb className="w-4 h-4" />
+                        <div className="mt-0.5 flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-[#5e9ea0]/10 text-[#5e9ea0]">
+                            <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
                         <div className="flex-1 min-w-0 text-left">
-                            <h2 className="text-base sm:text-lg font-semibold text-slate-900">
+                            <h2 className="text-lg sm:text-xl font-semibold text-slate-900">
                                 Como você pode subir ainda mais no ranking
                             </h2>
-                            <p className="mt-1 text-xs sm:text-sm text-slate-600">
+                            <p className="mt-1 text-sm sm:text-base text-slate-600">
                                 Sugestões de formações e avaliações alinhadas ao seu perfil atual para fortalecer seu
                                 score e se destacar entre candidatos similares.
                             </p>
                             {userScore !== null && (
-                                <p className="mt-2 w-full bg-[#5e9ea0]/5 px-3 py-2 text-[11px] sm:text-xs text-[#111] border border-[#5e9ea0]/20">
+                                <p className="mt-2 w-full bg-[#5e9ea0]/5 px-3 py-2 text-xs sm:text-sm text-[#111] border border-[#5e9ea0]/20">
                                     Seu score atual é{' '}
                                     <span className="font-semibold text-[#5e9ea0]">
                                         {userScore.toFixed(1)} / 100
@@ -83,10 +83,10 @@ export function RecommendationsSection({ profile, rankingResult, userAssessments
                             )}
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-[#5e9ea0] ml-2 sm:ml-4">
+                    <div className="flex items-center gap-2 text-sm sm:text-base text-[#5e9ea0] ml-2 sm:ml-4">
                         <span>{isExpanded ? 'Recolher' : 'Ver sugestões'}</span>
                         <ChevronDown
-                            className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                            className={`w-5 h-5 sm:w-5 sm:h-5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                         />
                     </div>
                 </button>
@@ -97,10 +97,10 @@ export function RecommendationsSection({ profile, rankingResult, userAssessments
                             {/* Recomendações de cursos */}
                             {Object.keys(coursesByTheme).length > 0 && (
                                 <div>
-                                    <h3 className="text-sm sm:text-base font-semibold text-slate-900 mb-2">
+                                    <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
                                         Sugestões de cursos por tema
                                     </h3>
-                                    <p className="text-[11px] sm:text-xs text-slate-600 mb-3">
+                                    <p className="text-xs sm:text-sm text-slate-600 mb-3">
                                         Cursos ajudam a compor até 60% do seu score no ranking. Foque em formações que
                                         complementem suas habilidades atuais.
                                     </p>
@@ -109,10 +109,10 @@ export function RecommendationsSection({ profile, rankingResult, userAssessments
                                         {Object.entries(coursesByTheme).map(([theme, recs]) => (
                                             <div key={theme} className="border border-slate-100 rounded-xl p-3 sm:p-4 bg-slate-50/60">
                                                 <div className="flex items-center justify-between gap-2 mb-2">
-                                                    <p className="text-xs sm:text-sm font-semibold text-slate-900">
+                                                    <p className="text-sm sm:text-base font-semibold text-slate-900">
                                                         {theme}
                                                     </p>
-                                                    <span className="text-[10px] sm:text-[11px] text-slate-500">
+                                                    <span className="text-xs sm:text-sm text-slate-500">
                                                         {recs.length} sugestão(ões)
                                                     </span>
                                                 </div>
@@ -125,10 +125,10 @@ export function RecommendationsSection({ profile, rankingResult, userAssessments
                                                         >
                                                             <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[#5e9ea0] flex-shrink-0" />
                                                             <div className="flex-1 min-w-0">
-                                                                <p className="text-xs sm:text-sm font-medium text-slate-900">
+                                                                <p className="text-sm sm:text-base font-medium text-slate-900">
                                                                     {course.courseName}
                                                                 </p>
-                                                                <p className="mt-0.5 text-[10px] sm:text-xs text-slate-600">
+                                                                <p className="mt-0.5 text-xs sm:text-sm text-slate-600">
                                                                     {course.levelLabel === 'Técnico / Livre' &&
                                                                         'Boa porta de entrada rápida para fortalecer seu histórico de cursos.'}
                                                                     {course.levelLabel === 'Graduação' &&
@@ -139,7 +139,7 @@ export function RecommendationsSection({ profile, rankingResult, userAssessments
                                                                         'Formações stricto sensu têm forte impacto em posições que valorizam pesquisa e senioridade.'}
                                                                 </p>
                                                                 {course.deltaScore > 0.05 && (
-                                                                    <p className="mt-0.5 text-[10px] sm:text-xs text-emerald-700">
+                                                                    <p className="mt-0.5 text-xs sm:text-sm text-emerald-700">
                                                                         Ao concluir este curso, seu score poderia aumentar em aproximadamente{' '}
                                                                         <span className="font-semibold">
                                                                             +{course.deltaScore.toFixed(1)} ponto(s)
@@ -148,8 +148,8 @@ export function RecommendationsSection({ profile, rankingResult, userAssessments
                                                                     </p>
                                                                 )}
                                                                 {course.matchedSkills.length > 0 && (
-                                                                    <p className="mt-0.5 text-[10px] sm:text-xs text-[#5e9ea0] flex items-center gap-1">
-                                                                        <ArrowRight className="w-3 h-3" />
+                                                                    <p className="mt-0.5 text-xs sm:text-sm text-[#5e9ea0] flex items-center gap-1">
+                                                                        <ArrowRight className="w-4 h-4" />
                                                                         Potencializa habilidades que você já declarou, como
                                                                         <span className="font-medium">
                                                                             {' '}
@@ -172,17 +172,17 @@ export function RecommendationsSection({ profile, rankingResult, userAssessments
                             {/* Recomendações de avaliações */}
                             {Object.keys(assessmentsByTag).length > 0 && (
                                 <div>
-                                    <h3 className="text-sm sm:text-base font-semibold text-slate-900 mb-2">
+                                    <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
                                         Sugestões de avaliações por tema
                                     </h3>
-                                    <p className="text-[11px] sm:text-xs text-slate-600 mb-3">
+                                    <p className="text-xs sm:text-sm text-slate-600 mb-3">
                                         Avaliações geram análises de perfil e habilidades diferenciais que funcionam como
                                         multiplicadores no seu score.
                                     </p>
                                     <div className="space-y-3">
                                         {Object.entries(assessmentsByTag).map(([tag, recs]) => (
                                             <div key={tag} className="border border-slate-100 rounded-xl p-3 sm:p-4 bg-slate-50/60">
-                                                <p className="text-xs sm:text-sm font-semibold text-slate-900 mb-2">
+                                                <p className="text-sm sm:text-base font-semibold text-slate-900 mb-2">
                                                     {tag}
                                                 </p>
                                                 <div className="space-y-2">
@@ -194,21 +194,21 @@ export function RecommendationsSection({ profile, rankingResult, userAssessments
                                                         >
                                                             <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[#5e9ea0] flex-shrink-0" />
                                                             <div className="flex-1 min-w-0">
-                                                                <p className="text-xs sm:text-sm font-medium text-slate-900">
+                                                                <p className="text-sm sm:text-base font-medium text-slate-900">
                                                                     {assessment.assessmentName}
                                                                     {assessment.alreadyCompleted && (
-                                                                        <span className="ml-1 text-[10px] sm:text-[11px] text-emerald-600 font-medium">
+                                                                        <span className="ml-1 text-xs sm:text-sm text-emerald-600 font-medium">
                                                                             (já concluída)
                                                                         </span>
                                                                     )}
                                                                 </p>
-                                                                <p className="mt-0.5 text-[10px] sm:text-xs text-slate-600">
+                                                                <p className="mt-0.5 text-xs sm:text-sm text-slate-600">
                                                                     Testes dessa categoria ajudam a traduzir seu perfil em dados
                                                                     objetivos, que podem ser usados para destacar seu fit nas
                                                                     futuras oportunidades.
                                                                 </p>
                                                                 {assessment.deltaScore > 0.05 && (
-                                                                    <p className="mt-0.5 text-[10px] sm:text-xs text-emerald-700">
+                                                                    <p className="mt-0.5 text-xs sm:text-sm text-emerald-700">
                                                                         Completar ou atualizar esta avaliação poderia adicionar cerca de{' '}
                                                                         <span className="font-semibold">
                                                                             +{assessment.deltaScore.toFixed(1)} ponto(s)

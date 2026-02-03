@@ -70,9 +70,16 @@ export function VagaDetailsModal({
                                 {vaga.titulo}
                             </h2>
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-slate-600 text-sm">
-                                <div className="flex items-center gap-1.5">
-                                    <MapPin className="w-4 h-4" />
-                                    <span>{vaga.localizacao}</span>
+                                <div className="flex items-start gap-1.5">
+                                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                    <span className="flex flex-col">
+                                        <span>{vaga.localizacao}</span>
+                                        {'distanceKm' in vaga && typeof (vaga as { distanceKm?: number }).distanceKm === 'number' && (
+                                            <span className="text-[#5e9ea0] font-bold text-xs mt-0.5">
+                                                ~{(vaga as { distanceKm: number }).distanceKm} km de você
+                                            </span>
+                                        )}
+                                    </span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                     <Briefcase className="w-4 h-4" />
