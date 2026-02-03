@@ -3,6 +3,8 @@
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { fetchUserProfileServer } from '@/lib/user/serverUserService';
+import { fetchJobsByLocationCode } from '@/lib/vacancies/serverVacancyService';
+import type { JobDisplay } from '@/lib/vacancies/types';
 
 interface ValidationError {
     success: false;
@@ -175,4 +177,13 @@ export async function removeApplication(jobId: string): Promise<{ success: boole
         console.error('Erro ao remover candidatura:', error);
         return { success: false, error: 'Erro ao processar remoção de candidatura' };
     }
+}
+
+/**
+ * Busca vagas pelo código de localização de 6 dígitos.
+ * Consulta recruiter_location_codes e retorna jobs com recruiter_location_code_id correspondente.
+ */
+export async function getJobsByLocationCode(code: string): Promise<{ jobs: JobDisplay[] }> {
+    const jobs = await fetchJobsByLocationCode(code);
+    return { jobs };
 }

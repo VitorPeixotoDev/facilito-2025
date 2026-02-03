@@ -1,13 +1,21 @@
 'use client';
 
-import { Search, X, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { Search, X, ChevronDown, Keyboard, ArrowLeft } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
 
 type WorkModelFilter = 'todos' | 'presencial' | 'remoto' | 'hibrido';
+
+export type SearchMode = 'text' | 'code';
 
 interface VagasHeaderProps {
     searchTerm: string;
     onSearchChange: (term: string) => void;
+    /** Modo de busca: texto (padrão) ou código de 6 dígitos */
+    searchMode: SearchMode;
+    onSearchModeChange: (mode: SearchMode) => void;
+    /** Código de 6 dígitos (apenas quando searchMode === 'code') */
+    codeDigits: string;
+    onCodeDigitsChange: (value: string) => void;
     activeTab: 'vagas' | 'candidaturas';
     onTabChange: (tab: 'vagas' | 'candidaturas') => void;
     candidaturasCount: number;
@@ -18,9 +26,15 @@ interface VagasHeaderProps {
 /**
  * Header fixo da página de vagas com busca e tabs
  */
+const CODE_LENGTH = 6;
+
 export function VagasHeader({
     searchTerm,
     onSearchChange,
+    searchMode,
+    onSearchModeChange,
+    codeDigits,
+    onCodeDigitsChange,
     activeTab,
     onTabChange,
     candidaturasCount,
@@ -28,6 +42,7 @@ export function VagasHeader({
     onWorkModelFilterChange,
 }: VagasHeaderProps) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     const filterOptions: { value: WorkModelFilter; label: string }[] = [
         { value: 'todos', label: 'Todos os tipos' },
@@ -37,6 +52,34 @@ export function VagasHeader({
     ];
 
     const currentFilterLabel = filterOptions.find((opt) => opt.value === workModelFilter)?.label || 'Todos os tipos';
+
+    const digitsArray = Array.from({ length: CODE_LENGTH }, (_, i) => codeDigits[i] ?? '');
+
+    const handleCodeDigitChange = useCallback(
+        (index: number, value: string) => {
+            const digit = value.replace(/\D/g, '').slice(-1);
+            const next = codeDigits.slice(0, index) + digit + codeDigits.slice(index + 1);
+            onCodeDigitsChange(next.slice(0, CODE_LENGTH));
+            if (digit && index < CODE_LENGTH - 1) {
+                codeInputRefs.current[index + 1]?.focus();
+            }
+        },
+        [codeDigits, onCodeDigitsChange]
+    );
+
+    const handleCodeKeyDown = useCallback(
+        (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === 'Backspace' && !digitsArray[index] && index > 0) {
+                codeInputRefs.current[index - 1]?.focus();
+            }
+        },
+        [digitsArray]
+    );
+
+    const handleRevertToText = useCallback(() => {
+        onCodeDigitsChange('');
+        onSearchModeChange('text');
+    }, [onCodeDigitsChange, onSearchModeChange]);
 
     return (
         <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm pt-2 sm:pt-4">
@@ -50,31 +93,76 @@ export function VagasHeader({
 
                 {/* Campo de busca e filtro */}
                 <div className="flex gap-2 mb-4">
-                    {/* Campo de busca */}
-                    <div className="relative flex-1">
-                        <label htmlFor="vagas-search" className="sr-only">
-                            Buscar vagas
-                        </label>
-                        <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2.5 sm:px-4 sm:py-2.5">
-                            <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
-                            <input
-                                id="vagas-search"
-                                type="search"
-                                placeholder="Buscar vagas, empresas ou requisitos..."
-                                className="w-full bg-transparent text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                                value={searchTerm}
-                                onChange={(e) => onSearchChange(e.target.value)}
-                            />
-                            {searchTerm && (
+                    {/* Campo de busca (texto ou 6 dígitos) */}
+                    <div className="relative flex-1 min-w-0">
+                        {searchMode === 'text' ? (
+                            <>
+                                <label htmlFor="vagas-search" className="sr-only">
+                                    Buscar vagas
+                                </label>
+                                <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2.5 sm:px-4 sm:py-2.5">
+                                    <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 shrink-0" />
+                                    <input
+                                        id="vagas-search"
+                                        type="search"
+                                        placeholder="Buscar vagas, empresas ou requisitos..."
+                                        className="w-full min-w-0 bg-transparent text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                                        value={searchTerm}
+                                        onChange={(e) => onSearchChange(e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => onSearchModeChange('code')}
+                                        className="p-1.5 hover:bg-slate-100 rounded-full transition-colors touch-manipulation"
+                                        aria-label="Buscar por código de 6 dígitos"
+                                        title="Buscar por código"
+                                    >
+                                        <Keyboard className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+                                    </button>
+                                    {searchTerm && (
+                                        <button
+                                            type="button"
+                                            onClick={() => onSearchChange('')}
+                                            className="p-1 hover:bg-slate-100 rounded-full transition-colors"
+                                            aria-label="Limpar busca"
+                                        >
+                                            <X className="w-4 h-4 text-slate-400" />
+                                        </button>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 sm:px-4 sm:py-2.5">
+                                <div className="flex gap-1 sm:gap-1.5 flex-1 min-w-0 justify-center">
+                                    {digitsArray.map((d, i) => (
+                                        <input
+                                            key={i}
+                                            ref={(el) => {
+                                                codeInputRefs.current[i] = el;
+                                            }}
+                                            type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
+                                            maxLength={1}
+                                            aria-label={`Dígito ${i + 1} do código`}
+                                            className="w-8 h-10 sm:w-9 sm:h-11 text-center text-lg font-semibold text-slate-900 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5e9ea0] focus:border-[#5e9ea0]"
+                                            value={d}
+                                            onChange={(e) => handleCodeDigitChange(i, e.target.value)}
+                                            onKeyDown={(e) => handleCodeKeyDown(i, e)}
+                                        />
+                                    ))}
+                                </div>
                                 <button
-                                    onClick={() => onSearchChange('')}
-                                    className="p-1 hover:bg-slate-100 rounded-full transition-colors"
-                                    aria-label="Limpar busca"
+                                    type="button"
+                                    onClick={handleRevertToText}
+                                    className="p-2 hover:bg-slate-100 rounded-full transition-colors touch-manipulation shrink-0"
+                                    aria-label="Voltar para busca por texto"
+                                    title="Voltar para busca por texto"
                                 >
-                                    <X className="w-4 h-4 text-slate-400" />
+                                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
                                 </button>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Dropdown de filtro */}
@@ -108,8 +196,8 @@ export function VagasHeader({
                                                     setIsDropdownOpen(false);
                                                 }}
                                                 className={`w-full text-left px-4 py-2 text-sm transition-colors ${workModelFilter === option.value
-                                                        ? 'bg-[#5e9ea0] text-white'
-                                                        : 'text-slate-700 hover:bg-slate-100'
+                                                    ? 'bg-[#5e9ea0] text-white'
+                                                    : 'text-slate-700 hover:bg-slate-100'
                                                     }`}
                                             >
                                                 {option.label}

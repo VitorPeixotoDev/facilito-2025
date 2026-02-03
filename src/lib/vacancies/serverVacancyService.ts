@@ -79,9 +79,75 @@ export async function fetchAvailableJobs(): Promise<JobDisplay[]> {
             company_culture: row.company_culture,
             selection_stages: row.selection_stages,
             behavioral_competencies: row.behavioral_competencies,
+            recruiter_location_code_id: row.recruiter_location_code_id ?? null,
         }));
     } catch (error) {
         console.error('Erro ao buscar vagas:', error);
+        return [];
+    }
+}
+
+/**
+ * Busca vagas pelo código de localização de 6 dígitos.
+ * Consulta recruiter_location_codes pelo code_6_digits e filtra jobs por recruiter_location_code_id.
+ */
+export async function fetchJobsByLocationCode(code: string): Promise<JobDisplay[]> {
+    const normalized = code.replace(/\D/g, '').slice(0, 6);
+    if (normalized.length !== 6) {
+        return [];
+    }
+
+    try {
+        const supabase = await createClient();
+
+        const { data: codeRow, error: codeError } = await supabase
+            .from('recruiter_location_codes')
+            .select('id')
+            .eq('code_6_digits', normalized)
+            .maybeSingle();
+
+        if (codeError || !codeRow?.id) {
+            return [];
+        }
+
+        const { data, error } = await supabase
+            .from('jobs')
+            .select('*')
+            .eq('status', 'recebendo_candidatos')
+            .eq('recruiter_location_code_id', codeRow.id)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            if (error.code === '42P01' || error.message.includes('does not exist')) {
+                return [];
+            }
+            console.error('Erro ao buscar vagas por código:', error);
+            return [];
+        }
+
+        return (data || []).map((row: Job): JobDisplay => ({
+            id: row.id,
+            titulo: row.title || 'Vaga sem título',
+            localizacao: row.work_address || 'Localização não informada',
+            tipo: formatWorkModel(row.work_model),
+            salario: row.salary_range || 'A combinar',
+            descricao: row.description || '',
+            requisitos: parseSkills(row.required_skills),
+            habilidadesPreferidas: parseSkills(row.preferred_skills),
+            data_publicacao: row.created_at,
+            status: row.status,
+            numero_candidatos: row.applications_count,
+            latitude: row.latitude ? Number(row.latitude) : null,
+            longitude: row.longitude ? Number(row.longitude) : null,
+            work_model: row.work_model,
+            benefits: row.benefits,
+            company_culture: row.company_culture,
+            selection_stages: row.selection_stages,
+            behavioral_competencies: row.behavioral_competencies,
+            recruiter_location_code_id: row.recruiter_location_code_id ?? null,
+        }));
+    } catch (error) {
+        console.error('Erro ao buscar vagas por código:', error);
         return [];
     }
 }
