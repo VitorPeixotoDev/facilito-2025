@@ -9,10 +9,18 @@ import { MissingDataModal } from './MissingDataModal';
 import type { JobDisplay } from '@/lib/vacancies/types';
 import { getCandidaturasFromStorage, addCandidaturaToStorage, removeCandidaturaFromStorage } from '@/lib/vacancies/clientVacancyService';
 import { applyToJob, removeApplication, getJobsByLocationCode } from '@/app/applicant/vacancies/actions';
+import { calculateDistance } from '@/lib/ranking/utils/distance';
+
+/** Tipo para vaga exibida com distância aproximada (km) quando aplicável */
+export type JobWithDistance = JobDisplay & { distanceKm?: number };
 
 interface VagasPageClientProps {
     initialJobs: JobDisplay[];
     initialCandidaturas: string[];
+    /** Coordenadas do endereço do candidato para ordenação e exibição da distância (raio 30 km) */
+    userHomeAddress: { latitude: number; longitude: number } | null;
+    /** Raio limite em metros (ex.: 30_000 = 30 km) para vagas presenciais/híbridas */
+    radiusM: number;
 }
 
 /**
@@ -21,7 +29,12 @@ interface VagasPageClientProps {
  */
 type WorkModelFilter = 'todos' | 'presencial' | 'remoto' | 'hibrido';
 
-export default function VagasPageClient({ initialJobs, initialCandidaturas }: VagasPageClientProps) {
+export default function VagasPageClient({
+    initialJobs,
+    initialCandidaturas,
+    userHomeAddress,
+    radiusM,
+}: VagasPageClientProps) {
     const [activeTab, setActiveTab] = useState<'vagas' | 'candidaturas'>('vagas');
     const [candidaturas, setCandidaturas] = useState<string[]>(initialCandidaturas);
     const [vagaSelecionada, setVagaSelecionada] = useState<JobDisplay | null>(null);
@@ -97,18 +110,20 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
         return initialJobs.filter((job) => candidaturas.includes(job.id));
     }, [initialJobs, candidaturas]);
 
-    // Filtrar vagas por busca, tab e tipo de trabalho (ou por código de 6 dígitos)
-    const vagasFiltradas = useMemo(() => {
+    // Filtrar, ordenar por distância (raio 30 km) e anexar distanceKm quando houver endereço do candidato
+    const vagasFiltradas = useMemo((): JobWithDistance[] => {
         // Busca por código: usa resultado da action (lista já filtrada por código)
         if (searchMode === 'code') {
             const base = locationCodeJobs ?? [];
             let filtradas = activeTab === 'vagas'
                 ? base.filter((v) => !candidaturas.includes(v.id))
                 : base.filter((v) => candidaturas.includes(v.id));
-            if (workModelFilter !== 'todos') {
+            if (workModelFilter === 'todos') {
+                filtradas = filtradas.filter((v) => v.work_model !== 'remoto');
+            } else {
                 filtradas = filtradas.filter((vaga) => vaga.work_model === workModelFilter);
             }
-            return filtradas;
+            return applyDistanceAndSort(filtradas, userHomeAddress, radiusM);
         }
 
         // Busca por texto
@@ -116,7 +131,9 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
             ? initialJobs.filter((v) => !candidaturas.includes(v.id))
             : vagasCandidatadas;
 
-        if (workModelFilter !== 'todos') {
+        if (workModelFilter === 'todos') {
+            filtradas = filtradas.filter((v) => v.work_model !== 'remoto');
+        } else {
             filtradas = filtradas.filter((vaga) => vaga.work_model === workModelFilter);
         }
 
@@ -132,8 +149,59 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
             );
         }
 
-        return filtradas;
-    }, [searchMode, locationCodeJobs, activeTab, candidaturas, vagasCandidatadas, searchTerm, workModelFilter, initialJobs]);
+        return applyDistanceAndSort(filtradas, userHomeAddress, radiusM);
+    }, [searchMode, locationCodeJobs, activeTab, candidaturas, vagasCandidatadas, searchTerm, workModelFilter, initialJobs, userHomeAddress, radiusM]);
+
+    function applyDistanceAndSort(
+        list: JobDisplay[],
+        userCoords: { latitude: number; longitude: number } | null,
+        radiusM: number
+    ): JobWithDistance[] {
+        if (!userCoords) {
+            return list.map((v) => ({ ...v }));
+        }
+        const radiusKm = radiusM / 1000;
+        const withDistance: JobWithDistance[] = list.map((vaga) => {
+            if (vaga.work_model === 'remoto') {
+                return { ...vaga };
+            }
+            if (!hasCoords(vaga)) {
+                return { ...vaga };
+            }
+            const distM = calculateDistance(
+                userCoords.latitude,
+                userCoords.longitude,
+                vaga.latitude!,
+                vaga.longitude!
+            );
+            const distanceKm = Math.round((distM / 1000) * 10) / 10;
+            return { ...vaga, distanceKm };
+        });
+
+        return withDistance
+            .filter((v) => {
+                if (v.work_model === 'remoto') return true;
+                if (v.distanceKm == null) return true;
+                return v.distanceKm <= radiusKm;
+            })
+            .sort((a, b) => {
+                if (a.work_model === 'remoto' && b.work_model === 'remoto') return 0;
+                if (a.work_model === 'remoto') return 1;
+                if (b.work_model === 'remoto') return -1;
+                const da = a.distanceKm ?? Infinity;
+                const db = b.distanceKm ?? Infinity;
+                return da - db;
+            });
+    }
+
+    function hasCoords(v: JobDisplay): boolean {
+        return (
+            v.latitude != null &&
+            v.longitude != null &&
+            Number.isFinite(v.latitude) &&
+            Number.isFinite(v.longitude)
+        );
+    }
 
     // Toggle candidatura (tenta no servidor, fallback para localStorage)
     const handleToggleCandidatura = async (jobId: string) => {
@@ -231,6 +299,7 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
                             <VagaCard
                                 key={vaga.id}
                                 vaga={vaga}
+                                distanceKm={vaga.distanceKm}
                                 isCandidatada={candidaturas.includes(vaga.id)}
                                 onToggleCandidatura={handleToggleCandidatura}
                                 onVerDetalhes={handleVerDetalhes}

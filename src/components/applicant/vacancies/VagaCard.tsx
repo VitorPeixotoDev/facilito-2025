@@ -7,6 +7,8 @@ import { ConfirmCandidaturaModal } from './ConfirmCandidaturaModal';
 
 interface VagaCardProps {
     vaga: JobDisplay;
+    /** Distância aproximada em km da vaga até o candidato (quando aplicável) */
+    distanceKm?: number;
     isCandidatada: boolean;
     onToggleCandidatura: (jobId: string) => void;
     onVerDetalhes: (vaga: JobDisplay) => void;
@@ -15,7 +17,7 @@ interface VagaCardProps {
 /**
  * Card individual de vaga
  */
-export function VagaCard({ vaga, isCandidatada, onToggleCandidatura, onVerDetalhes }: VagaCardProps) {
+export function VagaCard({ vaga, distanceKm, isCandidatada, onToggleCandidatura, onVerDetalhes }: VagaCardProps) {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     const handleToggleClick = () => {
@@ -51,7 +53,14 @@ export function VagaCard({ vaga, isCandidatada, onToggleCandidatura, onVerDetalh
                     <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
                         <div className="flex items-center gap-2 text-slate-600">
                             <MapPin className="w-4 h-4 text-[#5e9ea0] flex-shrink-0" />
-                            <span className="truncate">{vaga.localizacao}</span>
+                            <span className="truncate">
+                                {vaga.localizacao}
+                                {distanceKm != null && (
+                                    <span className="ml-1.5 text-[#5e9ea0] font-medium" title="Distância aproximada até você">
+                                        (~{distanceKm} km)
+                                    </span>
+                                )}
+                            </span>
                         </div>
                         <div className="flex items-center gap-2 text-slate-600">
                             <DollarSign className="w-4 h-4 text-[#5e9ea0] flex-shrink-0" />
