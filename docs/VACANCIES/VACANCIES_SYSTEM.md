@@ -180,6 +180,42 @@ filtradas = vagas.filter(vaga =>
 );
 ```
 
+### 2.1. Busca por código de 6 dígitos (mobile-first)
+
+**Objetivo**: Permitir buscar vagas pelo código de localização do recrutador (6 dígitos), em uma **busca à parte** da busca por texto.
+
+**Localização**:
+- `src/components/applicant/vacancies/VagasHeader.tsx` — UI do campo de busca (modo texto vs. modo código)
+- `src/components/applicant/vacancies/VagasPageClient.tsx` — estado e chamada à server action
+- `src/lib/vacancies/serverVacancyService.ts` — `fetchJobsByLocationCode(code)`
+- `src/app/applicant/vacancies/actions.ts` — `getJobsByLocationCode(code)`
+
+**Fluxo**:
+
+1. **Modo texto (padrão)**  
+   Campo de busca único + botão com ícone de **teclado** (remete ao teclado do celular). Ao clicar no ícone, o campo de busca é substituído pelos 6 campos de dígitos.
+
+2. **Modo código**  
+   - Seis campos individuais para preenchimento dos números (`inputMode="numeric"`, `pattern="[0-9]*"` para abrir teclado numérico no mobile).  
+   - Foco avança automaticamente ao digitar; Backspace em campo vazio volta ao campo anterior.  
+   - Botão de **reversão** (ícone seta/voltar): volta ao campo de busca por texto e limpa o código.
+
+3. **Busca**  
+   Quando os 6 dígitos estão preenchidos, a aplicação chama a server action `getJobsByLocationCode(code)`, que:
+   - Consulta a tabela `recruiter_location_codes` pela coluna **`code_6_digits`** (6 dígitos);
+   - Filtra `jobs` por `recruiter_location_code_id` correspondente e `status = 'recebendo_candidatos'`;
+   - Retorna a lista de vagas no formato `JobDisplay[]`.
+
+4. **Resultado**  
+   - Lista exibida é apenas a da busca por código (filtros por tab e tipo de trabalho continuam aplicados).  
+   - Estado vazio específico: "Nenhuma vaga para este código" quando a busca por código não retorna resultados.
+
+**Banco de dados** (ver seção Configuração):
+- Tabela `recruiter_location_codes` já existente; coluna do código: **`code_6_digits`**.
+- Coluna `jobs.recruiter_location_code_id` (FK para `recruiter_location_codes`).
+
+**Documentação SQL**: `docs/SQL/add_recruiter_location_codes.sql`
+
 ### 3. Candidaturas
 
 **Fluxo de Candidatura**:
@@ -246,12 +282,22 @@ Execute o script SQL:
 psql -f docs/SQL/fix_rls_for_jobs.sql
 ```
 
+### 3. Busca por código de 6 dígitos (opcional)
+
+A tabela `recruiter_location_codes` já existe; a coluna do código é `code_6_digits`. Para habilitar a busca por código, adicione a FK em `jobs`:
+
+```bash
+psql -f docs/SQL/add_recruiter_location_codes.sql
+```
+
+Isso adiciona a coluna `jobs.recruiter_location_code_id` e configura RLS em `recruiter_location_codes`. Sem essa migração, a busca por código retorna lista vazia (e a UI continua funcional).
+
 **Importante**: Certifique-se de que:
 - A tabela `recruiter` existe
 - O enum `job_status` existe
 - O enum `work_model` existe
 
-### 3. Verificar Políticas RLS
+### 4. Verificar Políticas RLS
 
 ```sql
 -- Ver políticas da tabela jobs
@@ -368,7 +414,8 @@ src/
 docs/
 ├── SQL/
 │   ├── create_job_applications_table.sql  # Criação da tabela
-│   └── fix_rls_for_jobs.sql              # Políticas RLS para jobs
+│   ├── fix_rls_for_jobs.sql              # Políticas RLS para jobs
+│   └── add_recruiter_location_codes.sql   # Busca por código 6 dígitos
 └── VACANCIES/
     └── VACANCIES_SYSTEM.md               # Esta documentação
 ```

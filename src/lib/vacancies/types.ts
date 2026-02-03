@@ -31,6 +31,8 @@ export interface Job {
     work_address: string | null;
     latitude: number | null;
     longitude: number | null;
+    /** ID do código de localização do recrutador (6 dígitos) para busca por código (opcional até migração) */
+    recruiter_location_code_id?: string | null;
 }
 
 /**
@@ -55,6 +57,8 @@ export interface JobDisplay {
     company_culture: string | null;
     selection_stages: string | null;
     behavioral_competencies: string | null;
+    /** ID do código de localização (para filtro por 6 dígitos) */
+    recruiter_location_code_id: string | null;
 }
 
 export interface JobApplication {

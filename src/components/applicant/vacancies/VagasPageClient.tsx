@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { VagasHeader } from './VagasHeader';
+import { VagasHeader, type SearchMode } from './VagasHeader';
 import { VagaCard } from './VagaCard';
 import { VagaDetailsModal } from './VagaDetailsModal';
 import { VagasEmptyState } from './VagasEmptyState';
 import { MissingDataModal } from './MissingDataModal';
 import type { JobDisplay } from '@/lib/vacancies/types';
 import { getCandidaturasFromStorage, addCandidaturaToStorage, removeCandidaturaFromStorage } from '@/lib/vacancies/clientVacancyService';
-import { applyToJob, removeApplication } from '@/app/applicant/vacancies/actions';
+import { applyToJob, removeApplication, getJobsByLocationCode } from '@/app/applicant/vacancies/actions';
 
 interface VagasPageClientProps {
     initialJobs: JobDisplay[];
@@ -28,6 +28,10 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
     const [showModalDetalhes, setShowModalDetalhes] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [workModelFilter, setWorkModelFilter] = useState<WorkModelFilter>('todos');
+    const [searchMode, setSearchMode] = useState<SearchMode>('text');
+    const [codeDigits, setCodeDigits] = useState('');
+    const [locationCodeJobs, setLocationCodeJobs] = useState<JobDisplay[] | null>(null);
+    const [locationCodeLoading, setLocationCodeLoading] = useState(false);
     const [showMissingDataModal, setShowMissingDataModal] = useState(false);
     const [missingFields, setMissingFields] = useState<{
         whatsapp?: boolean;
@@ -63,26 +67,59 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
         };
     }, []);
 
+    // Busca por código de 6 dígitos: dispara quando o usuário preenche os 6 dígitos
+    useEffect(() => {
+        if (searchMode !== 'code' || codeDigits.replace(/\D/g, '').length !== 6) {
+            setLocationCodeJobs(null);
+            return;
+        }
+        const code = codeDigits.replace(/\D/g, '');
+        let cancelled = false;
+        setLocationCodeLoading(true);
+        getJobsByLocationCode(code)
+            .then(({ jobs }) => {
+                if (!cancelled) {
+                    setLocationCodeJobs(jobs);
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setLocationCodeLoading(false);
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [searchMode, codeDigits]);
+
     // Obter vagas candidatadas
     const vagasCandidatadas = useMemo(() => {
         return initialJobs.filter((job) => candidaturas.includes(job.id));
     }, [initialJobs, candidaturas]);
 
-    // Filtrar vagas por busca, tab e tipo de trabalho
+    // Filtrar vagas por busca, tab e tipo de trabalho (ou por código de 6 dígitos)
     const vagasFiltradas = useMemo(() => {
+        // Busca por código: usa resultado da action (lista já filtrada por código)
+        if (searchMode === 'code') {
+            const base = locationCodeJobs ?? [];
+            let filtradas = activeTab === 'vagas'
+                ? base.filter((v) => !candidaturas.includes(v.id))
+                : base.filter((v) => candidaturas.includes(v.id));
+            if (workModelFilter !== 'todos') {
+                filtradas = filtradas.filter((vaga) => vaga.work_model === workModelFilter);
+            }
+            return filtradas;
+        }
+
+        // Busca por texto
         let filtradas = activeTab === 'vagas'
             ? initialJobs.filter((v) => !candidaturas.includes(v.id))
             : vagasCandidatadas;
 
-        // Filtro por tipo de trabalho (work_model)
         if (workModelFilter !== 'todos') {
-            filtradas = filtradas.filter((vaga) => {
-                // Compara diretamente o work_model (já está no formato correto)
-                return vaga.work_model === workModelFilter;
-            });
+            filtradas = filtradas.filter((vaga) => vaga.work_model === workModelFilter);
         }
 
-        // Filtro por busca
         if (searchTerm.trim()) {
             const termoLower = searchTerm.toLowerCase();
             filtradas = filtradas.filter(
@@ -96,7 +133,7 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
         }
 
         return filtradas;
-    }, [activeTab, candidaturas, vagasCandidatadas, searchTerm, workModelFilter, initialJobs]);
+    }, [searchMode, locationCodeJobs, activeTab, candidaturas, vagasCandidatadas, searchTerm, workModelFilter, initialJobs]);
 
     // Toggle candidatura (tenta no servidor, fallback para localStorage)
     const handleToggleCandidatura = async (jobId: string) => {
@@ -166,6 +203,10 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
             <VagasHeader
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
+                searchMode={searchMode}
+                onSearchModeChange={setSearchMode}
+                codeDigits={codeDigits}
+                onCodeDigitsChange={setCodeDigits}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 candidaturasCount={candidaturas.length}
@@ -177,7 +218,9 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
                 {/* Estatísticas */}
                 <div className="flex items-center justify-between text-xs sm:text-sm text-slate-600">
                     <span>
-                        {vagasFiltradas.length} {vagasFiltradas.length === 1 ? 'vaga encontrada' : 'vagas encontradas'}
+                        {locationCodeLoading
+                            ? 'Buscando vagas pelo código...'
+                            : `${vagasFiltradas.length} ${vagasFiltradas.length === 1 ? 'vaga encontrada' : 'vagas encontradas'}`}
                     </span>
                 </div>
 
@@ -195,7 +238,10 @@ export default function VagasPageClient({ initialJobs, initialCandidaturas }: Va
                         ))}
                     </div>
                 ) : (
-                    <VagasEmptyState activeTab={activeTab} />
+                    <VagasEmptyState
+                        activeTab={activeTab}
+                        isCodeSearch={searchMode === 'code' && codeDigits.replace(/\D/g, '').length === 6}
+                    />
                 )}
             </div>
 
