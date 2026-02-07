@@ -18,15 +18,15 @@ export interface AssessmentDetails {
  * Busca os detalhes completos de uma avaliação
  * 
  * @param userId - ID do usuário
- * @param assessmentId - ID da avaliação ('five-mind' ou 'hexa-mind')
+ * @param slug - Slug da avaliação (vindo da API/banco: 'five-mind' | 'hexa-mind')
  * @returns Promise com os detalhes da avaliação ou null
  */
 export async function getAssessmentDetails(
     userId: string,
-    assessmentId: string
+    slug: string
 ): Promise<AssessmentDetails | null> {
     try {
-        if (assessmentId === 'five-mind') {
+        if (slug === 'five-mind') {
             const result = await getLatestFiveMindResult(userId);
             if (!result) return null;
 
@@ -43,7 +43,8 @@ export async function getAssessmentDetails(
                 },
                 overallScore: result.overall_score || undefined,
             };
-        } else if (assessmentId === 'hexa-mind') {
+        }
+        if (slug === 'hexa-mind') {
             const result = await getLatestHexaMindResult(userId);
             if (!result) return null;
 

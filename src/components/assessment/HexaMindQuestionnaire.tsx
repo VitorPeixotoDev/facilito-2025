@@ -75,22 +75,38 @@ const SCALE_OPTIONS = [
     { value: 5, label: 'Concordo totalmente', emoji: '💯', description: 'Sempre se aplica' },
 ];
 
-export default function HexaMindQuestionnaire({ onComplete, onCancel }: AssessmentComponentProps) {
-    const [currentQuestion, setCurrentQuestion] = useState(0);
-    const [answers, setAnswers] = useState<Record<number, number>>({});
+interface HexaMindQuestionnaireProps extends AssessmentComponentProps {
+    assessmentId?: string;
+    assessmentName?: string;
+    questions?: Array<{ id: string; text: string; factor: string; reverse?: boolean }>;
+    scaleOptions?: Array<{ value: number; label: string; emoji?: string; description?: string }>;
+}
 
-    const question = QUESTIONS[currentQuestion];
-    const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
-    const isLastQuestion = currentQuestion === QUESTIONS.length - 1;
-    const canProceed = answers[question.id] !== undefined;
+function getQuestionId(q: { id: string | number }): string {
+    return typeof q.id === 'number' ? String(q.id) : q.id;
+}
+
+export default function HexaMindQuestionnaire({ assessmentId, assessmentName, onComplete, onCancel, questions: questionsProp, scaleOptions: scaleOptionsProp }: HexaMindQuestionnaireProps) {
+    const questions = (questionsProp && questionsProp.length > 0) ? questionsProp : QUESTIONS.map(q => ({ id: q.id, text: q.text, factor: q.factor, reverse: q.reverseScored }));
+    const scaleOptions = (scaleOptionsProp && scaleOptionsProp.length > 0) ? scaleOptionsProp : SCALE_OPTIONS;
+
+    const [currentQuestion, setCurrentQuestion] = useState(0);
+    const [answers, setAnswers] = useState<Record<string, number>>({});
+
+    const question = questions[currentQuestion];
+    const progress = questions.length > 0 ? ((currentQuestion + 1) / questions.length) * 100 : 0;
+    const isLastQuestion = currentQuestion === questions.length - 1;
+    const questionId = question ? getQuestionId(question) : '';
+    const canProceed = question ? answers[questionId] !== undefined : false;
 
     const handleAnswer = (value: number) => {
-        setAnswers(prev => ({ ...prev, [question.id]: value }));
+        if (!question) return;
+        setAnswers(prev => ({ ...prev, [getQuestionId(question)]: value }));
     };
 
     const handleNext = () => {
         if (isLastQuestion) {
-            calculateResults();
+            calculateResults(questions, answers);
         } else {
             setCurrentQuestion(prev => prev + 1);
         }
@@ -102,23 +118,24 @@ export default function HexaMindQuestionnaire({ onComplete, onCancel }: Assessme
         }
     };
 
-    const calculateResults = () => {
-        const factors = {
-            honesty: [] as number[],
-            emotional_stability: [] as number[],
-            extraversion: [] as number[],
-            agreeableness: [] as number[],
-            conscientiousness: [] as number[],
-            openness: [] as number[],
-            consistency: [] as number[],
+    const calculateResults = (qList: Array<{ id: string; text?: string; factor: string; reverse?: boolean }>, ans: Record<string, number>) => {
+        const factors: Record<string, number[]> = {
+            honesty: [],
+            emotional_stability: [],
+            extraversion: [],
+            agreeableness: [],
+            conscientiousness: [],
+            openness: [],
+            consistency: [],
         };
 
-        QUESTIONS.forEach(q => {
-            let value = answers[q.id] || 3;
-            if (q.reverseScored) {
-                value = 6 - value; // Inverter escala 1-5
+        qList.forEach(q => {
+            const id = getQuestionId(q as { id: string | number });
+            let value = ans[id] ?? 3;
+            if (q.reverse) {
+                value = 6 - value;
             }
-            factors[q.factor].push(value);
+            if (factors[q.factor]) factors[q.factor].push(value);
         });
 
         const calculateAverage = (values: number[]) =>
@@ -145,8 +162,9 @@ export default function HexaMindQuestionnaire({ onComplete, onCancel }: Assessme
         );
 
         const results: HexaMindResult = {
-            assessmentId: 'hexa-mind',
-            assessmentName: 'HexaMind',
+            assessmentId: assessmentId ?? '',
+            assessmentSlug: 'hexa-mind',
+            assessmentName: assessmentName ?? 'HexaMind',
             completedAt: new Date(),
             results: {
                 honesty,
@@ -167,6 +185,14 @@ export default function HexaMindQuestionnaire({ onComplete, onCancel }: Assessme
         console.log('✅ [HexaMindQuestionnaire] onComplete chamado');
     };
 
+    if (!question) {
+        return (
+            <div className="p-4 text-center text-slate-600">
+                Nenhuma questão disponível para esta avaliação.
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col h-[calc(100vh-100px)] sm:h-[calc(100vh-120px)] lg:h-auto lg:max-h-[600px]">
             {/* Barra de progresso - compacta */}
@@ -178,7 +204,7 @@ export default function HexaMindQuestionnaire({ onComplete, onCancel }: Assessme
                     />
                 </div>
                 <div className="text-xs text-slate-600 text-center">
-                    Questão {currentQuestion + 1} de {QUESTIONS.length} ({Math.round(progress)}% completo)
+                    Questão {currentQuestion + 1} de {questions.length} ({Math.round(progress)}% completo)
                 </div>
             </div>
 
@@ -204,8 +230,8 @@ export default function HexaMindQuestionnaire({ onComplete, onCancel }: Assessme
 
             {/* Opções de resposta - ocupam o espaço disponível */}
             <div className="flex-1 overflow-y-auto space-y-2 mb-3 sm:mb-4 min-h-0">
-                {SCALE_OPTIONS.map((option) => {
-                    const isSelected = answers[question.id] === option.value;
+                {scaleOptions.map((option) => {
+                    const isSelected = answers[questionId] === option.value;
                     return (
                         <button
                             key={option.value}
@@ -226,14 +252,16 @@ export default function HexaMindQuestionnaire({ onComplete, onCancel }: Assessme
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-lg sm:text-xl">{option.emoji}</span>
+                                        {option.emoji && <span className="text-lg sm:text-xl">{option.emoji}</span>}
                                         <span className="text-xs sm:text-sm font-medium text-slate-700">
                                             {option.label}
                                         </span>
                                     </div>
-                                    <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5">
-                                        {option.description}
-                                    </p>
+                                    {option.description && (
+                                        <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5">
+                                            {option.description}
+                                        </p>
+                                    )}
                                 </div>
                                 {isSelected && (
                                     <div className="text-amber-600 text-base sm:text-lg flex-shrink-0">✓</div>

@@ -6,6 +6,16 @@ import { createClient } from '@/utils/supabase/client';
 import { getAssessmentById } from './assessmentsConfig';
 import type { AssessmentConfig } from '@/types/assessments';
 
+/** Busca id (UUID) por slug a partir da API (catálogo do banco). */
+async function getAssessmentIdBySlugFromApi(slug: string): Promise<string | null> {
+    const res = await fetch('/api/assessments');
+    if (!res.ok) return null;
+    const data = await res.json();
+    const list = (data.assessments ?? []) as Array<{ id: string; slug: string }>;
+    const found = list.find((a) => a.slug === slug);
+    return found?.id ?? null;
+}
+
 export interface UserAssessment {
     assessmentId: string;
     assessmentConfig: AssessmentConfig;
@@ -24,6 +34,9 @@ export async function getUserAssessments(userId: string): Promise<UserAssessment
     try {
         const supabase = createClient();
         const assessments: UserAssessment[] = [];
+        const idBySlug = await getAssessmentIdsBySlugFromApi();
+        const fiveMindId = idBySlug['five-mind'] ?? null;
+        const hexaMindId = idBySlug['hexa-mind'] ?? null;
 
         // Verifica FiveMind
         const { data: fiveMindData, error: fiveMindError } = await supabase
@@ -34,11 +47,11 @@ export async function getUserAssessments(userId: string): Promise<UserAssessment
             .limit(1)
             .maybeSingle();
 
-        if (!fiveMindError && fiveMindData) {
+        if (!fiveMindError && fiveMindData && fiveMindId) {
             const config = getAssessmentById('five-mind');
             if (config) {
                 assessments.push({
-                    assessmentId: 'five-mind',
+                    assessmentId: fiveMindId,
                     assessmentConfig: config,
                     hasResult: true,
                     completedAt: new Date((fiveMindData as any).completed_at),
@@ -55,11 +68,11 @@ export async function getUserAssessments(userId: string): Promise<UserAssessment
             .limit(1)
             .maybeSingle();
 
-        if (!hexaMindError && hexaMindData) {
+        if (!hexaMindError && hexaMindData && hexaMindId) {
             const config = getAssessmentById('hexa-mind');
             if (config) {
                 assessments.push({
-                    assessmentId: 'hexa-mind',
+                    assessmentId: hexaMindId,
                     assessmentConfig: config,
                     hasResult: true,
                     completedAt: new Date((hexaMindData as any).completed_at),
@@ -86,14 +99,17 @@ export async function getUserAssessments(userId: string): Promise<UserAssessment
  * @param assessmentId - ID da avaliação
  * @returns Promise com a análise predominante ou null
  */
+/**
+ * @param slug - Slug da avaliação ('five-mind' | 'hexa-mind'), vindo da API/banco
+ */
 export async function getPredominantAnalysisForAssessment(
     userId: string,
-    assessmentId: string
+    slug: string
 ): Promise<string | null> {
     try {
         const supabase = createClient();
 
-        if (assessmentId === 'five-mind') {
+        if (slug === 'five-mind') {
             const { data, error } = await supabase
                 .from('five_mind_results')
                 .select('openness, conscientiousness, extraversion, agreeableness, neuroticism')
@@ -130,7 +146,7 @@ export async function getPredominantAnalysisForAssessment(
 
             // Remove os dois pontos do final
             return maxEntry[0] ? maxEntry[0].replace(':', '').trim() : null;
-        } else if (assessmentId === 'hexa-mind') {
+        } else if (slug === 'hexa-mind') {
             const { data, error } = await supabase
                 .from('hexa_mind_results')
                 .select('honesty, emotional_stability, extraversion, agreeableness, conscientiousness, openness')

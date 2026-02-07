@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@/utils/supabase/server'
+import { getAssessmentsFromCatalog } from './assessmentCatalogService'
 import { getAssessmentById } from './assessmentsConfig'
 import type { AssessmentConfig } from '@/types/assessments'
 
@@ -20,6 +21,8 @@ export interface UserAssessment {
 export async function getUserAssessmentsServer(userId: string): Promise<UserAssessment[]> {
     try {
         const supabase = await createClient()
+        const catalog = await getAssessmentsFromCatalog(supabase)
+        const idBySlug = Object.fromEntries(catalog.map((a) => [a.slug, a.id]))
         const assessments: UserAssessment[] = []
 
         // Verifica FiveMind
@@ -32,10 +35,11 @@ export async function getUserAssessmentsServer(userId: string): Promise<UserAsse
             .maybeSingle()
 
         if (!fiveMindError && fiveMindData) {
+            const id = idBySlug['five-mind']
             const config = getAssessmentById('five-mind')
-            if (config) {
+            if (id && config) {
                 assessments.push({
-                    assessmentId: 'five-mind',
+                    assessmentId: id,
                     assessmentConfig: config,
                     hasResult: true,
                     completedAt: new Date((fiveMindData as any).completed_at),
@@ -53,10 +57,11 @@ export async function getUserAssessmentsServer(userId: string): Promise<UserAsse
             .maybeSingle()
 
         if (!hexaMindError && hexaMindData) {
+            const id = idBySlug['hexa-mind']
             const config = getAssessmentById('hexa-mind')
-            if (config) {
+            if (id && config) {
                 assessments.push({
-                    assessmentId: 'hexa-mind',
+                    assessmentId: id,
                     assessmentConfig: config,
                     hasResult: true,
                     completedAt: new Date((hexaMindData as any).completed_at),

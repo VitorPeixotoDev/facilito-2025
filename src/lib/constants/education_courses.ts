@@ -1,6 +1,10 @@
 /**
- * Categorias de cursos e formações acadêmicas disponíveis
+ * Categorias de cursos e formações acadêmicas disponíveis.
+ * Cursos são identificados por UUID (id); use o catálogo abaixo para resolver id <-> nome.
  */
+import { v5 as uuidv5 } from "uuid";
+
+const COURSE_NAMESPACE = "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d";
 
 export const EDUCATION_COURSES = {
     "Alfabetização e Educação Básica": [
@@ -708,3 +712,84 @@ export const EDUCATION_COURSES = {
         "TOEIC"
     ]
 } as const;
+
+export type EducationCategoryKey = keyof typeof EDUCATION_COURSES;
+
+/** Um curso do catálogo com id UUID estável (v5 a partir do nome). */
+export interface CourseCatalogEntry {
+    id: string;
+    name: string;
+    categoryKey: EducationCategoryKey;
+}
+
+/** Lista plana de todos os cursos com id (UUID). */
+const _buildCatalog = (): CourseCatalogEntry[] => {
+    const list: CourseCatalogEntry[] = [];
+    for (const categoryKey of Object.keys(EDUCATION_COURSES) as EducationCategoryKey[]) {
+        const names = EDUCATION_COURSES[categoryKey];
+        for (const name of names) {
+            list.push({
+                id: uuidv5(name, COURSE_NAMESPACE),
+                name,
+                categoryKey,
+            });
+        }
+    }
+    return list;
+};
+
+export const COURSES_CATALOG: CourseCatalogEntry[] = _buildCatalog();
+
+/** Mapa id -> curso (para exibir nome a partir do id). */
+export const COURSES_BY_ID: Record<string, CourseCatalogEntry> = Object.fromEntries(
+    COURSES_CATALOG.map((c) => [c.id, c])
+);
+
+/** Mapa nome -> id (para obter id ao selecionar pelo nome). */
+export const COURSES_BY_NAME: Record<string, string> = Object.fromEntries(
+    COURSES_CATALOG.map((c) => [c.name, c.id])
+);
+
+/**
+ * Retorna o curso do catálogo pelo id, ou undefined se não existir.
+ */
+export function getCourseById(id: string): CourseCatalogEntry | undefined {
+    return COURSES_BY_ID[id];
+}
+
+/**
+ * Retorna o id (UUID) do curso pelo nome, ou undefined se não estiver no catálogo.
+ */
+export function getCourseIdByName(name: string): string | undefined {
+    return COURSES_BY_NAME[name];
+}
+
+/**
+ * Gera um id estável para um curso customizado (fora do catálogo).
+ * Usa o mesmo namespace para consistência.
+ */
+export function getCustomCourseId(customName: string): string {
+    return uuidv5(`custom:${customName.trim()}`, COURSE_NAMESPACE);
+}
+
+/**
+ * Valor armazenado no perfil: id (UUID) do catálogo ou "custom:Nome" para curso personalizado.
+ * Retorna o nome para exibição.
+ */
+export function getCourseDisplayName(entry: string): string {
+    if (entry.startsWith("custom:")) {
+        return entry.slice(7);
+    }
+    const course = COURSES_BY_ID[entry];
+    return course ? course.name : entry;
+}
+
+/**
+ * Ao adicionar curso pelo nome: se estiver no catálogo retorna o UUID; senão retorna "custom:Nome".
+ */
+export function toCourseStorageValue(nameOrId: string): string {
+    const trimmed = nameOrId.trim();
+    const id = COURSES_BY_NAME[trimmed];
+    if (id) return id;
+    return `custom:${trimmed}`;
+}

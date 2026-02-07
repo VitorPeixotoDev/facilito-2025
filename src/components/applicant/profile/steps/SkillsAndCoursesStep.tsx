@@ -7,7 +7,11 @@ import { Briefcase, BookOpen, X, Plus } from "lucide-react";
 import { useState } from "react";
 import type { ProfileFormData } from "../ProfileFormSteps";
 import { SKILLS_CATEGORIES } from "@/lib/constants/skills_categories";
-import { EDUCATION_COURSES } from "@/lib/constants/education_courses";
+import {
+    EDUCATION_COURSES,
+    getCourseDisplayName,
+    toCourseStorageValue,
+} from "@/lib/constants/education_courses";
 import { FREELANCER_SERVICES } from "@/lib/constants/freelancer_services";
 import CategorySearchAutocomplete from "@/components/ui/CategorySearchAutocomplete";
 
@@ -43,9 +47,10 @@ export function SkillsAndCoursesStep({ formData, updateFormField }: SkillsAndCou
         updateFormField("skills", skills.filter((_, i) => i !== index));
     };
 
-    const adicionarCurso = (curso: string) => {
-        if (!courses.includes(curso)) {
-            updateFormField("courses", [...courses, curso]);
+    const adicionarCurso = (courseName: string) => {
+        const value = toCourseStorageValue(courseName);
+        if (!courses.includes(value)) {
+            updateFormField("courses", [...courses, value]);
         }
     };
 
@@ -74,8 +79,10 @@ export function SkillsAndCoursesStep({ formData, updateFormField }: SkillsAndCou
 
     const adicionarCursoCustom = () => {
         const valor = customCurso.trim();
-        if (valor && !courses.includes(valor)) {
-            adicionarCurso(valor);
+        if (!valor) return;
+        const value = toCourseStorageValue(valor);
+        if (!courses.includes(value)) {
+            updateFormField("courses", [...courses, value]);
             setCustomCurso("");
         }
     };
@@ -188,18 +195,18 @@ export function SkillsAndCoursesStep({ formData, updateFormField }: SkillsAndCou
 
                 <div className="space-y-4">
                     <div className="flex flex-wrap gap-2 mb-4">
-                        {courses.map((curso, index) => (
+                        {courses.map((courseEntry, index) => (
                             <Badge
-                                key={index}
+                                key={courseEntry}
                                 variant="outline"
                                 className="border-[#5f9ea0]/30 text-[#111] bg-[#5f9ea0]/10 text-sm py-1 px-3 flex items-center gap-2"
                             >
-                                {curso}
+                                {getCourseDisplayName(courseEntry)}
                                 <button
                                     type="button"
                                     onClick={() => removerCurso(index)}
                                     className="ml-1 hover:text-[#5f9ea0] transition-colors"
-                                    aria-label={`Remover ${curso}`}
+                                    aria-label={`Remover ${getCourseDisplayName(courseEntry)}`}
                                 >
                                     <X className="w-3 h-3" />
                                 </button>
@@ -212,7 +219,7 @@ export function SkillsAndCoursesStep({ formData, updateFormField }: SkillsAndCou
                         selectedCategory={novaCategoriaCurso}
                         onCategoryChange={setNovaCategoriaCurso}
                         onItemSelect={adicionarCurso}
-                        selectedItems={courses}
+                        selectedItems={courses.map(getCourseDisplayName)}
                         searchPlaceholder="Buscar curso..."
                         categoryLabel="Escolha de categorias:"
                         categoryIcon={BookOpen}
@@ -235,7 +242,7 @@ export function SkillsAndCoursesStep({ formData, updateFormField }: SkillsAndCou
                             <button
                                 type="button"
                                 onClick={adicionarCursoCustom}
-                                disabled={!customCurso.trim() || courses.includes(customCurso.trim())}
+                                disabled={!customCurso.trim() || courses.includes(toCourseStorageValue(customCurso.trim()))}
                                 className="px-4 py-2 bg-[#5f9ea0] text-white rounded-md hover:bg-[#4a8b8f] disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                             >
                                 <Plus className="w-4 h-4" />

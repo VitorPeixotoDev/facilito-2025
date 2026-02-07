@@ -11,6 +11,13 @@
  */
 
 import type { AssessmentResult } from '@/types/assessments';
+
+/** Slug conhecido para escolher tabela (five_mind_results / hexa_mind_results). Use o slug vindo da API quando tiver. */
+function normalizeSlug(assessmentId: string, slugFromApi?: string): string {
+    if (slugFromApi === 'five-mind' || slugFromApi === 'hexa-mind') return slugFromApi;
+    if (assessmentId === 'five-mind' || assessmentId === 'hexa-mind') return assessmentId;
+    return assessmentId;
+}
 import {
     saveAssessmentResult,
     getAssessmentResultsByAssessment,
@@ -66,12 +73,14 @@ export async function saveResults(
  * Recupera todos os resultados armazenados do banco de dados
  * 
  * @param userId - ID do usuário (obrigatório)
- * @param assessmentId - ID da avaliação (opcional, se não fornecido busca todos)
+ * @param assessmentId - ID (UUID) ou slug da avaliação (opcional)
+ * @param slug - Slug vindo da API/banco (recomendado quando assessmentId for UUID)
  * @returns Promise com array de resultados
  */
 export async function getStoredResults(
     userId: string,
-    assessmentId?: string
+    assessmentId?: string,
+    slug?: string
 ): Promise<AssessmentResult[]> {
     if (!userId) {
         console.warn('getStoredResults: userId é obrigatório');
@@ -80,7 +89,8 @@ export async function getStoredResults(
 
     try {
         if (assessmentId) {
-            const dbResults = await getAssessmentResultsByAssessment(userId, assessmentId);
+            const slugToUse = normalizeSlug(assessmentId, slug);
+            const dbResults = await getAssessmentResultsByAssessment(userId, slugToUse);
             return dbResults.map(convertRowToAssessmentResult);
         } else {
             // Se não especificou assessmentId, busca todos (FiveMind e HexaMind)
@@ -100,13 +110,15 @@ export async function getStoredResults(
 /**
  * Recupera resultados de uma avaliação específica do banco de dados
  * 
- * @param assessmentId - ID da avaliação
+ * @param assessmentId - ID (UUID) ou slug da avaliação
  * @param userId - ID do usuário (obrigatório)
+ * @param slug - Slug vindo da API/banco (recomendado quando assessmentId for UUID)
  * @returns Promise com array de resultados
  */
 export async function getResultsByAssessment(
     assessmentId: string,
-    userId: string
+    userId: string,
+    slug?: string
 ): Promise<AssessmentResult[]> {
     if (!userId) {
         console.warn('getResultsByAssessment: userId é obrigatório');
@@ -114,7 +126,8 @@ export async function getResultsByAssessment(
     }
 
     try {
-        const dbResults = await getAssessmentResultsByAssessment(userId, assessmentId);
+        const slugToUse = normalizeSlug(assessmentId, slug);
+        const dbResults = await getAssessmentResultsByAssessment(userId, slugToUse);
         return dbResults.map(convertRowToAssessmentResult);
     } catch (error) {
         console.error('Erro ao buscar resultados do banco de dados:', error);
@@ -125,13 +138,15 @@ export async function getResultsByAssessment(
 /**
  * Recupera o resultado mais recente de uma avaliação específica do banco de dados
  * 
- * @param assessmentId - ID da avaliação
+ * @param assessmentId - ID (UUID) ou slug da avaliação
  * @param userId - ID do usuário (obrigatório)
+ * @param slug - Slug vindo da API/banco (obrigatório quando assessmentId for UUID)
  * @returns Promise com o resultado mais recente ou null
  */
 export async function getLatestResult(
     assessmentId: string,
-    userId: string | null
+    userId: string | null,
+    slug?: string
 ): Promise<AssessmentResult | null> {
     if (!userId) {
         console.warn('getLatestResult: userId é obrigatório');
@@ -139,7 +154,8 @@ export async function getLatestResult(
     }
 
     try {
-        const latest = await getLatestAssessmentResult(userId, assessmentId);
+        const slugToUse = normalizeSlug(assessmentId, slug);
+        const latest = await getLatestAssessmentResult(userId, slugToUse);
         if (latest) {
             return convertRowToAssessmentResult(latest);
         }

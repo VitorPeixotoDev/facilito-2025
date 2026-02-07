@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@/utils/supabase/client';
+import { getCourseDisplayName } from '@/lib/constants/education_courses';
 import type { CandidateProfile, RankingResult } from './types';
 
 /**
@@ -51,13 +52,13 @@ export async function fetchCandidatesFromDatabase(
             return [];
         }
 
-        // Transform database rows to CandidateProfile format
+        // Transform database rows to CandidateProfile format (courses stored as id/custom -> resolve to name)
         return ((data || []) as any[]).map((row: any) => ({
             id: row.id,
             full_name: row.full_name,
             description: row.description,
             skills: row.skills || [],
-            courses: row.courses || [],
+            courses: (row.courses || []).map((c: string) => getCourseDisplayName(c)),
             freelancer_services: row.freelancer_services || [],
             experience: row.experience,
             academic_background: row.academic_background,
@@ -122,7 +123,7 @@ export async function fetchUserProfile(userId: string): Promise<CandidateProfile
             full_name: profile.full_name,
             description: profile.description,
             skills: profile.skills || [],
-            courses: profile.courses || [],
+            courses: (profile.courses || []).map((c: string) => getCourseDisplayName(c)),
             freelancer_services: profile.freelancer_services || [],
             experience: profile.experience,
             academic_background: profile.academic_background,

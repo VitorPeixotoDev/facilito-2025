@@ -51,14 +51,32 @@ const SCALE_OPTIONS = [
     { value: 5, label: 'Concordo totalmente', emoji: '💯' },
 ];
 
-export default function FiveMindQuestionnaire({ onComplete, onCancel }: AssessmentComponentProps) {
+interface FiveMindQuestionnaireProps extends AssessmentComponentProps {
+    assessmentId?: string;
+    assessmentName?: string;
+    questions?: Array<{ id: string; text: string; factor: string; reverse?: boolean }>;
+    scaleOptions?: Array<{ value: number; label: string; emoji?: string; description?: string }>;
+}
+
+export default function FiveMindQuestionnaire({ assessmentId, assessmentName, onComplete, onCancel, questions: questionsProp, scaleOptions: scaleOptionsProp }: FiveMindQuestionnaireProps) {
+    const questions = (questionsProp && questionsProp.length > 0) ? questionsProp : QUESTIONS;
+    const scaleOptions = (scaleOptionsProp && scaleOptionsProp.length > 0) ? scaleOptionsProp : SCALE_OPTIONS;
+
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState<Record<string, number>>({});
 
-    const question = QUESTIONS[currentQuestion];
-    const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
-    const isLastQuestion = currentQuestion === QUESTIONS.length - 1;
-    const canProceed = answers[question.id] !== undefined;
+    const question = questions[currentQuestion];
+    const progress = questions.length > 0 ? ((currentQuestion + 1) / questions.length) * 100 : 0;
+    const isLastQuestion = currentQuestion === questions.length - 1;
+    const canProceed = question ? answers[question.id] !== undefined : false;
+
+    if (!question) {
+        return (
+            <div className="p-4 text-center text-slate-600">
+                Nenhuma questão disponível para esta avaliação.
+            </div>
+        );
+    }
 
     const handleAnswer = (value: number) => {
         setAnswers(prev => ({ ...prev, [question.id]: value }));
@@ -66,7 +84,7 @@ export default function FiveMindQuestionnaire({ onComplete, onCancel }: Assessme
 
     const handleNext = () => {
         if (isLastQuestion) {
-            calculateResults();
+            calculateResults(questions, answers);
         } else {
             setCurrentQuestion(prev => prev + 1);
         }
@@ -78,29 +96,30 @@ export default function FiveMindQuestionnaire({ onComplete, onCancel }: Assessme
         }
     };
 
-    const calculateResults = () => {
-        const factors = {
-            openness: [] as number[],
-            conscientiousness: [] as number[],
-            extraversion: [] as number[],
-            agreeableness: [] as number[],
-            neuroticism: [] as number[],
+    const calculateResults = (qList: Array<{ id: string; factor: string; reverse?: boolean }>, ans: Record<string, number>) => {
+        const factors: Record<string, number[]> = {
+            openness: [],
+            conscientiousness: [],
+            extraversion: [],
+            agreeableness: [],
+            neuroticism: [],
         };
 
-        QUESTIONS.forEach(q => {
-            let value = answers[q.id] || 3;
+        qList.forEach(q => {
+            let value = ans[q.id] ?? 3;
             if (q.reverse) {
-                value = 6 - value; // Inverter escala 1-5
+                value = 6 - value;
             }
-            factors[q.factor].push(value);
+            if (factors[q.factor]) factors[q.factor].push(value);
         });
 
         const calculateAverage = (values: number[]) =>
             values.reduce((sum, val) => sum + val, 0) / values.length;
 
         const results: FiveMindResult = {
-            assessmentId: 'five-mind',
-            assessmentName: 'FiveMind',
+            assessmentId: assessmentId ?? '',
+            assessmentSlug: 'five-mind',
+            assessmentName: assessmentName ?? 'FiveMind',
             completedAt: new Date(),
             results: {
                 openness: Math.round(calculateAverage(factors.openness) * 10) / 10,
@@ -135,7 +154,7 @@ export default function FiveMindQuestionnaire({ onComplete, onCancel }: Assessme
                     />
                 </div>
                 <div className="text-xs text-slate-600 text-center">
-                    {currentQuestion + 1} de {QUESTIONS.length}
+                    {currentQuestion + 1} de {questions.length}
                 </div>
             </div>
 
@@ -169,7 +188,7 @@ export default function FiveMindQuestionnaire({ onComplete, onCancel }: Assessme
                                     {option.value}
                                 </div>
                                 <div className="flex-1 min-w-0 flex items-center gap-2">
-                                    <span className="text-lg sm:text-xl">{option.emoji}</span>
+                                    {option.emoji && <span className="text-lg sm:text-xl">{option.emoji}</span>}
                                     <span className="text-xs sm:text-sm font-medium text-slate-700">
                                         {option.label}
                                     </span>

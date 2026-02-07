@@ -70,6 +70,7 @@ export default function AssessmentsList({ category = 'avaliacoes' }: Assessments
                         key={assessment.id}
                         assessment={assessment}
                         onStart={() => handleStartAssessment(assessment.id)}
+                        onViewResults={completed ? () => router.push(`/applicant/shop/assessment/${assessment.id}?view=results`) : undefined}
                         completed={completed}
                     />
                 );

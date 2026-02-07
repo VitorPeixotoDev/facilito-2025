@@ -51,8 +51,9 @@ export default function AssessmentDetailsModal({
             setError(null);
 
             // Buscar detalhes da avaliação e competências autorizadas em paralelo
+            const slug = (assessment as { slug?: string }).slug ?? (assessment.id === 'five-mind' || assessment.id === 'hexa-mind' ? assessment.id : assessment.id);
             Promise.all([
-                getAssessmentDetails(userId, assessment.id),
+                getAssessmentDetails(userId, slug),
                 getAuthorizedCompetencies(userId)
             ])
                 .then(([data, competencies]) => {
@@ -106,7 +107,8 @@ export default function AssessmentDetailsModal({
         }).format(date);
     };
 
-    const labels = assessment.id === 'five-mind' ? FIVE_MIND_LABELS : HEXA_MIND_LABELS;
+    const slug = (assessment as { slug?: string }).slug ?? (assessment.id === 'five-mind' || assessment.id === 'hexa-mind' ? assessment.id : 'five-mind');
+    const labels = slug === 'five-mind' ? FIVE_MIND_LABELS : HEXA_MIND_LABELS;
 
     return (
         <AssessmentModal isOpen={isOpen} onClose={onClose} title={assessment.name}>
@@ -138,7 +140,7 @@ export default function AssessmentDetailsModal({
                             <div className="text-center">
                                 <p className="text-sm text-slate-600 mb-1">Score Geral</p>
                                 <p className={`text-3xl sm:text-4xl font-bold ${getScoreColor(details.overallScore)}`}>
-                                    {assessment.id === 'hexa-mind'
+                                    {slug === 'hexa-mind'
                                         ? `${details.overallScore}/100`
                                         : details.overallScore.toFixed(1)
                                     }

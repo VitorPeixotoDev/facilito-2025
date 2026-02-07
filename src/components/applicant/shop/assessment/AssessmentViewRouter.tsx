@@ -10,8 +10,16 @@ import type { AssessmentResult, FiveMindResult, HexaMindResult } from "@/types/a
 
 type AssessmentView = "instructions" | "questionnaire" | "results";
 
+export interface QuestionnaireData {
+    questions: Array<{ id: string; text: string; factor: string; reverse?: boolean }>;
+    scaleOptions: Array<{ value: number; label: string; emoji?: string; description?: string }>;
+}
+
 interface AssessmentViewRouterProps {
     assessmentId: string;
+    /** Slug para rotear FiveMind vs HexaMind ('five-mind' | 'hexa-mind'). */
+    assessmentSlug: string;
+    assessmentName?: string;
     currentView: AssessmentView;
     results: AssessmentResult | null;
     assessmentImage?: string;
@@ -22,6 +30,7 @@ interface AssessmentViewRouterProps {
     onViewSuggestions?: () => void;
     hasAuthorizedCompetencies?: boolean;
     onBackToShop?: () => void;
+    questionnaireData?: QuestionnaireData;
 }
 
 /**
@@ -30,6 +39,8 @@ interface AssessmentViewRouterProps {
  */
 export function AssessmentViewRouter({
     assessmentId,
+    assessmentSlug,
+    assessmentName,
     currentView,
     results,
     assessmentImage,
@@ -40,9 +51,10 @@ export function AssessmentViewRouter({
     onViewSuggestions,
     hasAuthorizedCompetencies = false,
     onBackToShop,
+    questionnaireData,
 }: AssessmentViewRouterProps) {
     // FiveMind Views
-    if (assessmentId === "five-mind") {
+    if (assessmentSlug === "five-mind") {
         if (currentView === "instructions") {
             return (
                 <FiveMindInstructions
@@ -54,24 +66,36 @@ export function AssessmentViewRouter({
         }
 
         if (currentView === "questionnaire") {
-            return <FiveMindQuestionnaire onComplete={onComplete} onCancel={onCancel} />;
-        }
-
-        if (currentView === "results" && results) {
             return (
-                <FiveMindResults
-                    results={results as FiveMindResult}
-                    onRestart={onRestart}
-                    onViewSuggestions={onViewSuggestions}
-                    hasAuthorizedCompetencies={hasAuthorizedCompetencies}
-                    onBackToShop={onBackToShop}
+                <FiveMindQuestionnaire
+                    assessmentId={assessmentId}
+                    assessmentName={assessmentName ?? "FiveMind"}
+                    onComplete={onComplete}
+                    onCancel={onCancel}
+                    questions={questionnaireData?.questions}
+                    scaleOptions={questionnaireData?.scaleOptions}
                 />
             );
+        }
+
+        if (currentView === "results") {
+            if (results) {
+                return (
+                    <FiveMindResults
+                        results={results as FiveMindResult}
+                        onRestart={onRestart}
+                        onViewSuggestions={onViewSuggestions}
+                        hasAuthorizedCompetencies={hasAuthorizedCompetencies}
+                        onBackToShop={onBackToShop}
+                    />
+                );
+            }
+            return null;
         }
     }
 
     // HexaMind Views
-    if (assessmentId === "hexa-mind") {
+    if (assessmentSlug === "hexa-mind") {
         if (currentView === "instructions") {
             return (
                 <HexaMindInstructions
@@ -83,19 +107,31 @@ export function AssessmentViewRouter({
         }
 
         if (currentView === "questionnaire") {
-            return <HexaMindQuestionnaire onComplete={onComplete} onCancel={onCancel} />;
-        }
-
-        if (currentView === "results" && results) {
             return (
-                <HexaMindResults
-                    results={results as HexaMindResult}
-                    onRestart={onRestart}
-                    onViewSuggestions={onViewSuggestions}
-                    hasAuthorizedCompetencies={hasAuthorizedCompetencies}
-                    onBackToShop={onBackToShop}
+                <HexaMindQuestionnaire
+                    assessmentId={assessmentId}
+                    assessmentName={assessmentName ?? "HexaMind"}
+                    onComplete={onComplete}
+                    onCancel={onCancel}
+                    questions={questionnaireData?.questions}
+                    scaleOptions={questionnaireData?.scaleOptions}
                 />
             );
+        }
+
+        if (currentView === "results") {
+            if (results) {
+                return (
+                    <HexaMindResults
+                        results={results as HexaMindResult}
+                        onRestart={onRestart}
+                        onViewSuggestions={onViewSuggestions}
+                        hasAuthorizedCompetencies={hasAuthorizedCompetencies}
+                        onBackToShop={onBackToShop}
+                    />
+                );
+            }
+            return null;
         }
     }
 
