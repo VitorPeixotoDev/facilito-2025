@@ -42,6 +42,8 @@ export function ModalProvider({ children }: ModalProviderProps) {
         closeModal
     }
 
+    console.log('deploying...')
+
     return (
         <ModalContext.Provider value={contextValue}>
             {children}
