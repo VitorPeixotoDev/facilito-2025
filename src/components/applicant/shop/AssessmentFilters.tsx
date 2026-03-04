@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Info } from 'lucide-react';
+import { Search, Info, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ASSESSMENTS_CONFIG } from '@/lib/assessment/assessmentsConfig';
 import AssessmentCard from '@/components/assessment/AssessmentCard';
 import { getLatestResult } from '@/lib/assessment/resultsStorage';
 import { useAuth } from '@/components/AuthClientProvider';
 import { MAIN_ASSESSMENT_TAGS, TAG_ASSESSMENTS_MAP } from '@/lib/constants/assessment_tags';
+import { PaymentAssessmentModal } from './PaymentAssessmentModal';
+import type { AssessmentConfig } from '@/types/assessments';
 
 interface AssessmentFiltersProps {
     initialSearchTerm?: string;
@@ -21,6 +22,11 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
     const [selectedTag, setSelectedTag] = useState<string>('Todas');
     const [selectedTagWarning, setSelectedTagWarning] = useState<string | null>(null);
     const [completedAssessments, setCompletedAssessments] = useState<Set<string>>(new Set());
+    const [purchasedAssessmentIds, setPurchasedAssessmentIds] = useState<Set<string>>(new Set());
+    const [assessmentPrices, setAssessmentPrices] = useState<Record<string, number>>({});
+    const [paymentModal, setPaymentModal] = useState<{ open: boolean; assessment: AssessmentConfig | null }>({ open: false, assessment: null });
+    const [allAssessments, setAllAssessments] = useState<(AssessmentConfig & { slug?: string })[]>([]);
+    const [assessmentsLoading, setAssessmentsLoading] = useState(true);
 
     useEffect(() => {
         if (initialSearchTerm !== undefined) {
@@ -28,7 +34,26 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
         }
     }, [initialSearchTerm]);
 
-    const allAssessments = useMemo(() => ASSESSMENTS_CONFIG, []);
+    useEffect(() => {
+        setAssessmentsLoading(true);
+        fetch('/api/assessments')
+            .then((res) => res.ok ? res.json() : { assessments: [] })
+            .then((data: { assessments?: Array<{ id: string; slug: string; name: string; image?: string; description: string; estimatedTime: string; questionCount: number; category: string }> }) => {
+                const list = data.assessments ?? [];
+                setAllAssessments(list.map((a) => ({
+                    id: a.id,
+                    slug: a.slug,
+                    name: a.name,
+                    image: a.image,
+                    description: a.description,
+                    estimatedTime: a.estimatedTime,
+                    questionCount: a.questionCount,
+                    category: a.category,
+                })));
+            })
+            .catch(() => setAllAssessments([]))
+            .finally(() => setAssessmentsLoading(false));
+    }, []);
 
     // Carregar informações de avaliações concluídas
     useEffect(() => {
@@ -39,7 +64,7 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
 
             for (const assessment of allAssessments) {
                 try {
-                    const latestResult = await getLatestResult(assessment.id, user.id);
+                    const latestResult = await getLatestResult(assessment.id, user.id, assessment.slug);
                     if (latestResult) {
                         completed.add(assessment.id);
                     }
@@ -56,9 +81,34 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
         }
     }, [allAssessments, user?.id]);
 
-    const handleStartAssessment = async (assessmentId: string) => {
-        // Sempre permite iniciar/refazer a avaliação
-        router.push(`/applicant/shop/assessment/${assessmentId}?view=instructions`);
+    // Carregar preços das avaliações (vindos do banco)
+    useEffect(() => {
+        fetch('/api/assessment-prices')
+            .then((res) => res.ok ? res.json() : { prices: {} })
+            .then((data: { prices?: Record<string, number> }) => {
+                setAssessmentPrices(data.prices ?? {});
+            })
+            .catch(() => setAssessmentPrices({}));
+    }, []);
+
+    // Carregar avaliações já compradas (pagas via Stripe)
+    useEffect(() => {
+        if (!user?.id) return;
+        fetch('/api/assessment-purchases')
+            .then((res) => res.ok ? res.json() : { assessmentIds: [] })
+            .then((data: { assessmentIds?: string[] }) => {
+                setPurchasedAssessmentIds(new Set(data.assessmentIds ?? []));
+            })
+            .catch(() => setPurchasedAssessmentIds(new Set()));
+    }, [user?.id]);
+
+    const handleStartAssessment = (assessment: AssessmentConfig) => {
+        const hasPurchased = purchasedAssessmentIds.has(assessment.id);
+        if (!hasPurchased) {
+            setPaymentModal({ open: true, assessment });
+            return;
+        }
+        router.push(`/applicant/shop/assessment/${assessment.id}?view=instructions`);
     };
 
     const handleTagClick = (tag: string) => {
@@ -172,7 +222,12 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
 
                 {/* Lista de avaliações filtradas */}
                 <div>
-                    {filteredAssessments.length > 0 ? (
+                    {assessmentsLoading ? (
+                        <div className="flex flex-col items-center justify-center py-16 sm:py-20 gap-3">
+                            <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 animate-spin text-[#5e9ea0]" aria-hidden />
+                            <p className="text-sm font-medium text-slate-600">Carregando...</p>
+                        </div>
+                    ) : filteredAssessments.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4">
                             {filteredAssessments.map((assessment) => {
                                 const completed = completedAssessments.has(assessment.id);
@@ -180,8 +235,11 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
                                     <AssessmentCard
                                         key={assessment.id}
                                         assessment={assessment}
-                                        onStart={() => void handleStartAssessment(assessment.id)}
+                                        onStart={() => handleStartAssessment(assessment)}
+                                        onViewResults={completed ? () => router.push(`/applicant/shop/assessment/${assessment.id}?view=results`) : undefined}
                                         completed={completed}
+                                        purchased={purchasedAssessmentIds.has(assessment.id)}
+                                        priceCents={assessmentPrices[assessment.id]}
                                     />
                                 );
                             })}
@@ -195,6 +253,14 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
                     )}
                 </div>
             </div>
+
+            <PaymentAssessmentModal
+                isOpen={paymentModal.open}
+                onClose={() => setPaymentModal({ open: false, assessment: null })}
+                assessmentName={paymentModal.assessment?.name ?? ''}
+                assessmentId={paymentModal.assessment?.id ?? ''}
+                priceCents={paymentModal.assessment ? (assessmentPrices[paymentModal.assessment.id] ?? 2000) : 2000}
+            />
         </section>
     );
 }

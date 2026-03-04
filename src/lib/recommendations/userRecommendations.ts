@@ -5,7 +5,7 @@
  * e pode ser reutilizada em diferentes telas.
  */
 
-import { EDUCATION_COURSES } from '@/lib/constants/education_courses';
+import { EDUCATION_COURSES, getCourseDisplayName } from '@/lib/constants/education_courses';
 import { MAIN_EDUCATION_TAGS } from '@/lib/constants/education_tags';
 import { MAIN_ASSESSMENT_TAGS, TAG_ASSESSMENTS_MAP } from '@/lib/constants/assessment_tags';
 import { calculateRawScore } from '@/lib/ranking/utils/scoreCalculator';

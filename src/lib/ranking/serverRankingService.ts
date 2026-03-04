@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@/utils/supabase/server'
+import { getCourseDisplayName } from '@/lib/constants/education_courses'
 import type { CandidateProfile, RankingResult } from './types'
 
 /**
@@ -45,7 +46,7 @@ async function fetchCandidatesFromDatabaseServer(
             full_name: row.full_name,
             description: row.description,
             skills: row.skills || [],
-            courses: row.courses || [],
+            courses: (row.courses || []).map((c: string) => getCourseDisplayName(c)),
             freelancer_services: row.freelancer_services || [],
             experience: row.experience,
             academic_background: row.academic_background,
@@ -97,7 +98,7 @@ async function fetchUserProfileServer(userId: string): Promise<CandidateProfile 
             .single()
 
         if (error) {
-            console.error('Error fetching user profile:', error)
+            console.error('Error fetching user profile:', error);
             return null
         }
 
@@ -107,7 +108,7 @@ async function fetchUserProfileServer(userId: string): Promise<CandidateProfile 
             full_name: profile.full_name,
             description: profile.description,
             skills: profile.skills || [],
-            courses: profile.courses || [],
+            courses: (profile.courses || []).map((c: string) => getCourseDisplayName(c)),
             freelancer_services: profile.freelancer_services || [],
             experience: profile.experience,
             academic_background: profile.academic_background,

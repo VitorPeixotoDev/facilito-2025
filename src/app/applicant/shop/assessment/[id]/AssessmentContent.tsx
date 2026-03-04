@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthClientProvider";
-import { getAssessmentById } from "@/lib/assessment/assessmentsConfig";
 import { getLatestResult, saveResults } from "@/lib/assessment/resultsStorage";
 import { AssessmentHeader } from "@/components/applicant/shop/assessment/AssessmentHeader";
 import { AssessmentViewRouter } from "@/components/applicant/shop/assessment/AssessmentViewRouter";
@@ -24,6 +24,7 @@ function AssessmentContentInner() {
     const { user, loading: authLoading } = useAuth();
     const assessmentId = params.id as string;
     const viewParam = searchParams.get("view") as AssessmentView | null;
+    const fromPaymentSuccess = searchParams.get("payment") === "success";
 
     const [currentView, setCurrentView] = useState<AssessmentView>("instructions");
     const [results, setResults] = useState<AssessmentResult | null>(null);
@@ -34,38 +35,82 @@ function AssessmentContentInner() {
     const [hasAuthorizedCompetencies, setHasAuthorizedCompetencies] = useState(false);
     const [isCheckingCompetencies, setIsCheckingCompetencies] = useState(false);
     const [showNoSuggestionsMessage, setShowNoSuggestionsMessage] = useState(false);
+    const [assessmentData, setAssessmentData] = useState<{
+        assessment: { id: string; slug: string; name: string; image?: string; description: string; estimatedTime: string; questionCount: number; category: string };
+        questions: Array<{ id: string; text: string; factor: string; reverse?: boolean }>;
+        scaleOptions: Array<{ value: number; label: string; emoji?: string; description?: string }>;
+    } | null>(null);
 
-    const assessment = useMemo(() => {
-        return getAssessmentById(assessmentId);
-    }, [assessmentId]);
+    const assessment = assessmentData?.assessment ?? null;
 
     useEffect(() => {
         const loadAssessment = async () => {
-            if (!assessment) {
+            // Esperar auth estar pronto antes de checar usuário/compra (evita redirect para shop ao voltar do Stripe)
+            if (authLoading) return;
+
+            const res = await fetch(`/api/assessments/${assessmentId}`);
+            if (!res.ok) {
+                router.push("/applicant/shop");
+                return;
+            }
+            const data = await res.json();
+            setAssessmentData({
+                assessment: data.assessment,
+                questions: data.questions ?? [],
+                scaleOptions: data.scaleOptions ?? [],
+            });
+
+            // Usuário precisa estar logado para acessar avaliação paga
+            if (!user?.id) {
                 router.push("/applicant/shop");
                 return;
             }
 
-            // Verificar se há view na URL (não precisa esperar auth)
+            // Verificar se o usuário comprou esta avaliação (todas são pagas)
+            // Se veio do payment-success, dar algumas tentativas (evitar race com a gravação da compra)
+            const maxAttempts = fromPaymentSuccess ? 5 : 1;
+            const delayMs = fromPaymentSuccess ? 800 : 0;
+            let purchased = false;
+            try {
+                for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                    if (attempt > 0) await new Promise((r) => setTimeout(r, delayMs));
+                    const purchaseRes = await fetch("/api/assessment-purchases");
+                    const purchaseData = purchaseRes.ok ? await purchaseRes.json() : { assessmentIds: [] };
+                    const ids = (purchaseData.assessmentIds ?? []) as string[];
+                    if (ids.includes(assessmentId)) {
+                        purchased = true;
+                        break;
+                    }
+                }
+                if (!purchased) {
+                    router.push("/applicant/shop");
+                    return;
+                }
+            } catch {
+                router.push("/applicant/shop");
+                return;
+            }
+
+            // Verificar se há view na URL e aplicar
             if (viewParam && ["instructions", "questionnaire", "results"].includes(viewParam)) {
                 setCurrentView(viewParam);
             }
 
-            // Se estiver na view de instructions ou questionnaire, não precisa esperar auth
+            // Se estiver na view de instructions ou questionnaire, não precisa carregar resultado
             if (viewParam === "instructions" || viewParam === "questionnaire") {
                 setIsLoading(false);
                 return;
             }
 
-            // Verificar se já existe resultado no banco de dados (só se tiver user)
+            // view=results ou sem view: carregar resultado mais recente do banco
             if (user?.id) {
                 try {
-                    const latestResult = await getLatestResult(assessmentId, user.id);
-                    if (latestResult && !viewParam) {
+                    const latestResult = await getLatestResult(assessmentId, user.id, data.assessment?.slug);
+                    if (latestResult) {
                         setResults(latestResult);
-                        setCurrentView("results");
-                    } else if (viewParam === "results" && latestResult) {
-                        setResults(latestResult);
+                        if (!viewParam) setCurrentView("results");
+                    }
+                    if (viewParam === "results" && latestResult) {
 
                         // Se estiver na view de results, verificar se já tem competências autorizadas
                         setIsCheckingCompetencies(true);
@@ -76,12 +121,13 @@ function AssessmentContentInner() {
 
                         // Se não tiver competências autorizadas, abrir modal automaticamente
                         if (!hasCompetencies) {
-                            // Calcular sugestões e abrir modal
+                            // Calcular sugestões e abrir modal (usar slug para branching)
                             let suggestions: string[] = [];
-                            if (latestResult.assessmentId === 'five-mind') {
+                            const slug = latestResult.assessmentSlug ?? (latestResult.assessmentId === 'five-mind' ? 'five-mind' : latestResult.assessmentId === 'hexa-mind' ? 'hexa-mind' : null);
+                            if (slug === 'five-mind') {
                                 const fiveMindResult = latestResult as FiveMindResult;
                                 suggestions = mapFiveMindToCompetencies(fiveMindResult.results);
-                            } else if (latestResult.assessmentId === 'hexa-mind') {
+                            } else if (slug === 'hexa-mind') {
                                 const hexaMindResult = latestResult as HexaMindResult;
                                 suggestions = mapHexaMindToCompetencies(hexaMindResult.results);
                             }
@@ -105,9 +151,8 @@ function AssessmentContentInner() {
             setIsLoading(false);
         };
 
-        // Não bloquear por authLoading - carregar imediatamente
         loadAssessment();
-    }, [assessment, assessmentId, viewParam, router, user?.id]);
+    }, [assessmentId, viewParam, router, user?.id, authLoading]);
 
     const handleStartQuestionnaire = async () => {
         // Limpar competências autorizadas ao iniciar um novo teste
@@ -166,13 +211,13 @@ function AssessmentContentInner() {
     const handleViewSuggestions = () => {
         if (!results) return;
 
-        // Calcular sugestões baseadas no tipo de avaliação
+        // Calcular sugestões baseadas no tipo de avaliação (usar slug para branching)
         let suggestions: string[] = [];
-
-        if (results.assessmentId === 'five-mind') {
+        const slug = results.assessmentSlug ?? (results.assessmentId === 'five-mind' ? 'five-mind' : results.assessmentId === 'hexa-mind' ? 'hexa-mind' : null);
+        if (slug === 'five-mind') {
             const fiveMindResult = results as FiveMindResult;
             suggestions = mapFiveMindToCompetencies(fiveMindResult.results);
-        } else if (results.assessmentId === 'hexa-mind') {
+        } else if (slug === 'hexa-mind') {
             const hexaMindResult = results as HexaMindResult;
             suggestions = mapHexaMindToCompetencies(hexaMindResult.results);
         }
@@ -199,9 +244,10 @@ function AssessmentContentInner() {
 
             // Atualizar apenas os campos de autorização do resultado existente (evita duplicação)
             const expiresAt = new Date(pendingResult.completedAt.getTime() + 365 * 24 * 60 * 60 * 1000);
+            const slug = pendingResult.assessmentSlug ?? (pendingResult.assessmentId === 'five-mind' ? 'five-mind' : pendingResult.assessmentId === 'hexa-mind' ? 'hexa-mind' : 'five-mind');
             const success = await updateAssessmentAuthorization(
                 user.id,
-                pendingResult.assessmentId as 'five-mind' | 'hexa-mind',
+                slug,
                 {
                     authorizedForSuggestions: true,
                     authorizedToShowResults: false,
@@ -299,13 +345,14 @@ function AssessmentContentInner() {
         }
     }, [currentView, hasAuthorizedCompetencies, isCheckingCompetencies, showNoSuggestionsMessage]);
 
-    // Mostrar loading apenas se não tiver assessment ou se estiver realmente carregando
-    if (!assessment || (isLoading && !viewParam)) {
+    // Mostrar loading: sem assessment, ou carregando (e não é view=results), ou pediu view=results e ainda não tem resultado
+    const waitingForResults = viewParam === "results" && results === null && isLoading;
+    if (!assessment || (isLoading && !viewParam) || waitingForResults) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
                     <Loader2 className="w-8 h-8 animate-spin text-[#5e9ea0]" />
-                    <p className="text-sm text-slate-600">Carregando...</p>
+                    <p className="text-sm text-slate-600">{waitingForResults ? "Carregando resultados..." : "Carregando..."}</p>
                 </div>
             </div>
         );
@@ -330,9 +377,18 @@ function AssessmentContentInner() {
             >
                 {showNoSuggestionsMessage ? (
                     <NoCompetenciesSuggestionsMessage onRetakeTest={handleRetakeTest} />
+                ) : currentView === "results" && !results ? (
+                    <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
+                        <p className="text-slate-600">Nenhum resultado encontrado. Faça a avaliação para ver seus resultados.</p>
+                        <Button onClick={handleStartQuestionnaire} className="bg-[#5e9ea0] hover:bg-[#4a8b8f] text-white">
+                            Iniciar avaliação
+                        </Button>
+                    </div>
                 ) : (
                     <AssessmentViewRouter
                         assessmentId={assessmentId}
+                        assessmentSlug={assessment.slug}
+                        assessmentName={assessment.name}
                         currentView={currentView}
                         results={results}
                         assessmentImage={assessment.image}
@@ -343,6 +399,7 @@ function AssessmentContentInner() {
                         onViewSuggestions={currentView === 'results' && !hasAuthorizedCompetencies ? handleViewSuggestions : undefined}
                         hasAuthorizedCompetencies={currentView === 'results' ? hasAuthorizedCompetencies : false}
                         onBackToShop={handleBack}
+                        questionnaireData={assessmentData ? { questions: assessmentData.questions, scaleOptions: assessmentData.scaleOptions } : undefined}
                     />
                 )}
             </div>

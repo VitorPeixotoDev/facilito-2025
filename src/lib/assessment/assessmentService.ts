@@ -153,8 +153,9 @@ export async function saveAssessmentResult(
         // IMPORTANTE: Salvar PRIMEIRO na tabela específica (five_mind_results ou hexa_mind_results)
         // O trigger SQL automaticamente atualiza users.profile_analysis com as características convertidas
 
+        const slug = result.assessmentSlug ?? (result.assessmentId === 'five-mind' ? 'five-mind' : result.assessmentId === 'hexa-mind' ? 'hexa-mind' : null);
         // Se for FiveMind, salvar na tabela específica (obrigatório)
-        if (result.assessmentId === 'five-mind') {
+        if (slug === 'five-mind') {
             console.log('🧠 Detectado FiveMind, salvando em five_mind_results...');
             console.log('📋 Result.results:', result.results);
 
@@ -181,7 +182,7 @@ export async function saveAssessmentResult(
             await addUserCertification(userId, 'fivemind');
         }
         // Se for HexaMind, salvar na tabela específica (obrigatório)
-        else if (result.assessmentId === 'hexa-mind') {
+        else if (slug === 'hexa-mind') {
             console.log('🧠 Detectado HexaMind, salvando em hexa_mind_results...');
             console.log('📋 Result.results:', result.results);
 
@@ -208,7 +209,7 @@ export async function saveAssessmentResult(
             await addUserCertification(userId, 'sixmind');
         }
         else {
-            const error = new Error(`Tipo de avaliação não suportado: ${result.assessmentId}. Apenas 'five-mind' e 'hexa-mind' são suportados.`);
+            const error = new Error(`Tipo de avaliação não suportado: ${slug ?? result.assessmentId}. Apenas 'five-mind' e 'hexa-mind' são suportados.`);
             console.error('❌', error.message);
             throw error;
         }
@@ -335,6 +336,7 @@ export async function getAssessmentResultsByUser(
 function convertFiveMindRowToAssessmentResult(row: any): AssessmentResult {
     return {
         assessmentId: 'five-mind',
+        assessmentSlug: 'five-mind',
         assessmentName: 'FiveMind',
         completedAt: new Date(row.completed_at),
         score: row.overall_score || undefined,
@@ -355,6 +357,7 @@ function convertFiveMindRowToAssessmentResult(row: any): AssessmentResult {
 function convertHexaMindRowToAssessmentResult(row: any): AssessmentResult {
     return {
         assessmentId: 'hexa-mind',
+        assessmentSlug: 'hexa-mind',
         assessmentName: 'HexaMind',
         completedAt: new Date(row.completed_at),
         score: row.overall_score || undefined,
@@ -644,7 +647,8 @@ export function convertRowToFiveMindResult(row: AssessmentResultRow): FiveMindRe
     const result = convertRowToAssessmentResult(row);
     return {
         ...result,
-        assessmentId: 'five-mind',
+        assessmentId: result.assessmentId,
+        assessmentSlug: 'five-mind',
         assessmentName: 'FiveMind',
         results: row.results as FiveMindResult['results'],
     };
@@ -660,7 +664,8 @@ export function convertRowToHexaMindResult(row: AssessmentResultRow): HexaMindRe
     const result = convertRowToAssessmentResult(row);
     return {
         ...result,
-        assessmentId: 'hexa-mind',
+        assessmentId: result.assessmentId,
+        assessmentSlug: 'hexa-mind',
         assessmentName: 'HexaMind',
         results: row.results as HexaMindResult['results'],
     };

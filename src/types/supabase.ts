@@ -89,6 +89,46 @@ export interface Database {
                     authorized_competencies?: string[];
                 };
             };
+            assessment_prices: {
+                Row: {
+                    assessment_id: string;
+                    price_cents: number;
+                    updated_at: string | null;
+                };
+                Insert: {
+                    assessment_id: string;
+                    price_cents: number;
+                    updated_at?: string | null;
+                };
+                Update: {
+                    assessment_id?: string;
+                    price_cents?: number;
+                    updated_at?: string | null;
+                };
+            };
+            assessment_purchases: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    assessment_id: string;
+                    stripe_session_id: string;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    assessment_id: string;
+                    stripe_session_id: string;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string;
+                    assessment_id?: string;
+                    stripe_session_id?: string;
+                    created_at?: string;
+                };
+            };
             assessment_results: {
                 Row: {
                     id: string;

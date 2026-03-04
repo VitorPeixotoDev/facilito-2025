@@ -3,7 +3,10 @@
  */
 
 export interface AssessmentResult {
+    /** UUID da avaliação (seguro para APIs/URLs). */
     assessmentId: string;
+    /** Slug para branching FiveMind/HexaMind ('five-mind' | 'hexa-mind'). */
+    assessmentSlug?: 'five-mind' | 'hexa-mind';
     assessmentName: string;
     completedAt: Date;
     score?: number;
@@ -46,7 +49,8 @@ export interface FiveMindResult extends AssessmentResult {
 }
 
 export interface HexaMindResult extends AssessmentResult {
-    assessmentId: 'hexa-mind';
+    assessmentId: string;
+    assessmentSlug: 'hexa-mind';
     assessmentName: 'HexaMind';
     results: {
         honesty: number;

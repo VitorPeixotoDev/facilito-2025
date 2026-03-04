@@ -49,7 +49,7 @@ export default function SkillsAndCoursesSection({
                     for (const assessment of assessments) {
                         const predominantTerm = await getPredominantAnalysisForAssessment(
                             userId,
-                            assessment.assessmentId
+                            assessment.assessmentConfig.id
                         );
                         items.push({
                             assessment,
