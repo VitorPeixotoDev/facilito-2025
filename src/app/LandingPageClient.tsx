@@ -2,6 +2,7 @@
 
 import { useState, createContext, useContext, ReactNode } from 'react'
 import LoginModal from '../components/LoginModal'
+import LandingEntryModal from '../components/LandingEntryModal'
 
 interface ModalContextType {
     isOpen: boolean
@@ -24,6 +25,7 @@ interface ModalProviderProps {
 }
 
 export function ModalProvider({ children }: ModalProviderProps) {
+    const [isEntryModalOpen, setIsEntryModalOpen] = useState(true)
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
     const [initialMode, setInitialMode] = useState<'login' | 'signup'>('login')
 
@@ -46,6 +48,10 @@ export function ModalProvider({ children }: ModalProviderProps) {
     return (
         <ModalContext.Provider value={contextValue}>
             {children}
+            <LandingEntryModal
+                isOpen={isEntryModalOpen}
+                onClose={() => setIsEntryModalOpen(false)}
+            />
             <LoginModal
                 isOpen={isLoginModalOpen}
                 onClose={closeModal}

@@ -24,8 +24,9 @@ export function getURL(): string {
     if (isVercel) {
         url = siteUrl || (vercelUrl ? `https://${vercelUrl}` : 'https://nexo-fawn.vercel.app')
     } else {
-        // Apenas em desenvolvimento local usar localhost
-        url = 'http://localhost:3000'
+        // Desenvolvimento local: NEXT_PUBLIC_SITE_URL (porta/host) ou localhost padrão
+        url =
+            siteUrl && siteUrl.length > 0 ? siteUrl.replace(/\/+$/, '') : 'http://localhost:3000'
     }
 
     // Certifique-se de incluir uma barra `/` no final
