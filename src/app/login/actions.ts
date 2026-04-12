@@ -3,8 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
+import { authCallbackRedirectTo, authResetPasswordRedirectTo } from '@/utils/auth-redirect-base'
 import { createClient } from '@/utils/supabase/server'
-import { getURL } from '@/utils/get-url'
 
 export async function login(email: string, password: string) {
     const supabase = await createClient()
@@ -38,7 +38,7 @@ export async function signup(email: string, password: string) {
         email,
         password,
         options: {
-            emailRedirectTo: 'https://facilitovagas.com/auth/callback',
+            emailRedirectTo: await authCallbackRedirectTo(),
             data: {
                 app_type: 'user',
             },
@@ -57,7 +57,7 @@ export async function resetPassword(email: string) {
     const supabase = await createClient()
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${getURL()}auth/reset-password`,
+        redirectTo: await authResetPasswordRedirectTo(),
     })
 
     if (error) {
@@ -69,11 +69,12 @@ export async function resetPassword(email: string) {
 
 export async function signInWithGoogle() {
     const supabase = await createClient()
+    const redirectTo = await authCallbackRedirectTo()
 
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: `https://facilitovagas.com/auth/callback`,
+            redirectTo,
         },
     })
 
