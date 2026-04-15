@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Info, Loader2 } from 'lucide-react';
+import { Search, Info } from 'lucide-react';
+import { AssessmentShopGridSkeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import AssessmentCard from '@/components/assessment/AssessmentCard';
 import { getLatestResult } from '@/lib/assessment/resultsStorage';
@@ -223,9 +224,8 @@ export function AssessmentFilters({ initialSearchTerm }: AssessmentFiltersProps)
                 {/* Lista de avaliações filtradas */}
                 <div>
                     {assessmentsLoading ? (
-                        <div className="flex flex-col items-center justify-center py-16 sm:py-20 gap-3">
-                            <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 animate-spin text-[#5e9ea0]" aria-hidden />
-                            <p className="text-sm font-medium text-slate-600">Carregando...</p>
+                        <div className="py-8 sm:py-10">
+                            <AssessmentShopGridSkeleton count={4} />
                         </div>
                     ) : filteredAssessments.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4">

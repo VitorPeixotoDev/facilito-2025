@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MapPin, Navigation, CheckCircle2, X, Loader2, Search, HouseIcon } from "lucide-react";
+import { MapPin, Navigation, CheckCircle2, X, Search, HouseIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { ProfileFormData } from "../ProfileFormSteps";
 import { buscarCEP, formatCEP, validarCEP } from "@/utils/viacep";
 import { getCoordsFromAddress } from "@/utils/geocoding";
@@ -237,7 +238,7 @@ export function AddressStep({
                     >
                         {isLocating ? (
                             <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                <Skeleton className="mr-2 h-4 w-4 shrink-0 rounded-full" aria-hidden />
                                 Obtendo localização...
                             </>
                         ) : (
@@ -311,7 +312,7 @@ export function AddressStep({
                                     />
                                     {buscandoCEP && (
                                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                            <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                                            <Skeleton className="h-4 w-4 rounded-full bg-slate-300/90" aria-hidden />
                                         </div>
                                     )}
                                 </div>
@@ -429,7 +430,7 @@ export function AddressStep({
                             >
                                 {buscandoCoordenadas ? (
                                     <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        <Skeleton className="mr-2 h-4 w-4 shrink-0 rounded-full" aria-hidden />
                                         Buscando coordenadas...
                                     </>
                                 ) : (

@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { VagasPageSkeleton } from '@/components/ui/skeleton';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { fetchAvailableJobs, fetchUserApplications } from '@/lib/vacancies/serverVacancyService';
@@ -39,15 +40,7 @@ export default async function VagasPage() {
             : null;
 
     return (
-        <Suspense
-            fallback={
-                <div className="min-h-screen bg-gradient-to-br from-slate-50 via-[#e3f2f3] to-slate-100">
-                    <div className="flex items-center justify-center min-h-screen">
-                        <p className="text-slate-600">Carregando vagas...</p>
-                    </div>
-                </div>
-            }
-        >
+        <Suspense fallback={<VagasPageSkeleton />}>
             <VagasPageClient
                 initialJobs={jobs}
                 initialCandidaturas={candidaturas}

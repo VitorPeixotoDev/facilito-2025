@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Save, CheckCircle2, AlertCircle } from "lucide-react";
+import { ProfileShellSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/AuthClientProvider";
 import { updateProfile } from "./actions";
 import { ProfileFormSteps, type ProfileFormData } from "@/components/applicant/profile/ProfileFormSteps";
+import { isBirthDateAfterToday } from "@/components/applicant/profile/utils";
 import { ProfileHeader, ONBOARDING_STEPS } from "@/components/applicant/profile/ProfileHeader";
 import { getLocationDescription, getCoordsFromAddress } from "@/utils/geocoding";
 
@@ -290,6 +292,13 @@ export default function ProfilePage() {
                 return false;
             }
 
+            if (data.birth_date?.trim() && isBirthDateAfterToday(data.birth_date.trim())) {
+                if (showToast) {
+                    alert("A data de nascimento não pode ser futura.");
+                }
+                return false;
+            }
+
             setIsSaving(true);
             setSaveStatus("saving");
 
@@ -359,6 +368,8 @@ export default function ProfilePage() {
                 }
                 if (!formData.birth_date?.trim()) {
                     errors.push("Informe sua data de nascimento.");
+                } else if (isBirthDateAfterToday(formData.birth_date.trim())) {
+                    errors.push("A data de nascimento não pode ser futura.");
                 }
                 if (!formData.email?.trim()) {
                     errors.push("Informe um email.");
@@ -498,11 +509,7 @@ export default function ProfilePage() {
 
     // Mostra loading enquanto autenticação está carregando
     if (authLoading || isLoading) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-[#5e9ea0]" />
-            </div>
-        );
+        return <ProfileShellSkeleton />;
     }
 
     // Só mostra mensagem de login se realmente não há usuário após o carregamento
@@ -597,7 +604,7 @@ export default function ProfilePage() {
                                     >
                                         {isSaving ? (
                                             <>
-                                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                                <Skeleton className="mr-2 h-5 w-5 shrink-0 rounded-full bg-[#5e9ea0]/35" aria-hidden />
                                                 Salvando...
                                             </>
                                         ) : (

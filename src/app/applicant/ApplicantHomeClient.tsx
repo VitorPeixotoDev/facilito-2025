@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
-import { Loader2, AlertCircle, ChevronDown } from 'lucide-react';
+import { AlertCircle, ChevronDown } from 'lucide-react';
 import ProfileAnalysisBadge from '@/components/applicant/profile/ProfileAnalysisBadge';
 import AssessmentDetailsModal from '@/components/applicant/profile/AssessmentDetailsModal';
 import UserInfo from '@/components/applicant/profile/UserInfo';
@@ -65,13 +65,16 @@ export default function ApplicantHomeClient({
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
             {/* Header */}
-            <div className="mb-6 sm:mb-8">
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#111] mb-2">
+            <div className="mb-6 rounded-[1.75rem] border border-[#d5e3e4] bg-gradient-to-br from-[#f8fbfb] to-[#eef5f5] p-5 shadow-sm sm:mb-8 sm:p-7">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4f7f81]">
+                    Painel do Candidato
+                </p>
+                <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-[#111] sm:text-3xl">
                     Meu Perfil
                 </h1>
-                <p className="text-slate-600 text-sm sm:text-base">
+                <p className="text-sm text-slate-600 sm:text-base">
                     Visualize suas informações e resultados de avaliações
                 </p>
             </div>
@@ -81,7 +84,6 @@ export default function ApplicantHomeClient({
                 <div className="mb-6">
                     <UserRanking
                         profile={profile}
-                        userId={user.id}
                         userRanking={rankingResult?.user || null}
                         loading={loadingRanking}
                     />
@@ -91,27 +93,27 @@ export default function ApplicantHomeClient({
             {/* Ranked Candidates List (com expansão/recolhimento) */}
             {rankingResult && (
                 <div className="mb-6">
-                    <div className="bg-white rounded-lg border border-[#5f9ea0]/20 shadow-sm">
+                    <div className="overflow-hidden rounded-[1.5rem] border border-[#c8d9da] bg-white shadow-sm">
                         <button
                             type="button"
                             onClick={() => setIsRankingExpanded((prev) => !prev)}
-                            className="w-full flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3.5"
+                            className="flex w-full items-center justify-between gap-3 bg-gradient-to-br from-[#f9fcfc] to-[#f3f8f8] px-4 py-3.5 sm:px-5 sm:py-4"
                         >
                             <div className="text-left">
-                                <h2 className="text-sm sm:text-base font-semibold text-[#111]">
+                                <h2 className="text-sm font-semibold text-[#111] sm:text-base">
                                     Top 20 Candidatos Similares
                                 </h2>
-                                <p className="mt-1 text-xs sm:text-sm text-[#111]/60">
+                                <p className="mt-1 text-xs leading-relaxed text-[#111]/60 sm:text-sm">
                                     {rankingResult.rankedCandidates.length > 0
                                         ? `${rankingResult.stats.relevantCandidates || rankingResult.stats.withinRadius
                                         } candidatos com habilidades similares em um raio de 20km`
                                         : 'Veja como você se posiciona em relação a outros candidatos semelhantes.'}
                                 </p>
                             </div>
-                            <div className="flex items-center gap-2 text-xs sm:text-sm text-[#5f9ea0]">
+                            <div className="flex items-center gap-2 rounded-full bg-[#5f9ea0]/10 px-3 py-1.5 text-xs font-semibold text-[#3d7678] sm:text-sm">
                                 <span>{isRankingExpanded ? 'Recolher' : 'Ver ranking'}</span>
                                 <ChevronDown
-                                    className={`w-4 h-4 transition-transform duration-200 ${isRankingExpanded ? 'rotate-180' : ''
+                                    className={`h-4 w-4 transition-transform duration-200 ${isRankingExpanded ? 'rotate-180' : ''
                                         }`}
                                 />
                             </div>
@@ -123,14 +125,14 @@ export default function ApplicantHomeClient({
                                     <>
                                         {/* Alerta se usuário não está nos top 20 */}
                                         {!rankingResult.userInTop20 && rankingResult.user && (
-                                            <div className="mb-4 bg-gradient-to-br from-[#5f9ea0]/10 to-[#5f9ea0]/5 rounded-lg border-l-[3px] border-[#5f9ea0] p-4">
+                                            <div className="mb-4 rounded-2xl border border-[#5f9ea0]/20 bg-gradient-to-br from-[#e9f3f3] to-white p-4">
                                                 <div className="flex items-start gap-3">
-                                                    <AlertCircle className="w-5 h-5 text-[#5f9ea0] flex-shrink-0 mt-0.5" />
+                                                    <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#5f9ea0]" />
                                                     <div>
-                                                        <p className="text-sm sm:text-base font-semibold text-[#111] mb-1">
+                                                        <p className="mb-1 text-sm font-semibold text-[#111] sm:text-base">
                                                             Você não está entre os top 20 candidatos similares
                                                         </p>
-                                                        <p className="text-xs sm:text-sm text-[#111]/70">
+                                                        <p className="text-xs text-[#111]/70 sm:text-sm">
                                                             Continue desenvolvendo suas habilidades e completando
                                                             avaliações para melhorar sua posição no ranking.
                                                         </p>
@@ -145,14 +147,14 @@ export default function ApplicantHomeClient({
                                         />
                                     </>
                                 ) : (
-                                    <div className="text-center">
+                                    <div className="rounded-2xl border border-[#e3ecec] bg-[#fbfdfd] p-5 text-center">
                                         <div className="mb-3">
-                                            <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-[#5f9ea0]/40 mx-auto" />
+                                            <AlertCircle className="mx-auto h-10 w-10 text-[#5f9ea0]/40 sm:h-12 sm:w-12" />
                                         </div>
-                                        <p className="text-sm sm:text-base font-semibold text-[#111] mb-2">
+                                        <p className="mb-2 text-sm font-semibold text-[#111] sm:text-base">
                                             Nenhum candidato similar encontrado
                                         </p>
-                                        <p className="text-xs sm:text-sm text-[#111]/60">
+                                        <p className="text-xs leading-relaxed text-[#111]/60 sm:text-sm">
                                             {rankingResult.stats.totalCandidates === 0
                                                 ? 'Não há outros candidatos cadastrados no momento.'
                                                 : `Não encontramos candidatos com habilidades similares dentro de um raio de 20km. Total de candidatos no sistema: ${rankingResult.stats.totalCandidates}`}
@@ -181,25 +183,34 @@ export default function ApplicantHomeClient({
                 </div>
             )}
 
-            {/* Avaliações Realizadas */}
-            <div className="mb-6">
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-4">
+            {/* Avaliações Realizadas — âncora #avaliacoes-realizadas (Ranking / Habilidades Diferenciais) */}
+            <div
+                id="avaliacoes-realizadas"
+                className="anchor-section-avaliacoes mb-6 scroll-mt-6 rounded-[1.25rem] sm:scroll-mt-8"
+            >
+                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5f9ea0]">
+                    Habilidades Diferenciais
+                </p>
+                <h2 className="mb-1 text-lg font-bold text-slate-900 sm:text-xl">
                     Avaliações Realizadas
                 </h2>
+                <p className="mb-4 text-xs text-slate-600 sm:text-sm">
+                    Lista correspondente ao total do card no Ranking acima.
+                </p>
                 {userAssessments.length === 0 ? (
-                    <div className="bg-slate-50 rounded-lg border border-slate-200 shadow-sm p-6">
-                        <p className="text-slate-600 text-center">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
+                        <p className="text-center text-sm text-slate-600 sm:text-base">
                             Nenhuma avaliação realizada ainda.
                             <a
                                 href="/applicant/shop"
-                                className="text-[#5e9ea0] hover:text-[#4a8b8f] font-medium ml-1"
+                                className="ml-1 font-semibold text-[#5e9ea0] underline decoration-[#5e9ea0]/40 underline-offset-2 hover:text-[#4a8b8f]"
                             >
                                 Realize uma avaliação
                             </a>
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         {userAssessments.map((userAssessment) => (
                             <ProfileAnalysisBadge
                                 key={userAssessment.assessmentId}

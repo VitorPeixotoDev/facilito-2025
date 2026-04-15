@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import AssessmentModal from '@/components/assessment/AssessmentModal';
 import { Card } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { AssessmentDetailsModalSkeleton } from '@/components/ui/skeleton';
 import { getAssessmentDetails, type AssessmentDetails } from '@/lib/assessment/assessmentDetailsService';
 import { getAuthorizedCompetencies } from '@/lib/assessment/authorizedCompetenciesService';
 import type { AssessmentConfig } from '@/types/assessments';
@@ -113,9 +113,7 @@ export default function AssessmentDetailsModal({
     return (
         <AssessmentModal isOpen={isOpen} onClose={onClose} title={assessment.name}>
             {loading ? (
-                <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#5e9ea0]" />
-                </div>
+                <AssessmentDetailsModalSkeleton />
             ) : error ? (
                 <div className="text-center py-12">
                     <p className="text-red-600">{error}</p>

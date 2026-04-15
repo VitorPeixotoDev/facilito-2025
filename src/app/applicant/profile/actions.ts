@@ -41,6 +41,14 @@ function validateDriversLicense(licenses: string[] | undefined | null): boolean 
     return licenses.every(license => validLicenses.includes(license));
 }
 
+function assertBirthDateNotFuture(birthDate: string | null | undefined) {
+    if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return;
+    const todayUtc = new Date().toISOString().slice(0, 10);
+    if (birthDate > todayUtc) {
+        throw new Error("A data de nascimento não pode ser futura.");
+    }
+}
+
 /**
  * Atualiza o perfil do usuário no banco de dados
  * Usa upsert automaticamente se o registro não existir
@@ -65,6 +73,8 @@ export async function updateProfile(userId: string, data: ProfileUpdateData, use
     if (data.has_drivers_license && !validateDriversLicense(data.has_drivers_license)) {
         throw new Error("Valor inválido para CNH. Tipos permitidos: A, B, C, D, E, AB, AC, AD, AE");
     }
+
+    assertBirthDateNotFuture(data.birth_date ?? undefined);
 
     // Prepara os dados para atualização
     const updateData: Record<string, unknown> = {
@@ -152,6 +162,8 @@ export async function upsertProfile(userId: string, data: ProfileUpdateData) {
     if (!user || user.id !== userId) {
         throw new Error("Não autorizado");
     }
+
+    assertBirthDateNotFuture(data.birth_date ?? undefined);
 
     const upsertData = {
         id: userId,

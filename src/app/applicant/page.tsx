@@ -2,8 +2,8 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import ApplicantHomeClient from './ApplicantHomeClient'
 import { getOrCreateUserProfile } from '@/lib/user/serverUserService'
-import { getUserAssessmentsServer, type UserAssessment } from '@/lib/assessment/serverAssessmentService'
-import { Loader2 } from 'lucide-react'
+import { getUserAssessmentsFromCertifications, type UserAssessment } from '@/lib/assessment/serverAssessmentService'
+import { FullPageSkeleton } from '@/components/ui/skeleton'
 import type { UserProfile } from '@/components/AuthClientProvider'
 import { isValidUserApp } from '@/utils/auth/appType'
 
@@ -20,24 +20,18 @@ export default async function ApplicantHome() {
         redirect('/login')
     }
 
-    // Buscar TODOS os dados em paralelo no servidor
-    const [profile, assessments] = await Promise.all([
-        getOrCreateUserProfile(user.id, user.email, user.user_metadata?.full_name),
-        getUserAssessmentsServer(user.id),
-    ])
+    const profile = await getOrCreateUserProfile(user.id, user.email, user.user_metadata?.full_name)
 
     // Se não conseguiu criar/buscar o perfil, mostrar loading
     // (isso não deve acontecer, mas é uma segurança)
     if (!profile) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#5e9ea0]" />
-                    <p className="text-sm text-slate-600">Carregando seu perfil...</p>
-                </div>
-            </div>
-        )
+        return <FullPageSkeleton label="Carregando seu perfil" />
     }
+
+    const assessments: UserAssessment[] = await getUserAssessmentsFromCertifications(
+        user.id,
+        profile.certifications
+    )
 
     // Passar todos os dados como props para o componente client
     return (

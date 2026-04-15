@@ -87,12 +87,15 @@ export default function SkillsAndCoursesSection({
         return null;
     }
 
+    const sectionTitleClass = 'mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#3f787a]';
+    const chipClass = 'inline-flex items-center rounded-full border border-[#5f9ea0]/25 bg-[#5f9ea0]/10 px-3 py-1.5 text-xs font-medium text-[#1f2b2c] sm:text-sm';
+
     return (
-        <section className="space-y-4">
+        <section className="space-y-5">
             {assessmentItems.length > 0 && (
-                <div>
-                    <p className="text-xs text-[#5f9ea0] mb-1.5 font-medium uppercase tracking-wide">Habilidades Diferencias - Avaliadas</p>
-                    <div className="flex flex-wrap items-start gap-4">
+                <div className="rounded-2xl border border-[#dbe8e8] bg-gradient-to-br from-[#f9fcfc] to-[#f4f9f9] p-3.5 sm:p-4">
+                    <p className={sectionTitleClass}>Habilidades Diferencias - Avaliadas</p>
+                    <div className="flex flex-wrap items-start gap-3">
                         {assessmentItems.map((item, index) => {
                             const isClickable = item.assessment.assessmentConfig && onAssessmentClick;
                             const handleClick = () => {
@@ -104,26 +107,28 @@ export default function SkillsAndCoursesSection({
                             return (
                                 <div
                                     key={item.assessment.assessmentId}
-                                    className={`flex flex-col items-center gap-1 ${isClickable ? 'cursor-pointer' : ''}`}
+                                    className={`rounded-xl border border-[#d7e5e6] bg-white px-2.5 py-2 shadow-sm ${isClickable ? 'cursor-pointer transition-colors hover:bg-[#f7fbfb]' : ''}`}
                                     onClick={isClickable ? handleClick : undefined}
                                 >
-                                    {item.assessment.assessmentConfig.image && (
-                                        <div className={`w-12 h-12 rounded-full border-2 border-[#5f9ea0]/20 flex items-center justify-center overflow-hidden bg-white flex-shrink-0 ${isClickable ? 'hover:border-[#5f9ea0] transition-colors' : ''}`}>
-                                            <img
-                                                src={item.assessment.assessmentConfig.image}
-                                                alt={item.assessment.assessmentConfig.name}
-                                                className="w-full h-full object-contain"
-                                                onError={(e) => {
-                                                    e.currentTarget.style.display = 'none';
-                                                }}
-                                            />
+                                    <div className="flex flex-col items-center gap-1.5">
+                                        {item.assessment.assessmentConfig.image && (
+                                            <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#5f9ea0]/20 bg-white ${isClickable ? 'transition-colors hover:border-[#5f9ea0]' : ''}`}>
+                                                <img
+                                                    src={item.assessment.assessmentConfig.image}
+                                                    alt={item.assessment.assessmentConfig.name}
+                                                    className="h-full w-full object-contain"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none';
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                        {item.assessment.assessmentConfig?.name && (
+                                            <span className={`${chipClass} ${isClickable ? 'transition-colors hover:bg-[#5f9ea0]/20' : ''}`}>
+                                                {item.assessment.assessmentConfig.name}
+                                            </span>
+                                        )}
                                         </div>
-                                    )}
-                                    {item.assessment.assessmentConfig?.name && (
-                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-[#5f9ea0]/10 text-[#111] border border-[#5f9ea0]/30 ${isClickable ? 'hover:bg-[#5f9ea0]/20 transition-colors' : ''}`}>
-                                            {item.assessment.assessmentConfig.name}
-                                        </span>
-                                    )}
                                 </div>
                             );
                         })}
@@ -131,13 +136,13 @@ export default function SkillsAndCoursesSection({
                 </div>
             )}
             {hasAuthorizedCompetencies && (
-                <div>
-                    <p className="text-xs text-[#5f9ea0] mb-1.5 font-medium uppercase tracking-wide">Competências Autorizadas</p>
-                    <div className="flex flex-wrap gap-2">
+                <div className="rounded-2xl border border-[#dbe8e8] bg-[#fbfdfd] p-3.5 sm:p-4">
+                    <p className={sectionTitleClass}>Competências Autorizadas</p>
+                    <div className="flex flex-wrap gap-2.5">
                         {authorizedCompetencies.map((competency, index) => (
                             <span
                                 key={index}
-                                className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-[#5f9ea0]/10 text-[#111] border border-[#5f9ea0]/30"
+                                className={chipClass}
                             >
                                 {competency}
                             </span>
@@ -146,13 +151,13 @@ export default function SkillsAndCoursesSection({
                 </div>
             )}
             {hasSkills && (
-                <div>
-                    <p className="text-xs text-[#5f9ea0] mb-1.5 font-medium uppercase tracking-wide">Habilidades</p>
-                    <div className="flex flex-wrap gap-2">
+                <div className="rounded-2xl border border-[#dbe8e8] bg-[#fbfdfd] p-3.5 sm:p-4">
+                    <p className={sectionTitleClass}>Habilidades</p>
+                    <div className="flex flex-wrap gap-2.5">
                         {skills.map((skill, index) => (
                             <span
                                 key={index}
-                                className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-[#5f9ea0]/10 text-[#111] border border-[#5f9ea0]/30"
+                                className={chipClass}
                             >
                                 {skill}
                             </span>
@@ -161,13 +166,13 @@ export default function SkillsAndCoursesSection({
                 </div>
             )}
             {hasCourses && (
-                <div>
-                    <p className="text-xs text-[#5f9ea0] mb-1.5 font-medium uppercase tracking-wide">Cursos</p>
-                    <div className="flex flex-wrap gap-2">
+                <div className="rounded-2xl border border-[#dbe8e8] bg-[#fbfdfd] p-3.5 sm:p-4">
+                    <p className={sectionTitleClass}>Cursos</p>
+                    <div className="flex flex-wrap gap-2.5">
                         {courses.map((course, index) => (
                             <span
                                 key={index}
-                                className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-[#5f9ea0]/10 text-[#111] border border-[#5f9ea0]/30"
+                                className={chipClass}
                             >
                                 {course}
                             </span>
@@ -176,30 +181,43 @@ export default function SkillsAndCoursesSection({
                 </div>
             )}
             {hasGraduations && graduationsInfo.length > 0 && (
-                <div>
-                    <p className="text-xs text-[#5f9ea0] mb-1.5 font-medium uppercase tracking-wide">Graduações</p>
-                    <div className="flex flex-wrap items-start gap-4">
+                <div className="rounded-2xl border border-[#dbe8e8] bg-gradient-to-br from-[#f9fcfc] to-[#f4f9f9] p-3.5 sm:p-4">
+                    <p className={sectionTitleClass}>Graduações</p>
+                    <div className="grid grid-cols-1 gap-3">
                         {graduationsInfo.map((graduation) => (
                             <div
                                 key={graduation.key}
-                                className="flex flex-col items-center gap-1 cursor-pointer"
+                                className="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-[#5f9ea0]/25 hover:shadow-md sm:p-5"
                                 onClick={() => handleGraduationClick(graduation.key)}
                             >
-                                {graduation.imageSrc && (
-                                    <div className="w-12 h-12 rounded-full border-2 border-[#5f9ea0]/20 flex items-center justify-center overflow-hidden bg-white flex-shrink-0 hover:border-[#5f9ea0] transition-colors">
-                                        <img
-                                            src={graduation.imageSrc}
-                                            alt={graduation.label}
-                                            className="w-full h-full object-contain"
-                                            onError={(e) => {
-                                                e.currentTarget.style.display = 'none';
-                                            }}
-                                        />
+                                <div className="flex items-center gap-4 sm:gap-5">
+                                    {graduation.imageSrc && (
+                                        <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-[#5f9ea0]/20 bg-white transition-transform duration-300 group-hover:scale-105 sm:h-20 sm:w-20">
+                                            <img
+                                                src={graduation.imageSrc}
+                                                alt={graduation.label}
+                                                className="h-full w-full rounded-2xl object-contain p-1.5 sm:p-2"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-base font-bold leading-tight text-slate-900 sm:text-lg">
+                                            {graduation.label}
+                                        </p>
+                                        <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                                            Desenvolvido por
+                                        </p>
+                                        <p className="text-sm font-semibold text-slate-900 sm:text-base">
+                                            {graduation.developer.name}
+                                        </p>
+                                        <p className="mt-2 text-sm font-medium text-[#5f9ea0]">
+                                            Toque para ver detalhes
+                                        </p>
                                     </div>
-                                )}
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-[#5f9ea0]/10 text-[#111] border border-[#5f9ea0]/30 hover:bg-[#5f9ea0]/20 transition-colors">
-                                    {graduation.label}
-                                </span>
+                                </div>
                             </div>
                         ))}
                     </div>
