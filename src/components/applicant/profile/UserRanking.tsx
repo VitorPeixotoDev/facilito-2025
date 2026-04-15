@@ -1,25 +1,24 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Trophy, Award, TrendingUp, AlertCircle } from 'lucide-react';
-import { getUserAssessments } from '@/lib/assessment/userAssessmentsService';
+import { Trophy, Award, TrendingUp, AlertCircle, ArrowDown } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { UserProfile } from '@/components/AuthClientProvider';
 import type { CandidateRankingResult } from '@/lib/ranking/types';
 
 interface UserRankingProps {
     profile: UserProfile | null;
-    userId: string;
     userRanking?: CandidateRankingResult | null;
     loading?: boolean;
 }
 
-export default function UserRanking({ profile, userId, userRanking, loading = false }: UserRankingProps) {
+export default function UserRanking({ profile, userRanking, loading = false }: UserRankingProps) {
     // Proteção: Se não há profile, não renderizar nada
     if (!profile) {
         return null;
     }
-    const [assessmentCount, setAssessmentCount] = useState(0);
-    const [loadingAssessments, setLoadingAssessments] = useState(true);
+
+    /** Mesma fonte que a seção "Avaliações Realizadas": `users.certifications` */
+    const certificationsCount = profile.certifications?.length ?? 0;
 
     // Função para obter as classes de cor baseadas na posição do ranking
     const getRankingColors = (rank: number) => {
@@ -66,24 +65,6 @@ export default function UserRanking({ profile, userId, userRanking, loading = fa
         }
     };
 
-    useEffect(() => {
-        if (userId) {
-            getUserAssessments(userId)
-                .then((assessments) => {
-                    setAssessmentCount(assessments.length);
-                })
-                .catch((error) => {
-                    console.error('Erro ao buscar avaliações:', error);
-                    setAssessmentCount(0);
-                })
-                .finally(() => {
-                    setLoadingAssessments(false);
-                });
-        } else {
-            setLoadingAssessments(false);
-        }
-    }, [userId]);
-
     const skillsCount = profile.skills?.length ?? 0;
     const coursesCount = profile.courses?.length ?? 0;
     const hasLocation = profile.home_address !== null &&
@@ -98,18 +79,14 @@ export default function UserRanking({ profile, userId, userRanking, loading = fa
         ? getRankingColors(userRanking.rank)
         : null;
 
-    if (loadingAssessments) {
-        return null;
-    }
-
     return (
-        <div className="mb-4 sm:mb-6">
-            <div className="bg-gradient-to-br from-[#5f9ea0]/10 to-[#5f9ea0]/5 rounded-lg border border-[#5f9ea0]/20 p-4 sm:p-5">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#5f9ea0]/20 to-[#5f9ea0]/10 flex items-center justify-center">
-                        <Trophy className="w-4 h-4 text-[#5f9ea0]" />
+        <div className="mb-5 sm:mb-6">
+            <div className="rounded-[1.75rem] border border-[#c6d7d8] bg-gradient-to-br from-[#f8fbfb] to-[#eef5f5] p-4 shadow-sm sm:p-6">
+                <div className="mb-5 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#5f9ea0]/20 to-[#5f9ea0]/10">
+                        <Trophy className="h-5 w-5 text-[#5f9ea0]" />
                     </div>
-                    <h2 className="text-base sm:text-lg font-bold text-[#111] uppercase tracking-wide">
+                    <h2 className="text-sm font-extrabold uppercase tracking-[0.16em] text-[#365d5f] sm:text-base">
                         Ranking
                     </h2>
                 </div>
@@ -117,16 +94,16 @@ export default function UserRanking({ profile, userId, userRanking, loading = fa
                 <div className="grid grid-cols-1 gap-3 sm:gap-4">
                     {/* Alerta de Perfil Incompleto */}
                     {!isProfileComplete && (
-                        <div className="bg-gradient-to-br from-[#5f9ea0]/10 to-[#5f9ea0]/5 rounded-lg border-l-[3px] border-[#5f9ea0] p-4 sm:p-5 shadow-sm">
-                            <div className="flex items-start gap-3">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-[#5f9ea0]/20 to-[#5f9ea0]/10 flex items-center justify-center flex-shrink-0">
-                                    <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-[#5f9ea0]" />
+                        <div className="rounded-2xl border border-[#5f9ea0]/20 bg-gradient-to-br from-[#e9f3f3] to-white p-4 shadow-sm sm:p-5">
+                            <div className="flex items-start gap-3 sm:gap-4">
+                                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#5f9ea0]/25 to-[#5f9ea0]/10 sm:h-12 sm:w-12">
+                                    <AlertCircle className="h-5 w-5 text-[#5f9ea0] sm:h-6 sm:w-6" />
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm sm:text-base font-semibold text-[#111] mb-2">
+                                    <p className="mb-2 text-sm font-semibold text-[#111] sm:text-base">
                                         Perfil Incompleto
                                     </p>
-                                    <p className="text-xs sm:text-sm text-[#111]/70 leading-relaxed">
+                                    <p className="text-xs leading-relaxed text-[#111]/70 sm:text-sm">
                                         Para aparecer no ranking e ser visto pelos contratantes, você precisa preencher{' '}
                                         {skillsCount === 0 && !hasLocation && (
                                             <>suas habilidades técnicas e adicionar sua localização.</>
@@ -140,7 +117,7 @@ export default function UserRanking({ profile, userId, userRanking, loading = fa
                                     </p>
                                     <a
                                         href="/applicant/profile"
-                                        className="inline-block mt-3 text-xs sm:text-sm text-[#5f9ea0] hover:text-[#5f9ea0]/80 font-medium underline"
+                                        className="mt-3 inline-block text-xs font-semibold text-[#3f787a] underline decoration-[#3f787a]/40 underline-offset-2 transition-colors hover:text-[#2d595b] sm:text-sm"
                                     >
                                         Completar perfil agora →
                                     </a>
@@ -149,73 +126,94 @@ export default function UserRanking({ profile, userId, userRanking, loading = fa
                         </div>
                     )}
 
+                    {/* Placeholder enquanto o ranking é calculado */}
+                    {loading && isProfileComplete && !userRanking && (
+                        <div className="rounded-2xl border border-[#5f9ea0]/20 bg-gradient-to-br from-[#f8fbfb] to-[#eef5f5] p-4 shadow-sm sm:p-5">
+                            <Skeleton className="mb-2 h-3 w-28 rounded" />
+                            <Skeleton className="h-9 w-24 rounded-lg sm:h-10 sm:w-28" />
+                            <Skeleton className="mt-3 h-3 w-36 rounded" />
+                        </div>
+                    )}
+
                     {/* Posição no Ranking - Mostra apenas se perfil estiver completo */}
                     {userRanking && isProfileComplete && rankingColors && (
-                        <div className={`bg-gradient-to-br ${rankingColors.bgGradient} rounded-lg border-l-[3px] ${rankingColors.border} p-3 sm:p-4 shadow-sm`}>
+                        <div className={`rounded-2xl border ${rankingColors.border} bg-gradient-to-br ${rankingColors.bgGradient} p-4 shadow-sm sm:p-5`}>
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                    <p className={`text-xs ${rankingColors.text} mb-1 font-medium uppercase tracking-wide`}>
+                                    <p className={`mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${rankingColors.text}`}>
                                         Sua Posição
                                     </p>
                                     <div className="flex items-baseline gap-2">
-                                        <span className="text-2xl sm:text-3xl font-bold text-[#111]">
+                                        <span className="text-3xl font-extrabold tracking-tight text-[#111] sm:text-4xl">
                                             #{userRanking.rank}
                                         </span>
-                                        <span className="text-xs sm:text-sm text-[#111]/60">
+                                        <span className="text-xs text-[#111]/60 sm:text-sm">
                                             no ranking
                                         </span>
                                     </div>
                                     {!loading && (
-                                        <div className="flex items-center gap-1.5 mt-2">
-                                            <TrendingUp className={`w-3 h-3 ${rankingColors.trendingIcon}`} />
-                                            <span className="text-xs text-[#111]/70">
+                                        <div className="mt-2.5 flex items-center gap-1.5">
+                                            <TrendingUp className={`h-3.5 w-3.5 ${rankingColors.trendingIcon}`} />
+                                            <span className="text-xs font-medium text-[#111]/70">
                                                 Score: {userRanking.finalScore.toFixed(1)}
                                             </span>
                                         </div>
                                     )}
                                 </div>
-                                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br ${rankingColors.iconBg} flex items-center justify-center flex-shrink-0`}>
-                                    <Trophy className={`w-5 h-5 sm:w-6 sm:h-6 ${rankingColors.iconColor}`} />
+                                <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${rankingColors.iconBg} sm:h-12 sm:w-12`}>
+                                    <Trophy className={`h-5 w-5 sm:h-6 sm:w-6 ${rankingColors.iconColor}`} />
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Habilidades Diferenciais - Destaque Principal */}
-                    <div className="bg-white rounded-lg border-l-[3px] border-[#5f9ea0] p-3 sm:p-4 shadow-sm">
+                    {/* Habilidades Diferenciais - Destaque Principal (ancorado em #avaliacoes-realizadas) */}
+                    <div className="rounded-2xl border border-[#d6e3e4] bg-white p-4 shadow-sm sm:p-5">
                         <div className="flex items-start justify-between">
                             <div className="flex-1">
-                                <p className="text-xs text-[#5f9ea0] mb-1 font-medium uppercase tracking-wide">
+                                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5f9ea0]">
                                     Habilidades Diferenciais
                                 </p>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-2xl sm:text-3xl font-bold text-[#111]">
-                                        {assessmentCount}
+                                    <span className="text-3xl font-extrabold tracking-tight text-[#111] sm:text-4xl">
+                                        {certificationsCount}
                                     </span>
-                                    <span className="text-xs sm:text-sm text-[#111]/60">
-                                        {assessmentCount === 1 ? 'avaliação' : 'avaliações'}
+                                    <span className="text-xs text-[#111]/60 sm:text-sm">
+                                        {certificationsCount === 1 ? 'avaliação' : 'avaliações'}
                                     </span>
                                 </div>
+                                {/* <p className="mt-2 text-[11px] leading-relaxed text-[#111]/55 sm:text-xs">
+                                    Mesmas certificações da seção{' '}
+                                    <span className="font-medium text-[#3d7678]">Avaliações Realizadas</span>
+                                    {' '}abaixo.
+                                </p> */}
+                                <a
+                                    href="#avaliacoes-realizadas"
+                                    className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-[#3f787a] underline decoration-[#3f787a]/35 underline-offset-2 transition-colors hover:text-[#2d595b] hover:decoration-[#2d595b]/50"
+                                >
+                                    Ir para a lista
+                                    <ArrowDown className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                                </a>
                             </div>
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-[#5f9ea0]/20 to-[#5f9ea0]/10 flex items-center justify-center flex-shrink-0">
-                                <Award className="w-5 h-5 sm:w-6 sm:h-6 text-[#5f9ea0]" />
+                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#5f9ea0]/20 to-[#5f9ea0]/10 sm:h-12 sm:w-12">
+                                <Award className="h-5 w-5 text-[#5f9ea0] sm:h-6 sm:w-6" />
                             </div>
                         </div>
                     </div>
 
                     {/* Habilidades e Cursos em uma linha no mobile, lado a lado no desktop */}
-                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                         {/* Habilidades */}
-                        <div className="bg-white rounded-lg border-l-[3px] border-[#5f9ea0]/50 p-3 sm:p-4 shadow-sm">
+                        <div className="rounded-2xl border border-[#d6e3e4] bg-white p-3.5 shadow-sm sm:p-4">
                             <div className="flex flex-col gap-2">
-                                <p className="text-xs text-[#5f9ea0] font-medium uppercase tracking-wide">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5f9ea0]">
                                     Habilidades
                                 </p>
                                 <div className="flex items-baseline gap-1.5">
-                                    <span className="text-xl sm:text-2xl font-bold text-[#111]">
+                                    <span className="text-2xl font-extrabold tracking-tight text-[#111] sm:text-3xl">
                                         {skillsCount}
                                     </span>
-                                    <span className="text-xs text-[#111]/60">
+                                    <span className="text-[11px] text-[#111]/60 sm:text-xs">
                                         {skillsCount === 1 ? 'item' : 'itens'}
                                     </span>
                                 </div>
@@ -223,16 +221,16 @@ export default function UserRanking({ profile, userId, userRanking, loading = fa
                         </div>
 
                         {/* Cursos */}
-                        <div className="bg-white rounded-lg border-l-[3px] border-[#5f9ea0]/50 p-3 sm:p-4 shadow-sm">
+                        <div className="rounded-2xl border border-[#d6e3e4] bg-white p-3.5 shadow-sm sm:p-4">
                             <div className="flex flex-col gap-2">
-                                <p className="text-xs text-[#5f9ea0] font-medium uppercase tracking-wide">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5f9ea0]">
                                     Cursos
                                 </p>
                                 <div className="flex items-baseline gap-1.5">
-                                    <span className="text-xl sm:text-2xl font-bold text-[#111]">
+                                    <span className="text-2xl font-extrabold tracking-tight text-[#111] sm:text-3xl">
                                         {coursesCount}
                                     </span>
-                                    <span className="text-xs text-[#111]/60">
+                                    <span className="text-[11px] text-[#111]/60 sm:text-xs">
                                         {coursesCount === 1 ? 'curso' : 'cursos'}
                                     </span>
                                 </div>

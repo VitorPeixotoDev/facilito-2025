@@ -115,8 +115,8 @@ export default function UserInfo({ profile, onAssessmentClick }: UserInfoProps) 
 
     if (sections.length === 0) {
         return (
-            <Card className="p-4 sm:p-6 border border-slate-200">
-                <p className="text-sm text-slate-600 text-center">
+            <Card className="rounded-[1.5rem] border border-[#d6e3e4] bg-gradient-to-br from-[#f8fbfb] to-[#eef5f5] p-5 shadow-sm sm:p-6">
+                <p className="text-center text-sm text-slate-600">
                     Nenhuma informação disponível.
                 </p>
             </Card>
@@ -128,9 +128,9 @@ export default function UserInfo({ profile, onAssessmentClick }: UserInfoProps) 
             {sections.map((section, index) => (
                 <Card
                     key={index}
-                    className="p-4 sm:p-6 border border-slate-200 bg-white"
+                    className="rounded-[1.5rem] border border-[#d6e3e4] bg-white p-4 shadow-sm sm:p-6"
                 >
-                    <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-4">
+                    <h2 className="mb-4 text-sm font-extrabold uppercase tracking-[0.14em] text-[#3f787a] sm:text-base">
                         {section.title}
                     </h2>
                     {section.component}

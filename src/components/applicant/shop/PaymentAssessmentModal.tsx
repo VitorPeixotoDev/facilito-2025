@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function formatPrice(priceCents: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -116,7 +116,7 @@ export function PaymentAssessmentModal({
           >
             {loading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Skeleton className="h-5 w-5 shrink-0 rounded-full" aria-hidden />
                 Redirecionando...
               </>
             ) : (

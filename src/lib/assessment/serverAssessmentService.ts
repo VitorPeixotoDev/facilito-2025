@@ -81,3 +81,75 @@ export async function getUserAssessmentsServer(userId: string): Promise<UserAsse
     }
 }
 
+/**
+ * Monta a lista de avaliações concluídas a partir de `users.certifications`,
+ * mesma fonte de verdade do contador em Ranking (Habilidades Diferenciais) e da seção Avaliações Realizadas.
+ */
+export async function getUserAssessmentsFromCertifications(
+    userId: string,
+    certifications: string[] | null | undefined
+): Promise<UserAssessment[]> {
+    try {
+        const supabase = await createClient()
+        const catalog = await getAssessmentsFromCatalog(supabase)
+        const idBySlug = Object.fromEntries(catalog.map((a) => [a.slug, a.id]))
+        const normalized = new Set((certifications ?? []).map((c) => c.toLowerCase()))
+        const assessments: UserAssessment[] = []
+
+        if (normalized.has('fivemind')) {
+            const id = idBySlug['five-mind']
+            const config = getAssessmentById('five-mind')
+            if (id && config) {
+                const { data: fiveMindData } = await supabase
+                    .from('five_mind_results')
+                    .select('completed_at')
+                    .eq('user_id', userId)
+                    .order('completed_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle()
+
+                assessments.push({
+                    assessmentId: id,
+                    assessmentConfig: config,
+                    hasResult: true,
+                    completedAt: fiveMindData
+                        ? new Date((fiveMindData as { completed_at: string }).completed_at)
+                        : undefined,
+                })
+            }
+        }
+
+        if (normalized.has('sixmind')) {
+            const id = idBySlug['hexa-mind']
+            const config = getAssessmentById('hexa-mind')
+            if (id && config) {
+                const { data: hexaMindData } = await supabase
+                    .from('hexa_mind_results')
+                    .select('completed_at')
+                    .eq('user_id', userId)
+                    .order('completed_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle()
+
+                assessments.push({
+                    assessmentId: id,
+                    assessmentConfig: config,
+                    hasResult: true,
+                    completedAt: hexaMindData
+                        ? new Date((hexaMindData as { completed_at: string }).completed_at)
+                        : undefined,
+                })
+            }
+        }
+
+        return assessments.sort((a, b) => {
+            if (!a.completedAt) return 1
+            if (!b.completedAt) return -1
+            return b.completedAt.getTime() - a.completedAt.getTime()
+        })
+    } catch (error) {
+        console.error('Erro ao montar avaliações a partir de certifications:', error)
+        return []
+    }
+}
+

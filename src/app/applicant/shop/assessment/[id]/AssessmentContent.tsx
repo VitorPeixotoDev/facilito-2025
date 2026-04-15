@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { FullPageSkeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthClientProvider";
 import { getLatestResult, saveResults } from "@/lib/assessment/resultsStorage";
@@ -349,12 +349,9 @@ function AssessmentContentInner() {
     const waitingForResults = viewParam === "results" && results === null && isLoading;
     if (!assessment || (isLoading && !viewParam) || waitingForResults) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#5e9ea0]" />
-                    <p className="text-sm text-slate-600">{waitingForResults ? "Carregando resultados..." : "Carregando..."}</p>
-                </div>
-            </div>
+            <FullPageSkeleton
+                label={waitingForResults ? "Carregando resultados" : "Carregando avaliação"}
+            />
         );
     }
 
@@ -418,16 +415,7 @@ function AssessmentContentInner() {
 
 export default function AssessmentContent() {
     return (
-        <Suspense
-            fallback={
-                <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                    <div className="flex flex-col items-center gap-3">
-                        <Loader2 className="w-8 h-8 animate-spin text-[#5e9ea0]" />
-                        <p className="text-sm text-slate-600">Carregando...</p>
-                    </div>
-                </div>
-            }
-        >
+        <Suspense fallback={<FullPageSkeleton label="Carregando avaliação" />}>
             <AssessmentContentInner />
         </Suspense>
     );

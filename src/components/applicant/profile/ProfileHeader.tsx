@@ -1,6 +1,7 @@
 "use client";
 
-import { User, Briefcase, GraduationCap, MapPin, Mail, FileText, CheckCircle2, X, Loader2 } from "lucide-react";
+import { User, Briefcase, GraduationCap, MapPin, Mail, FileText, CheckCircle2, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { LucideIcon } from "lucide-react";
 
 export interface OnboardingStep {
@@ -40,7 +41,7 @@ export function ProfileHeader({ currentStep, saveStatus, onStepClick }: ProfileH
                             {/* Indicador de salvamento automático */}
                             {saveStatus === "saving" && (
                                 <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm text-[#5e9ea0]">
-                                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                                    <Skeleton className="h-3 w-3 shrink-0 rounded-full sm:h-4 sm:w-4" aria-hidden />
                                     <span>Salvando automaticamente...</span>
                                 </div>
                             )}

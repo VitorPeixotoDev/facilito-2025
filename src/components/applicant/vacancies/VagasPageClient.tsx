@@ -6,6 +6,7 @@ import { VagaCard } from './VagaCard';
 import { VagaDetailsModal } from './VagaDetailsModal';
 import { VagasEmptyState } from './VagasEmptyState';
 import { MissingDataModal } from './MissingDataModal';
+import { VagaCardListSkeleton } from '@/components/ui/skeleton';
 import type { JobDisplay } from '@/lib/vacancies/types';
 import { getCandidaturasFromStorage, addCandidaturaToStorage, removeCandidaturaFromStorage } from '@/lib/vacancies/clientVacancyService';
 import { applyToJob, removeApplication, getJobsByLocationCode } from '@/app/applicant/vacancies/actions';
@@ -115,12 +116,14 @@ export default function VagasPageClient({
         // Busca por código: usa resultado da action (lista já filtrada por código)
         if (searchMode === 'code') {
             const base = locationCodeJobs ?? [];
+            // Busca por codigo deve exibir a vaga mesmo se ja for candidatura.
+            // Mantemos a aba "Candidaturas" mostrando apenas vagas candidatas;
+            // na aba "Vagas", mostramos todos os resultados do codigo.
             let filtradas = activeTab === 'vagas'
-                ? base.filter((v) => !candidaturas.includes(v.id))
+                ? base
                 : base.filter((v) => candidaturas.includes(v.id));
-            if (workModelFilter === 'todos') {
-                filtradas = filtradas.filter((v) => v.work_model !== 'remoto');
-            } else {
+            // Busca por codigo e especifica: em "todos", inclui qualquer modelo de trabalho.
+            if (workModelFilter !== 'todos') {
                 filtradas = filtradas.filter((vaga) => vaga.work_model === workModelFilter);
             }
             return applyDistanceAndSort(filtradas, userHomeAddress, radiusM);
@@ -266,6 +269,11 @@ export default function VagasPageClient({
         setShowModalDetalhes(true);
     };
 
+    const showLocationCodeSkeleton =
+        locationCodeLoading &&
+        searchMode === 'code' &&
+        codeDigits.replace(/\D/g, '').length === 6;
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-[#e3f2f3] to-slate-100 pb-24">
             <VagasHeader
@@ -293,7 +301,9 @@ export default function VagasPageClient({
                 </div>
 
                 {/* Lista de vagas */}
-                {vagasFiltradas.length > 0 ? (
+                {showLocationCodeSkeleton ? (
+                    <VagaCardListSkeleton count={3} />
+                ) : vagasFiltradas.length > 0 ? (
                     <div className="space-y-4">
                         {vagasFiltradas.map((vaga) => (
                             <VagaCard

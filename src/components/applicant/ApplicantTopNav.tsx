@@ -6,15 +6,19 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 import { ProfileMenuDrawer } from "@/components/applicant/profile/ProfileMenuDrawer";
 import { useAuth } from "@/components/AuthClientProvider";
+import { ApplicantNavBarSkeleton } from "@/components/ui/skeleton";
 
 export function ApplicantTopNav() {
     const { user, loading } = useAuth();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
 
-    // Só mostra a navbar depois de carregar o estado de auth
-    // e apenas se houver usuário logado
-    if (loading || !user) {
+    // Enquanto auth carrega, placeholder evita sensação de página “vazia”
+    if (loading) {
+        return <ApplicantNavBarSkeleton />;
+    }
+
+    if (!user) {
         return null;
     }
 

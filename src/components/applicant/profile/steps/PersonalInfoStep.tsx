@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { User, Calendar, Mail, FileText } from "lucide-react";
 import type { ProfileFormData } from "../ProfileFormSteps";
+import { getTodayLocalIsoDate } from "../utils";
 
 interface PersonalInfoStepProps {
     formData: ProfileFormData;
@@ -14,6 +15,8 @@ interface PersonalInfoStepProps {
 }
 
 export function PersonalInfoStep({ formData, updateFormField }: PersonalInfoStepProps) {
+    const maxBirthDate = getTodayLocalIsoDate();
+
     return (
         <Card className="p-4 sm:p-6 shadow-lg">
             <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
@@ -60,8 +63,16 @@ export function PersonalInfoStep({ formData, updateFormField }: PersonalInfoStep
                     </label>
                     <Input
                         type="date"
+                        max={maxBirthDate}
                         value={formData.birth_date || ""}
-                        onChange={(e) => updateFormField("birth_date", e.target.value)}
+                        onChange={(e) => {
+                            const v = e.target.value;
+                            if (v && v > maxBirthDate) {
+                                updateFormField("birth_date", maxBirthDate);
+                            } else {
+                                updateFormField("birth_date", v);
+                            }
+                        }}
                     />
                 </div>
 

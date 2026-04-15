@@ -1,6 +1,7 @@
 "use client";
 
 import { Trophy, Award, MapPin, Briefcase, BookOpen, TrendingUp, GraduationCap } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { CandidateRankingResult } from '@/lib/ranking/types';
 import CandidateRankingRightSide from './CandidateRankingRightSide';
 import { extractAssessmentIds } from '@/lib/assessment/profileAnalysisMapper';
@@ -105,17 +106,15 @@ export default function CandidateRankingList({
                 {[1, 2, 3].map((i) => (
                     <div
                         key={i}
-                        className="bg-white rounded-lg border border-[#5f9ea0]/20 p-4 animate-pulse"
+                        className="rounded-lg border border-[#5f9ea0]/20 bg-white p-4"
                     >
-                        <div className="h-4 bg-[#5f9ea0]/10 rounded w-1/3 mb-2"></div>
-                        <div className="h-6 bg-[#5f9ea0]/10 rounded w-1/2"></div>
+                        <Skeleton className="mb-2 h-4 w-1/3 rounded" />
+                        <Skeleton className="h-6 w-1/2 rounded" />
                     </div>
                 ))}
             </div>
         );
     }
-
-    console.log('=====>', candidates);
 
     if (candidates.length === 0) {
         return (

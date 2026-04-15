@@ -30,6 +30,8 @@ export interface UserProfile {
     portfolio: string | null;
     profile_completed: boolean;
     profile_analysis: string[];
+    /** Avaliações concluídas (ex.: fivemind, sixmind) — fonte alinhada ao ranking e à seção Avaliações Realizadas */
+    certifications?: string[] | null;
     authorized_competencies?: string[];
     graduations?: string[];
     created_at: string;
