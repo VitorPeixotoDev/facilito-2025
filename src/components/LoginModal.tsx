@@ -4,6 +4,18 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { login, signup, resetPassword, signInWithGoogle } from '../app/login/actions'
 
+function isNextRedirectError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false
+
+    const redirectDigest = 'digest' in error ? (error as { digest?: unknown }).digest : undefined
+    if (typeof redirectDigest === 'string' && redirectDigest.includes('NEXT_REDIRECT')) {
+        return true
+    }
+
+    const message = 'message' in error ? (error as { message?: unknown }).message : undefined
+    return typeof message === 'string' && message.includes('NEXT_REDIRECT')
+}
+
 interface LoginModalProps {
     isOpen: boolean
     onClose: () => void
@@ -53,6 +65,10 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
                 setMessage('')
             }
         } catch (error) {
+            if (isNextRedirectError(error)) {
+                return
+            }
+
             setMessage('Erro ao processar solicitação. Tente novamente.')
         } finally {
             setIsLoading(false)
