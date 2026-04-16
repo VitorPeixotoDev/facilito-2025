@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Save, CheckCircle2, AlertCircle } from "lucide-react";
+import { Save, CheckCircle2 } from "lucide-react";
 import { ProfileShellSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/AuthClientProvider";
 import { updateProfile } from "./actions";
@@ -532,28 +532,6 @@ export default function ProfilePage() {
             />
 
             <div className="max-w-6xl mx-auto p-4 lg:p-8">
-                {/* Aviso para primeira vez preenchendo o perfil */}
-                {isFirstTime && (
-                    <div className="mb-6 rounded-xl border-l-4 border-amber-500 bg-gradient-to-br from-amber-50 to-amber-50/50 p-4 sm:p-5 shadow-sm">
-                        <div className="flex items-start gap-3 sm:gap-4">
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                                <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-sm sm:text-base font-semibold text-slate-900 mb-2">
-                                    Complete seu perfil para se candidatar às vagas
-                                </h3>
-                                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed mb-2">
-                                    Esta é sua primeira vez preenchendo o perfil. Para que suas informações sejam salvas e você possa se candidatar às vagas disponíveis, é necessário completar todos os passos e clicar em <strong>&quot;Finalizar e Salvar&quot;</strong> ao final do formulário.
-                                </p>
-                                <p className="text-xs sm:text-sm text-slate-600 italic">
-                                    Após o primeiro salvamento, suas alterações futuras serão salvas automaticamente.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 <form onSubmit={onSubmit} className="space-y-6">
                     <ProfileFormSteps
                         currentStep={currentStep}
