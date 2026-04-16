@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState, ReactNode } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 
@@ -48,14 +48,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthClientProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [profileLoading, setProfileLoading] = useState(false);
-    const supabase = createClient();
+interface AuthClientProviderProps {
+    children: ReactNode;
+    initialUser?: User | null;
+}
 
-    const fetchProfile = async (userId: string, userEmail?: string | null, userFullName?: string | null) => {
+export function AuthClientProvider({ children, initialUser = null }: AuthClientProviderProps) {
+    const [user, setUser] = useState<User | null>(initialUser);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [loading, setLoading] = useState(!initialUser);
+    const [profileLoading, setProfileLoading] = useState(false);
+    const supabase = useMemo(() => createClient(), []);
+    const initialUserRef = useRef(initialUser);
+
+    initialUserRef.current = initialUser;
+
+    const fetchProfile = useCallback(async (userId: string, userEmail?: string | null, userFullName?: string | null) => {
         setProfileLoading(true);
         try {
             // Timeout de 5 segundos para evitar travamentos
@@ -113,7 +121,21 @@ export function AuthClientProvider({ children }: { children: ReactNode }) {
             console.warn("Erro ao buscar perfil (não crítico):", error);
             setProfileLoading(false);
         }
-    };
+    }, [supabase]);
+
+    // Props vindas do SSR mudam na navegação cliente; useState não reaplica initialUser automaticamente.
+    useEffect(() => {
+        const u = initialUserRef.current;
+        setUser(u ?? null);
+        if (u) {
+            setLoading(false);
+            fetchProfile(u.id, u.email, u.user_metadata?.full_name).catch((err) => {
+                console.warn("Erro ao sincronizar perfil a partir do SSR:", err);
+            });
+        } else {
+            setProfile(null);
+        }
+    }, [initialUser?.id, fetchProfile]);
 
     const refreshProfile = async () => {
         if (user) {
@@ -130,11 +152,10 @@ export function AuthClientProvider({ children }: { children: ReactNode }) {
 
         const initAuth = async () => {
             try {
-                // Usar getSession() que é mais rápido e não faz fetch adicional
                 const {
-                    data: { session },
+                    data: { user: serverUser },
                     error,
-                } = await supabase.auth.getSession();
+                } = await supabase.auth.getUser();
 
                 if (!mounted) return;
 
@@ -144,18 +165,18 @@ export function AuthClientProvider({ children }: { children: ReactNode }) {
                     return;
                 }
 
-                if (session?.user) {
-                    setUser(session.user);
-                    // Buscar perfil de forma não bloqueante
+                if (serverUser) {
+                    setUser(serverUser);
                     fetchProfile(
-                        session.user.id,
-                        session.user.email,
-                        session.user.user_metadata?.full_name
+                        serverUser.id,
+                        serverUser.email,
+                        serverUser.user_metadata?.full_name
                     ).catch((err) => {
                         console.warn("Erro ao buscar perfil inicial:", err);
                     });
-                } else {
+                } else if (!initialUserRef.current) {
                     setUser(null);
+                    setProfile(null);
                 }
             } catch (error) {
                 console.warn("Erro ao inicializar autenticação:", error);
@@ -175,7 +196,6 @@ export function AuthClientProvider({ children }: { children: ReactNode }) {
 
             if (session?.user) {
                 setUser(session.user);
-                // Buscar perfil de forma não bloqueante
                 fetchProfile(
                     session.user.id,
                     session.user.email,
@@ -184,10 +204,15 @@ export function AuthClientProvider({ children }: { children: ReactNode }) {
                     console.warn("Erro ao buscar perfil após mudança de auth:", err);
                 });
             } else {
-                // Limpar estado quando não há sessão
-                setUser(null);
-                setProfile(null);
-                setProfileLoading(false);
+                const signedOut =
+                    event === "SIGNED_OUT" ||
+                    event === "USER_DELETED";
+
+                if (signedOut || !initialUserRef.current) {
+                    setUser(null);
+                    setProfile(null);
+                    setProfileLoading(false);
+                }
             }
         });
 
@@ -195,7 +220,7 @@ export function AuthClientProvider({ children }: { children: ReactNode }) {
             mounted = false;
             subscription.unsubscribe();
         };
-    }, []);
+    }, [supabase, fetchProfile]);
 
     return (
         <AuthContext.Provider value={{ user, profile, loading, profileLoading, refreshProfile }}>

@@ -4,6 +4,18 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { login, signup, resetPassword, signInWithGoogle } from './actions'
 
+function isNextRedirectError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false
+
+    const redirectDigest = 'digest' in error ? (error as { digest?: unknown }).digest : undefined
+    if (typeof redirectDigest === 'string' && redirectDigest.includes('NEXT_REDIRECT')) {
+        return true
+    }
+
+    const message = 'message' in error ? (error as { message?: unknown }).message : undefined
+    return typeof message === 'string' && message.includes('NEXT_REDIRECT')
+}
+
 export default function LoginPageClient() {
     const [isLogin, setIsLogin] = useState(true)
     const [isResetPassword, setIsResetPassword] = useState(false)
@@ -42,6 +54,10 @@ export default function LoginPageClient() {
                 await signup(email, password)
             }
         } catch (error) {
+            if (isNextRedirectError(error)) {
+                return
+            }
+
             // Exibir mensagem de erro específica se for sobre app_type, senão mensagem genérica
             const errorMessage = error instanceof Error ? error.message : 'Erro ao processar solicitação. Tente novamente.'
             setMessage(errorMessage)
