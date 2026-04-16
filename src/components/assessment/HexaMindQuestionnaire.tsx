@@ -194,7 +194,7 @@ export default function HexaMindQuestionnaire({ assessmentId, assessmentName, on
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)] sm:h-[calc(100vh-120px)] lg:h-auto lg:max-h-[600px]">
+        <div className="flex flex-col">
             {/* Barra de progresso - compacta */}
             <div className="mb-2 sm:mb-3 flex-shrink-0">
                 <div className="w-full bg-slate-200 rounded-full h-1 sm:h-1.5 mb-1">
@@ -229,7 +229,7 @@ export default function HexaMindQuestionnaire({ assessmentId, assessmentName, on
             </div>
 
             {/* Opções de resposta - ocupam o espaço disponível */}
-            <div className="flex-1 overflow-y-auto space-y-2 mb-3 sm:mb-4 min-h-0">
+            <div className="space-y-2 mb-3 sm:mb-4">
                 {scaleOptions.map((option) => {
                     const isSelected = answers[questionId] === option.value;
                     return (
@@ -243,7 +243,7 @@ export default function HexaMindQuestionnaire({ assessmentId, assessmentName, on
                         >
                             <div className="flex items-center gap-2 sm:gap-3">
                                 <div
-                                    className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-md font-semibold text-xs sm:text-sm flex-shrink-0 ${isSelected
+                                    className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-md font-semibold text-sm sm:text-base flex-shrink-0 ${isSelected
                                         ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
                                         : 'bg-slate-100 text-slate-600'
                                         }`}
@@ -253,12 +253,12 @@ export default function HexaMindQuestionnaire({ assessmentId, assessmentName, on
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
                                         {option.emoji && <span className="text-lg sm:text-xl">{option.emoji}</span>}
-                                        <span className="text-xs sm:text-sm font-medium text-slate-700">
+                                        <span className="text-sm sm:text-base font-medium text-slate-700">
                                             {option.label}
                                         </span>
                                     </div>
                                     {option.description && (
-                                        <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5">
+                                        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                                             {option.description}
                                         </p>
                                     )}
@@ -273,7 +273,7 @@ export default function HexaMindQuestionnaire({ assessmentId, assessmentName, on
             </div>
 
             {/* Botões de navegação - fixos na parte inferior */}
-            <div className="flex justify-between gap-2 sm:gap-3 flex-shrink-0 pt-2 border-t border-slate-200">
+            <div className="flex justify-between gap-2 sm:gap-3 pt-2 border-t border-slate-200">
                 <Button
                     variant="outline"
                     onClick={currentQuestion > 0 ? handlePrevious : onCancel}

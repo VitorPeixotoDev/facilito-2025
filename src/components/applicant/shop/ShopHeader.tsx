@@ -15,8 +15,8 @@ export function ShopHeader({ activeTab }: ShopHeaderProps) {
 
     const title = isProfessionalTab ? "Educação Profissional" : "Avaliações";
     const description = isProfessionalTab
-        ? "Explore cursos, graduações e certificações para fortalecer seu perfil profissional."
-        : "Complete as avaliações para descobrir seu perfil profissional e melhorar seu fit cultural.";
+        ? "Vá além do currículo tradicional: obtenha certificações estratégicas que destacam seu perfil e impulsionam sua posição no mercado."
+        : "Fortaleça sua candidatura! Use as avaliações para evidenciar seu perfil profissional e atrair melhores oportunidades.";
 
     return (
         <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm pt-3 sm:pt-4">
