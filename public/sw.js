@@ -1,5 +1,6 @@
-const CACHE_NAME = "facilito-v1";
-// Apenas recursos estáticos. Não pré-cachear páginas para evitar HTML cacheado e sessão incorreta.
+const SW_VERSION = "v2";
+const CACHE_NAME = `facilito-static-${SW_VERSION}`;
+// Apenas recursos estáticos públicos.
 const urlsToCache = ["/lito_head_init.png", "/favicon.ico", "/site.webmanifest"];
 
 self.addEventListener("install", (event) => {
@@ -18,34 +19,78 @@ function isDocumentRequest(request) {
   return request.mode === "navigate" || request.destination === "document";
 }
 
+function isNextDataRequest(url) {
+  // Requests do App Router/Flight são dinâmicos e não devem ser cacheados no SW.
+  return (
+    url.searchParams.has("_rsc") ||
+    url.searchParams.has("__nextDataReq") ||
+    url.searchParams.has("__flight__")
+  );
+}
+
+function isProtectedAppRoute(url) {
+  const pathname = url.pathname;
+  return (
+    pathname.startsWith("/applicant") ||
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/auth")
+  );
+}
+
+function isStaticAssetRequest(request, url) {
+  if (request.destination === "style" || request.destination === "script" || request.destination === "font") {
+    return true;
+  }
+
+  if (request.destination === "image") {
+    return true;
+  }
+
+  return (
+    url.pathname.startsWith("/_next/static/") ||
+    /\.(?:css|js|mjs|woff2?|ttf|otf|eot|svg|png|jpg|jpeg|gif|webp|ico)$/i.test(url.pathname)
+  );
+}
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") {
     return;
   }
 
-  if (event.request.url.includes("/_next/")) {
-    return;
-  }
+  const requestUrl = new URL(event.request.url);
 
   if (
-    event.request.url.includes("/api/") ||
-    event.request.url.includes("supabase.co") ||
-    event.request.url.includes("supabase.in") ||
-    event.request.url.includes("googleapis.com") ||
-    event.request.url.includes("googleusercontent.com")
+    requestUrl.pathname.includes("/api/") ||
+    requestUrl.hostname.includes("supabase.co") ||
+    requestUrl.hostname.includes("supabase.in") ||
+    requestUrl.hostname.includes("googleapis.com") ||
+    requestUrl.hostname.includes("googleusercontent.com")
   ) {
     return;
   }
 
-  if (isDocumentRequest(event.request)) {
+  // Navegação/HTML e payloads dinâmicos: sempre rede (evita stale data e inconsistência de sessão).
+  if (
+    isDocumentRequest(event.request) ||
+    isProtectedAppRoute(requestUrl) ||
+    isNextDataRequest(requestUrl)
+  ) {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return caches.match("/") || new Response("Offline", { status: 503, statusText: "Offline" });
+        return new Response("Offline", { status: 503, statusText: "Offline" });
       })
     );
     return;
   }
 
+  if (!isStaticAssetRequest(event.request, requestUrl)) {
+    // Qualquer GET não-estático fora das regras acima vai para rede.
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Assets estáticos: cache-first.
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
@@ -54,7 +99,7 @@ self.addEventListener("fetch", (event) => {
 
       return fetch(event.request)
         .then((res) => {
-          if (!res || res.status !== 200 || res.type !== "basic") {
+          if (!res || res.status !== 200 || (res.type !== "basic" && res.type !== "cors")) {
             return res;
           }
 
