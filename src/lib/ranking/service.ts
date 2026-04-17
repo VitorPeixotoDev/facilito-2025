@@ -52,7 +52,7 @@ export async function fetchCandidatesFromDatabase(
             return [];
         }
 
-        // Transform database rows to CandidateProfile format (courses stored as id/custom -> resolve to name)
+        // Transform database rows to CandidateProfile format (courses as names; legacy id/custom resolved to name)
         return ((data || []) as any[]).map((row: any) => ({
             id: row.id,
             full_name: row.full_name,

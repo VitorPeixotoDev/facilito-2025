@@ -33,7 +33,7 @@ export function VagasEmptyState({ activeTab, isCodeSearch }: VagasEmptyStateProp
                             ? 'Verifique o código de 6 dígitos ou volte para a busca por texto.'
                             : activeTab === 'vagas'
                                 ? 'Tente ajustar os filtros ou buscar por outros termos.'
-                                : 'Você ainda não se candidatou a nenhuma vaga.'}
+                                : 'Você ainda não se candidatou a nenhuma vaga ou as vagas para as quais se candidatou já não estão mais disponíveis.'}
                     </p>
                 </div>
             </div>

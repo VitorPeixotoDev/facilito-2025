@@ -1,6 +1,7 @@
 /**
  * Categorias de cursos e formações acadêmicas disponíveis.
- * Cursos são identificados por UUID (id); use o catálogo abaixo para resolver id <-> nome.
+ * No catálogo interno cada curso tem UUID derivado (uuid v5 do nome) para lookup.
+ * No perfil do usuário os cursos são persistidos como texto (nome); use getCourseDisplayName para legados (UUID / custom:).
  */
 import { v5 as uuidv5 } from "uuid";
 
@@ -773,8 +774,8 @@ export function getCustomCourseId(customName: string): string {
 }
 
 /**
- * Valor armazenado no perfil: id (UUID) do catálogo ou "custom:Nome" para curso personalizado.
- * Retorna o nome para exibição.
+ * Nome para exibição a partir do valor no perfil.
+ * Suporta: nome em texto (gravado atualmente), UUID de catálogo (legado), "custom:Nome" (legado).
  */
 export function getCourseDisplayName(entry: string): string {
     const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
@@ -804,11 +805,9 @@ export function getCourseDisplayName(entry: string): string {
 }
 
 /**
- * Ao adicionar curso pelo nome: se estiver no catálogo retorna o UUID; senão retorna "custom:Nome".
+ * Valor persistido no perfil: sempre o nome do curso (texto), igual ao exibido na UI.
+ * Catálogo e texto livre usam o mesmo formato; deduplicação é por string (após trim).
  */
 export function toCourseStorageValue(nameOrId: string): string {
-    const trimmed = nameOrId.trim();
-    const id = COURSES_BY_NAME[trimmed];
-    if (id) return id;
-    return `custom:${trimmed}`;
+    return nameOrId.trim();
 }
