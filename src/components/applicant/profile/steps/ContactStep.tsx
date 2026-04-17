@@ -143,7 +143,7 @@ export function ContactStep({ formData, updateFormField }: ContactStepProps) {
                     </label>
                     <Input
                         type="url"
-                        placeholder="/seu-perfil"
+                        placeholder="seu-perfil"
                         value={formData.linkedin || ""}
                         onChange={(e) => updateFormField("linkedin", e.target.value)}
                     />

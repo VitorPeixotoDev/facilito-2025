@@ -42,6 +42,7 @@ export function VagasHeader({
     onWorkModelFilterChange,
 }: VagasHeaderProps) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [showCandidaturasInfo, setShowCandidaturasInfo] = useState(false);
     const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     const filterOptions: { value: WorkModelFilter; label: string }[] = [
@@ -84,9 +85,32 @@ export function VagasHeader({
     return (
         <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm pt-2 sm:pt-4">
             <div className="p-4">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-                    Vagas
-                </h1>
+                <div className="mb-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                            Vagas
+                        </h1>
+                        <button
+                            type="button"
+                            onClick={() => setShowCandidaturasInfo((prev) => !prev)}
+                            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#5f9ea0]/40 text-xs font-bold text-[#2f6668] hover:bg-[#5f9ea0]/10 transition-colors"
+                            aria-label="Informação sobre candidaturas e contador"
+                            title="Ajuda"
+                        >
+                            ?
+                        </button>
+                    </div>
+                    {showCandidaturasInfo && (
+                        <div className="mt-3 rounded-md border border-[#5f9ea0]/30 bg-[#5f9ea0]/10 p-3">
+                            <p className="text-sm text-[#334155] leading-relaxed">
+                                Sua lista de candidaturas foca no que importa: vagas que ainda estão valendo!
+                                Quando uma vaga para de receber candidatos, ela é limpa do seu histórico visual
+                                para não gerar confusão, mas o total de vezes que você se candidatou continua
+                                aparecendo no contador ao lado.
+                            </p>
+                        </div>
+                    )}
+                </div>
                 <p className="text-slate-600 text-sm mb-4">
                     Encontre oportunidades de emprego personalizadas para você.
                 </p>

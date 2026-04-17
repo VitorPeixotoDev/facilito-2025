@@ -357,8 +357,12 @@ export function buildAssessmentRecommendations(signals: UserSignals): Record<str
  * Função utilitária para construir todas as recomendações de uma vez.
  */
 export function buildUserRecommendations(signals: UserSignals, maxCoursesTotal = 5): UserRecommendations {
+    const resolved: UserSignals = {
+        ...signals,
+        courses: signals.courses.map((c) => getCourseDisplayName(c)),
+    };
     return {
-        coursesByTheme: buildCourseRecommendations(signals, maxCoursesTotal),
-        assessmentsByTag: buildAssessmentRecommendations(signals),
+        coursesByTheme: buildCourseRecommendations(resolved, maxCoursesTotal),
+        assessmentsByTag: buildAssessmentRecommendations(resolved),
     };
 }
