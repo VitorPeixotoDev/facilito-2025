@@ -45,6 +45,10 @@ interface ProfileFormStepsProps {
     buscandoEndereco: boolean;
     onObterLocalizacao: () => void;
     onBuscarEndereco: () => void;
+    onManualSaveLongTextField: (
+        field: "description" | "experience" | "academic_background",
+        value: string
+    ) => Promise<boolean>;
 }
 
 export function ProfileFormSteps({
@@ -57,14 +61,33 @@ export function ProfileFormSteps({
     buscandoEndereco,
     onObterLocalizacao,
     onBuscarEndereco,
+    onManualSaveLongTextField,
 }: ProfileFormStepsProps) {
     switch (currentStep) {
         case 1:
-            return <PersonalInfoStep formData={formData} updateFormField={updateFormField} />;
+            return (
+                <PersonalInfoStep
+                    formData={formData}
+                    updateFormField={updateFormField}
+                    onManualSaveLongTextField={onManualSaveLongTextField}
+                />
+            );
         case 2:
-            return <SkillsAndCoursesStep formData={formData} updateFormField={updateFormField} />;
+            return (
+                <SkillsAndCoursesStep
+                    formData={formData}
+                    updateFormField={updateFormField}
+                    onManualSaveLongTextField={onManualSaveLongTextField}
+                />
+            );
         case 3:
-            return <ExperienceStep formData={formData} updateFormField={updateFormField} />;
+            return (
+                <ExperienceStep
+                    formData={formData}
+                    updateFormField={updateFormField}
+                    onManualSaveLongTextField={onManualSaveLongTextField}
+                />
+            );
         case 4:
             return (
                 <AddressStep

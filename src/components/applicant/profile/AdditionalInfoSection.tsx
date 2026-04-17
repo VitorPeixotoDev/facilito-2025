@@ -48,7 +48,7 @@ export default function AdditionalInfoSection({
             {hasServices && (
                 <div className="border-l-[3px] border-[#5f9ea0] pl-4 py-2.5">
                     <p className="text-xs text-[#5f9ea0] mb-1.5 font-medium uppercase tracking-wide">
-                        Serviços Freelancer
+                        Disponível para Freela de
                     </p>
                     <div className="flex flex-wrap gap-2">
                         {freelancerServices.map((service, index) => (

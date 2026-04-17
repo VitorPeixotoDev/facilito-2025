@@ -44,7 +44,7 @@ export default function CandidateRankingRightSide({ candidate }: CandidateRankin
                     <div className="flex items-center gap-1.5">
                         <Award className="w-3.5 h-3.5 text-[#5f9ea0]" />
                         <span className="text-xs text-[#111]/70">
-                            {candidate.skillsCount} {candidate.skillsCount === 1 ? 'habilidade' : 'habilidades'}
+                            {candidate.skillsCount} {candidate.skillsCount === 1 ? 'especialidade' : 'especialidades'}
                         </span>
                     </div>
                 )}

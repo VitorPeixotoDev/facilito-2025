@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { User, Calendar, Mail, FileText } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { ProfileFormData } from "../ProfileFormSteps";
 import { getTodayLocalIsoDate } from "../utils";
 
@@ -12,10 +13,35 @@ interface PersonalInfoStepProps {
         field: K,
         value: ProfileFormData[K]
     ) => void;
+    onManualSaveLongTextField: (
+        field: "description" | "experience" | "academic_background",
+        value: string
+    ) => Promise<boolean>;
 }
 
-export function PersonalInfoStep({ formData, updateFormField }: PersonalInfoStepProps) {
+export function PersonalInfoStep({
+    formData,
+    updateFormField,
+    onManualSaveLongTextField,
+}: PersonalInfoStepProps) {
     const maxBirthDate = getTodayLocalIsoDate();
+    const [descriptionDraft, setDescriptionDraft] = useState(formData.description || "");
+    const [descriptionDirty, setDescriptionDirty] = useState(false);
+    const [isSavingDescription, setIsSavingDescription] = useState(false);
+
+    useEffect(() => {
+        setDescriptionDraft(formData.description || "");
+        setDescriptionDirty(false);
+    }, [formData.description]);
+
+    const salvarDescricao = async () => {
+        const value = descriptionDraft;
+        updateFormField("description", value);
+        setIsSavingDescription(true);
+        await onManualSaveLongTextField("description", value);
+        setIsSavingDescription(false);
+        setDescriptionDirty(false);
+    };
 
     return (
         <Card className="p-4 sm:p-6 shadow-lg">
@@ -84,9 +110,22 @@ export function PersonalInfoStep({ formData, updateFormField }: PersonalInfoStep
                     <textarea
                         placeholder="Descreva sua experiência profissional, conquistas e objetivos..."
                         className="text-gray-700 flex min-h-[120px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5e9ea0] focus:ring-offset-1"
-                        value={formData.description || ""}
-                        onChange={(e) => updateFormField("description", e.target.value)}
+                        value={descriptionDraft}
+                        onChange={(e) => {
+                            setDescriptionDraft(e.target.value);
+                            setDescriptionDirty(true);
+                        }}
                     />
+                    <div className="mt-3 flex justify-end">
+                        <button
+                            type="button"
+                            onClick={salvarDescricao}
+                            disabled={isSavingDescription || !descriptionDirty}
+                            className="px-4 py-2 bg-[#5f9ea0] text-white rounded-md hover:bg-[#4a8b8f] disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {isSavingDescription ? "Salvando..." : "Salvar"}
+                        </button>
+                    </div>
                     <p className="text-xs text-slate-500 mt-1">Mínimo de 20 caracteres</p>
                 </div>
             </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { FileText, Baby, Car } from "lucide-react";
+import { UserRoundPlus, Baby, Car } from "lucide-react";
 import type { ProfileFormData } from "../ProfileFormSteps";
 
 const DRIVERS_LICENSE_TYPES = ["A", "B", "C", "D", "E", "AB", "AC", "AD", "AE"];
@@ -30,7 +30,7 @@ export function AdditionalInfoStep({ formData, updateFormField }: AdditionalInfo
     return (
         <Card className="p-4 sm:p-6 shadow-lg">
             <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#5e9ea0]" />
+                <UserRoundPlus className="w-5 h-5 text-[#5e9ea0]" />
                 Informações Adicionais
             </h2>
 

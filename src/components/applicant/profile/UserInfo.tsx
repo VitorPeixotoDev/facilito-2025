@@ -30,7 +30,7 @@ export default function UserInfo({ profile, onAssessmentClick }: UserInfoProps) 
                 ),
             },
             {
-                title: 'Habilidades e Cursos',
+                title: 'Especialidades e Formações',
                 component: (
                     <SkillsAndCoursesSection
                         skills={profile.skills}
