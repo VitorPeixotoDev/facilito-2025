@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import { Trophy, Award, MapPin, Briefcase, BookOpen, TrendingUp, GraduationCap } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { CandidateRankingResult } from '@/lib/ranking/types';
@@ -7,6 +8,9 @@ import CandidateRankingRightSide from './CandidateRankingRightSide';
 import { extractAssessmentIds } from '@/lib/assessment/profileAnalysisMapper';
 import { getAssessmentById } from '@/lib/assessment/assessmentsConfig';
 import { getGraduationsInfo } from '@/lib/constants/graduations';
+import type { AssessmentConfig } from '@/types/assessments';
+import AssessmentInfoModal from './AssessmentInfoModal';
+import GraduationModal from './GraduationModal';
 
 /**
  * Helper function to get assessment image path by ID
@@ -100,6 +104,9 @@ export default function CandidateRankingList({
     candidates,
     loading = false,
 }: CandidateRankingListProps) {
+    const [selectedAssessment, setSelectedAssessment] = useState<AssessmentConfig | null>(null);
+    const [selectedGraduationKey, setSelectedGraduationKey] = useState<string | null>(null);
+
     if (loading) {
         return (
             <div className="space-y-3">
@@ -127,128 +134,132 @@ export default function CandidateRankingList({
     }
 
     return (
-        <div className="space-y-3">
-            {candidates.map((candidate) => {
-                const assessmentIcons = getCandidateAssessmentIcons(candidate.profileAnalysis);
-                const rankColors = getRankBadgeColors(candidate.rank);
-                const graduationsInfo = candidate.graduations && candidate.graduations.length > 0
-                    ? getGraduationsInfo(candidate.graduations)
-                    : [];
-                return (
-                    <div
-                        key={candidate.candidateId}
-                        className="bg-white rounded-lg border-l-[3px] border-[#5f9ea0] p-4 shadow-sm hover:shadow-md transition-shadow"
-                    >
-                        <div className="flex items-start justify-between gap-3">
-                            {/* Left side: Rank and Name */}
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className={`flex items-center justify-center w-8 h-8 border-2 ${rankColors.border} rounded-full bg-gradient-to-br ${rankColors.bgGradient} flex-shrink-0`}>
-                                        <span className={`text-xs font-bold ${rankColors.textColor}`}>
-                                            #{candidate.rank}
-                                        </span>
+        <>
+            <div className="space-y-3">
+                {candidates.map((candidate) => {
+                    const assessmentIcons = getCandidateAssessmentIcons(candidate.profileAnalysis);
+                    const rankColors = getRankBadgeColors(candidate.rank);
+                    const graduationsInfo = candidate.graduations && candidate.graduations.length > 0
+                        ? getGraduationsInfo(candidate.graduations)
+                        : [];
+                    const emblems = [
+                        ...assessmentIcons.map(({ id, assessment, imagePath }) => ({
+                            key: `assessment-${id}`,
+                            name: assessment.name,
+                            imageSrc: imagePath ?? assessment.image ?? null,
+                            type: 'assessment' as const,
+                            assessment,
+                        })),
+                        ...graduationsInfo.map((graduation) => ({
+                            key: `graduation-${graduation.key}`,
+                            name: graduation.label,
+                            imageSrc: graduation.imageSrc,
+                            type: 'graduation' as const,
+                            graduationKey: graduation.key,
+                        })),
+                    ];
+
+                    return (
+                        <div
+                            key={candidate.candidateId}
+                            className="bg-white rounded-lg border-l-[3px] border-[#5f9ea0] p-4 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                            <div className="flex items-start justify-between gap-3">
+                                {/* Left side: Rank and Name */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className={`flex items-center justify-center w-8 h-8 border-2 ${rankColors.border} rounded-full bg-gradient-to-br ${rankColors.bgGradient} flex-shrink-0`}>
+                                            <span className={`text-xs font-bold ${rankColors.textColor}`}>
+                                                #{candidate.rank}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-sm sm:text-base font-semibold text-[#111] truncate">
+                                            {candidate.candidateName || 'Candidato'}
+                                        </h3>
                                     </div>
-                                    <h3 className="text-sm sm:text-base font-semibold text-[#111] truncate">
-                                        {candidate.candidateName || 'Candidato'}
-                                    </h3>
+
+                                    {emblems.length > 0 && (
+                                        <div className="grid grid-cols-3 gap-2.5 mb-2">
+                                            {emblems.map((emblem) => (
+                                                <button
+                                                    key={emblem.key}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (emblem.type === 'assessment') {
+                                                            setSelectedAssessment(emblem.assessment);
+                                                            return;
+                                                        }
+                                                        setSelectedGraduationKey(emblem.graduationKey);
+                                                    }}
+                                                    className="group rounded-2xl border border-[#d6e3e4] bg-gradient-to-br from-[#f9fcfc] to-[#f4f9f9] p-2.5 shadow-sm transition-all hover:border-[#5f9ea0]/30 hover:shadow-md"
+                                                    title={emblem.name}
+                                                >
+                                                    <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-[#5f9ea0]/20 bg-white">
+                                                        {emblem.imageSrc ? (
+                                                            <img
+                                                                src={emblem.imageSrc}
+                                                                alt={emblem.name}
+                                                                className="h-full w-full object-contain"
+                                                                onError={(e) => {
+                                                                    e.currentTarget.style.display = 'none';
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <GraduationCap className="w-5 h-5 text-[#5f9ea0]" />
+                                                        )}
+                                                    </div>
+                                                    <p className="w-full truncate text-center text-xs font-medium text-[#111]/80">
+                                                        {emblem.name}
+                                                    </p>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Highlights */}
+                                    {candidate.similarityHighlights.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 mt-2">
+                                            {candidate.similarityHighlights.map((highlight, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#5f9ea0]/10 text-xs text-[#111]"
+                                                >
+                                                    {highlight.type === 'services' ? (
+                                                        <Briefcase className="w-3 h-3 text-[#5f9ea0]" />
+                                                    ) : (
+                                                        <Award className="w-3 h-3 text-[#5f9ea0]" />
+                                                    )}
+                                                    <span>
+                                                        {highlight.count} {highlight.type === 'services' ? 'serviços' : 'habilidades'}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Assessment Icons */}
-                                {assessmentIcons.length > 0 && (
-                                    <div className="flex items-start gap-4 flex-wrap mb-2">
-                                        {assessmentIcons.map(({ id, assessment, imagePath }) => (
-                                            <div
-                                                key={id}
-                                                className="flex flex-col items-center gap-2 min-w-[70px]"
-                                            >
-                                                <div className="w-14 h-14 rounded-full border-2 border-[#5f9ea0]/20 flex items-center justify-center overflow-hidden bg-white flex-shrink-0 shadow-sm">
-                                                    {imagePath ? (
-                                                        <img
-                                                            src={imagePath}
-                                                            alt={assessment.name}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => {
-                                                                e.currentTarget.style.display = 'none';
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-                                                            <span className="text-xs font-bold text-blue-600">
-                                                                {assessment.name.charAt(0)}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <span className="text-xs text-[#111]/80 text-center font-medium leading-tight">
-                                                    {assessment.name}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Graduations */}
-                                {graduationsInfo.length > 0 && (
-                                    <div className="flex items-start gap-4 flex-wrap mb-2">
-                                        {graduationsInfo.map((graduation) => (
-                                            <div
-                                                key={graduation.key}
-                                                className="flex flex-col items-center gap-2 min-w-[70px]"
-                                            >
-                                                <div className="w-14 h-14 rounded-full border-2 border-[#5f9ea0]/20 flex items-center justify-center overflow-hidden bg-white flex-shrink-0 shadow-sm">
-                                                    {graduation.imageSrc ? (
-                                                        <img
-                                                            src={graduation.imageSrc}
-                                                            alt={graduation.label}
-                                                            className="w-full h-full object-cover"
-                                                            onError={(e) => {
-                                                                e.currentTarget.style.display = 'none';
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-                                                            <GraduationCap className="w-6 h-6 text-[#5f9ea0]" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <span className="inline-flex items-center gap-1.5 text-xs text-[#111]/80 text-center font-medium leading-tight">
-                                                    <GraduationCap className="w-3 h-3 text-[#5f9ea0]" />
-                                                    {graduation.label}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Highlights */}
-                                {candidate.similarityHighlights.length > 0 && (
-                                    <div className="flex flex-wrap gap-1.5 mt-2">
-                                        {candidate.similarityHighlights.map((highlight, idx) => (
-                                            <div
-                                                key={idx}
-                                                className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#5f9ea0]/10 text-xs text-[#111]"
-                                            >
-                                                {highlight.type === 'services' ? (
-                                                    <Briefcase className="w-3 h-3 text-[#5f9ea0]" />
-                                                ) : (
-                                                    <Award className="w-3 h-3 text-[#5f9ea0]" />
-                                                )}
-                                                <span>
-                                                    {highlight.count} {highlight.type === 'services' ? 'serviços' : 'habilidades'}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                {/* Right side: Score badge, stats, and assessment icons */}
+                                <CandidateRankingRightSide candidate={candidate} />
                             </div>
-
-                            {/* Right side: Score badge, stats, and assessment icons */}
-                            <CandidateRankingRightSide candidate={candidate} />
                         </div>
-                    </div>
-                );
-            })}
-        </div>
+                    );
+                })}
+            </div>
+
+            {selectedAssessment && (
+                <AssessmentInfoModal
+                    isOpen={Boolean(selectedAssessment)}
+                    onClose={() => setSelectedAssessment(null)}
+                    assessment={selectedAssessment}
+                />
+            )}
+
+            <GraduationModal
+                isOpen={Boolean(selectedGraduationKey)}
+                graduationKey={selectedGraduationKey}
+                onClose={() => setSelectedGraduationKey(null)}
+            />
+        </>
     );
 }
 

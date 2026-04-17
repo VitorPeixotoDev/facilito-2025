@@ -777,11 +777,30 @@ export function getCustomCourseId(customName: string): string {
  * Retorna o nome para exibição.
  */
 export function getCourseDisplayName(entry: string): string {
+    const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+    const sanitizeCustomName = (value: string) => {
+        const uuidMatch = value.match(uuidRegex);
+        const raw = uuidMatch?.index !== undefined ? value.slice(0, uuidMatch.index) : value;
+        return raw.replace(/[\s,;|:_-]+$/g, "").trim();
+    };
+
     if (entry.startsWith("custom:")) {
-        return entry.slice(7);
+        const customName = sanitizeCustomName(entry.slice(7));
+        return customName || entry.slice(7).trim();
     }
+
     const course = COURSES_BY_ID[entry];
-    return course ? course.name : entry;
+    if (course) {
+        return course.name;
+    }
+
+    // Compatibilidade com dados legados/corrompidos que trazem UUID concatenado ao valor.
+    const fallbackUuid = entry.match(uuidRegex)?.[0];
+    if (fallbackUuid && COURSES_BY_ID[fallbackUuid]) {
+        return COURSES_BY_ID[fallbackUuid].name;
+    }
+
+    return entry.replace(/^custom:/i, "").trim();
 }
 
 /**

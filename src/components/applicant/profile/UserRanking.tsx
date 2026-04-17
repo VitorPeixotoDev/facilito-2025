@@ -106,10 +106,10 @@ export default function UserRanking({ profile, userRanking, loading = false }: U
                                     <p className="text-xs leading-relaxed text-[#111]/70 sm:text-sm">
                                         Para aparecer no ranking e ser visto pelos contratantes, você precisa preencher{' '}
                                         {skillsCount === 0 && !hasLocation && (
-                                            <>suas habilidades técnicas e adicionar sua localização.</>
+                                            <>suas especialidades e adicionar sua localização.</>
                                         )}
                                         {skillsCount === 0 && hasLocation && (
-                                            <>suas habilidades técnicas.</>
+                                            <>suas especialidades.</>
                                         )}
                                         {skillsCount > 0 && !hasLocation && (
                                             <>sua localização no perfil.</>
@@ -207,7 +207,7 @@ export default function UserRanking({ profile, userRanking, loading = false }: U
                         <div className="rounded-2xl border border-[#d6e3e4] bg-white p-3.5 shadow-sm sm:p-4">
                             <div className="flex flex-col gap-2">
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#5f9ea0]">
-                                    Habilidades
+                                    Especialidades
                                 </p>
                                 <div className="flex items-baseline gap-1.5">
                                     <span className="text-2xl font-extrabold tracking-tight text-[#111] sm:text-3xl">

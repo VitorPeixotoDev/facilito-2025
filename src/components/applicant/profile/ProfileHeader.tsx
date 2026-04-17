@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Briefcase, GraduationCap, MapPin, Mail, FileText, CheckCircle2, X } from "lucide-react";
+import { User, Briefcase, GraduationCap, MapPin, Mail, UserRoundPlus, CheckCircle2, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { LucideIcon } from "lucide-react";
 
@@ -12,11 +12,11 @@ export interface OnboardingStep {
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
     { id: 1, title: "Informações Pessoais", icon: User },
-    { id: 2, title: "Habilidades e Cursos", icon: Briefcase },
-    { id: 3, title: "Experiência e Formação", icon: GraduationCap },
+    { id: 2, title: "Especialidades e Experiências", icon: Briefcase },
+    { id: 3, title: "Formação e Cursos", icon: GraduationCap },
     { id: 4, title: "Endereço", icon: MapPin },
     { id: 5, title: "Contato e Redes Sociais", icon: Mail },
-    { id: 6, title: "Informações Adicionais", icon: FileText },
+    { id: 6, title: "Informações Adicionais", icon: UserRoundPlus },
 ];
 
 interface ProfileHeaderProps {

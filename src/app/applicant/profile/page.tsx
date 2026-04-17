@@ -388,17 +388,17 @@ export default function ProfilePage() {
             case 2: {
                 if (
                     (!formData.skills || formData.skills.length === 0) &&
-                    (!formData.courses || formData.courses.length === 0) &&
+                    !formData.experience?.trim() &&
                     (!formData.freelancer_services || formData.freelancer_services.length === 0)
                 ) {
-                    setStepError("Adicione pelo menos uma habilidade, curso ou serviço freelance.");
+                    setStepError("Adicione pelo menos uma habilidade, experiência ou serviço freelance.");
                     return false;
                 }
                 break;
             }
             case 3: {
-                if (!formData.experience?.trim() && !formData.academic_background?.trim()) {
-                    setStepError("Preencha sua experiência ou formação acadêmica.");
+                if (!formData.academic_background?.trim() && (!formData.courses || formData.courses.length === 0)) {
+                    setStepError("Preencha sua formação acadêmica ou adicione pelo menos um curso.");
                     return false;
                 }
                 break;
@@ -439,6 +439,24 @@ export default function ProfilePage() {
         e.preventDefault();
         await saveProfile(formData, true, true);
     };
+
+    const onManualSaveLongTextField = useCallback(
+        async (field: "description" | "experience" | "academic_background", value: string) => {
+            const nextData = { ...formData, [field]: value };
+            setFormData(nextData);
+
+            if (isFirstTime && typeof window !== "undefined") {
+                try {
+                    localStorage.setItem(PROFILE_DRAFT_KEY, JSON.stringify(nextData));
+                } catch (error) {
+                    console.warn("Erro ao salvar rascunho no localStorage:", error);
+                }
+            }
+
+            return saveProfile(nextData, false, false);
+        },
+        [formData, isFirstTime, saveProfile]
+    );
 
     // Salvamento automático com debounce
     // Agora funciona também no primeiro preenchimento (com debounce maior)
@@ -543,6 +561,7 @@ export default function ProfilePage() {
                         buscandoEndereco={buscandoEndereco}
                         onObterLocalizacao={obterLocalizacao}
                         onBuscarEndereco={buscarEnderecoManual}
+                        onManualSaveLongTextField={onManualSaveLongTextField}
                     />
 
                     {stepError && (
@@ -608,7 +627,7 @@ export default function ProfilePage() {
                         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                             <p className="text-sm text-blue-800 flex items-center gap-2">
                                 <CheckCircle2 className="w-4 h-4" />
-                                Suas alterações são salvas automaticamente enquanto você preenche o formulário.
+                                Onde não há o botão de &quot;Salvar&quot;, suas alterações são salvas automaticamente enquanto você preenche o formulário.
                             </p>
                         </div>
                     )}

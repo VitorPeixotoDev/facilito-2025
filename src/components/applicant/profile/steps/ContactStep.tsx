@@ -117,7 +117,7 @@ export function ContactStep({ formData, updateFormField }: ContactStepProps) {
                     </label>
                     <Input
                         type="url"
-                        placeholder="https://www.facebook.com/seu-perfil"
+                        placeholder="/seu-perfil"
                         value={formData.facebook || ""}
                         onChange={(e) => updateFormField("facebook", e.target.value)}
                     />
@@ -130,7 +130,7 @@ export function ContactStep({ formData, updateFormField }: ContactStepProps) {
                     </label>
                     <Input
                         type="url"
-                        placeholder="https://www.instagram.com/seu-perfil"
+                        placeholder="@seu-perfil"
                         value={formData.instagram || ""}
                         onChange={(e) => updateFormField("instagram", e.target.value)}
                     />
@@ -143,7 +143,7 @@ export function ContactStep({ formData, updateFormField }: ContactStepProps) {
                     </label>
                     <Input
                         type="url"
-                        placeholder="https://www.linkedin.com/in/seu-perfil"
+                        placeholder="/seu-perfil"
                         value={formData.linkedin || ""}
                         onChange={(e) => updateFormField("linkedin", e.target.value)}
                     />

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { getUserAssessments, getPredominantAnalysisForAssessment, type UserAssessment } from '@/lib/assessment/userAssessmentsService';
 import type { AssessmentConfig } from '@/types/assessments';
 import { getGraduationsInfo } from '@/lib/constants/graduations';
+import { getCourseDisplayName } from '@/lib/constants/education_courses';
 import GraduationModal from './GraduationModal';
 
 interface SkillsAndCoursesSectionProps {
@@ -128,7 +129,7 @@ export default function SkillsAndCoursesSection({
                                                 {item.assessment.assessmentConfig.name}
                                             </span>
                                         )}
-                                        </div>
+                                    </div>
                                 </div>
                             );
                         })}
@@ -152,7 +153,7 @@ export default function SkillsAndCoursesSection({
             )}
             {hasSkills && (
                 <div className="rounded-2xl border border-[#dbe8e8] bg-[#fbfdfd] p-3.5 sm:p-4">
-                    <p className={sectionTitleClass}>Habilidades</p>
+                    <p className={sectionTitleClass}>Especialidades</p>
                     <div className="flex flex-wrap gap-2.5">
                         {skills.map((skill, index) => (
                             <span
@@ -174,7 +175,7 @@ export default function SkillsAndCoursesSection({
                                 key={index}
                                 className={chipClass}
                             >
-                                {course}
+                                {getCourseDisplayName(course)}
                             </span>
                         ))}
                     </div>
