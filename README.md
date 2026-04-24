@@ -1,5 +1,19 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables
+
+Configure these variables before running payment flows:
+
+```bash
+ABACATEPAY_API_KEY=your_api_key
+ABACATEPAY_BASE_URL=https://api.abacatepay.com/v1
+ABACATEPAY_WEBHOOK_SECRET=your_webhook_secret
+```
+
+- `ABACATEPAY_API_KEY`: API key used for Pix create/check requests.
+- `ABACATEPAY_BASE_URL`: explicit payment API base URL (use production value in live env).
+- `ABACATEPAY_WEBHOOK_SECRET`: secret used to verify HMAC signatures from AbacatePay webhook callbacks.
+
 ## Getting Started
 
 First, run the development server:

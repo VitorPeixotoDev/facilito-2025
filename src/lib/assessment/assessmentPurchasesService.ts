@@ -49,6 +49,19 @@ export async function recordPurchase(
 }
 
 /**
+ * Registra compra confirmada via Checkout Transparente (AbacatePay PIX).
+ * Reutiliza a mesma coluna de referência de pagamento para manter compatibilidade.
+ */
+export async function recordTransparentPurchase(
+  supabase: SupabaseClient,
+  userId: string,
+  assessmentId: string,
+  transparentId: string
+): Promise<boolean> {
+  return recordPurchase(supabase, userId, assessmentId, transparentId);
+}
+
+/**
  * Verifica se o usuário já comprou uma avaliação específica.
  */
 export async function hasPurchasedAssessment(
