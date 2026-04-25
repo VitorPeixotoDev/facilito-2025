@@ -71,7 +71,7 @@ export const PROFESSIONAL_COURSES_CONFIG: ProfessionalCourseConfig[] = [
         courseName: 'Formação de Líderes na Saúde',
         shortDescription: 'Domine a governança, inteligência emocional e eficiência operacional na saúde.',
         investiment: 'R$99',
-        ctaUrl: 'https://liderancasaude-pvj2abfr.manus.space/',
+        ctaUrl: 'https://pay.kiwify.com.br/JcLKQ6O',
         imageSrc: '/partners_logo/bary_logo.png',
         estimatedTime: 'Carga horária variável',
         educationCategoryKey: 'Cursos Livres e Qualificação Profissional',
