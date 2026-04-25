@@ -2,10 +2,18 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Search, Info } from 'lucide-react';
-import { EDUCATION_COURSES } from '@/lib/constants/education_courses';
+import type { EducationCategoryKey } from '@/lib/constants/education_courses';
+import type { ProfessionalCourseConfig } from '@/lib/constants/professional_courses';
 import { MAIN_EDUCATION_TAGS } from '@/lib/constants/education_tags';
+import {
+    getAllProfessionalCourses,
+    getProfessionalCoursesByTag,
+    searchProfessionalCourses,
+} from '@/lib/education/professionalCoursesService';
+import { ProfessionalCourseCard } from './ProfessionalCourseCard';
+import { ProfessionalCourseModal } from './ProfessionalCourseModal';
 
-type EducationGroupKey = keyof typeof EDUCATION_COURSES;
+type EducationGroupKey = EducationCategoryKey;
 
 interface CourseFiltersProps {
     initialSearchTerm?: string;
@@ -22,47 +30,34 @@ interface CourseFiltersProps {
 export function CourseFilters({ initialSearchTerm, onCourseSelect, onCategorySelect }: CourseFiltersProps) {
     const [searchTerm, setSearchTerm] = useState(initialSearchTerm ?? '');
     const [selectedTag, setSelectedTag] = useState<string>('Todas');
-    const [selectedCourseWarning, setSelectedCourseWarning] = useState<string | null>(null);
+    const [selectedCourse, setSelectedCourse] = useState<ProfessionalCourseConfig | null>(null);
+    const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
 
     useEffect(() => {
         if (initialSearchTerm !== undefined) {
             setSearchTerm(initialSearchTerm);
-            setSelectedCourseWarning(null);
         }
     }, [initialSearchTerm]);
 
-    const allCourses = useMemo(
-        () =>
-            Object.entries(EDUCATION_COURSES).flatMap(([groupKey, courses]) =>
-                courses.map((name) => ({
-                    name,
-                    groupKey: groupKey as EducationGroupKey,
-                })),
-            ),
-        [],
-    );
+    const allProfessionalCourses = useMemo(() => getAllProfessionalCourses(), []);
 
-    const filteredCourses = useMemo(() => {
-        const term = searchTerm.trim().toLowerCase();
-        if (!term) return [];
-
-        return allCourses
-            .filter((course) => course.name.toLowerCase().includes(term))
-            .slice(0, 8);
-    }, [allCourses, searchTerm]);
+    const filteredProfessionalCourses = useMemo(() => {
+        const byTag = getProfessionalCoursesByTag(selectedTag);
+        return searchProfessionalCourses(byTag, searchTerm);
+    }, [selectedTag, searchTerm]);
 
     const handleTagClick = (tag: string) => {
         setSelectedTag(tag);
-        setSelectedCourseWarning(null);
         onCategorySelect?.(tag === 'Todas' ? '' : tag);
     };
 
-    const handleCourseClick = (courseName: string, groupKey: EducationGroupKey) => {
-        setSelectedCourseWarning(courseName);
-        onCourseSelect?.(courseName, {
-            groupKey,
+    const handleCourseClick = (course: ProfessionalCourseConfig) => {
+        onCourseSelect?.(course.courseName, {
+            groupKey: course.educationCategoryKey,
             mainTag: selectedTag !== 'Todas' ? selectedTag : undefined,
         });
+        setSelectedCourse(course);
+        setIsCourseModalOpen(true);
     };
 
     return (
@@ -86,7 +81,6 @@ export function CourseFilters({ initialSearchTerm, onCourseSelect, onCategorySel
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
-                                setSelectedCourseWarning(null);
                             }}
                         />
                     </div>
@@ -130,64 +124,67 @@ export function CourseFilters({ initialSearchTerm, onCourseSelect, onCategorySel
                         </div>
                     </div>
 
-                    {/* Aviso de indisponibilidade de parceiros */}
+                    {/* Aviso quando não há cursos parceiros para a categoria */}
                     {selectedTag !== 'Todas' && (
-                        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 sm:px-4 sm:py-3.5 flex items-start gap-3">
-                            <Info className="w-5 h-5 sm:w-5 sm:h-5 text-amber-500 mt-0.5 flex-shrink-0" />
-                            <p className="text-xs sm:text-xs text-amber-900 leading-relaxed">
-                                No momento, nenhum parceiro disponibilizou graduações específicas em
-                                <span className="font-semibold"> {selectedTag}</span>. Estamos trabalhando para trazer
-                                formações dessa área para você em breve.
-                            </p>
-                        </div>
+                        <>
+                            {getProfessionalCoursesByTag(selectedTag).length === 0 && (
+                                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 sm:px-4 sm:py-3.5 flex items-start gap-3">
+                                    <Info className="w-5 h-5 sm:w-5 sm:h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs sm:text-xs text-amber-900 leading-relaxed">
+                                        No momento, nenhum parceiro disponibilizou graduações específicas em
+                                        <span className="font-semibold"> {selectedTag}</span>. Estamos trabalhando para trazer
+                                        formações dessa área para você em breve.
+                                    </p>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
 
-                {/* Resultados da busca */}
+                {/* Resultados da busca / catálogo de parceiros */}
                 <div>
                     {searchTerm.trim() ? (
-                        filteredCourses.length > 0 ? (
+                        filteredProfessionalCourses.length > 0 ? (
                             <div className="space-y-3">
-                                <p className="text-sm sm:text-sm text-slate-600 font-medium">
-                                    {filteredCourses.length} curso(s) encontrado(s) nos seus resultados
-                                </p>
-                                <div className="flex flex-wrap gap-2.5">
-                                    {filteredCourses.map((course) => (
-                                        <button
-                                            key={`${course.groupKey}-${course.name}`}
-                                            type="button"
-                                            onClick={() => handleCourseClick(course.name, course.groupKey)}
-                                            className="inline-flex items-center rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 px-4 py-2 text-xs sm:text-xs text-slate-800 transition-colors font-medium"
-                                        >
-                                            {course.name}
-                                        </button>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4">
+                                    {filteredProfessionalCourses.map((course) => (
+                                        <ProfessionalCourseCard
+                                            key={course.id}
+                                            course={course}
+                                            onSelect={handleCourseClick}
+                                        />
                                     ))}
                                 </div>
-
-                                {selectedCourseWarning && (
-                                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 sm:px-4 sm:py-3.5 flex items-start gap-3">
-                                        <Info className="w-5 h-5 sm:w-5 sm:h-5 text-amber-500 mt-0.5 flex-shrink-0" />
-                                        <p className="text-xs sm:text-xs text-amber-900 leading-relaxed">
-                                            No momento, nenhum parceiro disponibilizou graduações específicas
-                                            relacionadas a
-                                            <span className="font-semibold"> {selectedCourseWarning}</span>. Estamos
-                                            trabalhando para trazer formações dessa área para você em breve.
-                                        </p>
-                                    </div>
-                                )}
                             </div>
                         ) : (
                             <p className="text-sm sm:text-sm text-slate-500 py-2">
                                 Nenhum curso encontrado para &quot;{searchTerm.trim()}&quot;. Tente outro termo.
                             </p>
                         )
+                    ) : filteredProfessionalCourses.length > 0 ? (
+                        <div className="space-y-3">
+                            <div className="space-y-2.5">
+                                {filteredProfessionalCourses.map((course) => (
+                                    <ProfessionalCourseCard
+                                        key={course.id}
+                                        course={course}
+                                        onSelect={handleCourseClick}
+                                    />
+                                ))}
+                            </div>
+                        </div>
                     ) : (
                         <p className="text-sm sm:text-sm text-slate-500 py-2">
-                            Use a busca para encontrar cursos específicos ou explore pelas categorias acima.
+                            Nenhum curso parceiro disponível para os filtros selecionados no momento.
                         </p>
                     )}
                 </div>
             </div>
+            <ProfessionalCourseModal
+                isOpen={isCourseModalOpen}
+                course={selectedCourse}
+                onClose={() => setIsCourseModalOpen(false)}
+            />
         </section>
     );
 }

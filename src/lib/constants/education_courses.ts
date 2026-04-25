@@ -42,6 +42,7 @@ export const EDUCATION_COURSES = {
         "Espanhol Intermediário",
         "Espanhol Avançado",
         "Finanças Pessoais",
+        "Formação de Líderes na Saúde",
         "Gestão de Pequenos Negócios",
         "Informática Básica",
         "Informática Intermediária",
