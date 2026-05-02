@@ -31,7 +31,7 @@ export function ProfileHeader({ currentStep, saveStatus, onStepClick }: ProfileH
 
     return (
         <>
-            <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm pt-2 sm:pt-4">
+            <div className="sticky top-16 z-30 bg-white border-b border-slate-200 shadow-sm pt-2 sm:pt-4 lg:top-20">
                 <div className="max-w-6xl mx-auto px-4 py-2 sm:py-3">
                     <div className="flex items-center justify-between mb-2 sm:mb-3">
                         <div className="flex-1">

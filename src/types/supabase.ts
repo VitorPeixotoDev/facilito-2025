@@ -112,6 +112,11 @@ export interface Database {
                     user_id: string;
                     assessment_id: string;
                     stripe_session_id: string;
+                    product_name: string | null;
+                    amount_cents: number | null;
+                    payment_method: string | null;
+                    payment_provider: string | null;
+                    payment_reference: string | null;
                     created_at: string;
                 };
                 Insert: {
@@ -119,6 +124,11 @@ export interface Database {
                     user_id: string;
                     assessment_id: string;
                     stripe_session_id: string;
+                    product_name?: string | null;
+                    amount_cents?: number | null;
+                    payment_method?: string | null;
+                    payment_provider?: string | null;
+                    payment_reference?: string | null;
                     created_at?: string;
                 };
                 Update: {
@@ -126,6 +136,11 @@ export interface Database {
                     user_id?: string;
                     assessment_id?: string;
                     stripe_session_id?: string;
+                    product_name?: string | null;
+                    amount_cents?: number | null;
+                    payment_method?: string | null;
+                    payment_provider?: string | null;
+                    payment_reference?: string | null;
                     created_at?: string;
                 };
             };

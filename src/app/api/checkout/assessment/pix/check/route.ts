@@ -4,6 +4,8 @@ import {
   hasPurchasedAssessment,
   recordTransparentPurchase,
 } from "@/lib/assessment/assessmentPurchasesService";
+import { getAssessmentByIdFromCatalog } from "@/lib/assessment/assessmentCatalogService";
+import { getAssessmentPriceCents } from "@/lib/assessment/assessmentPricesService";
 
 const ABACATEPAY_BASE_URL = process.env.ABACATEPAY_BASE_URL || "https://api.abacatepay.com/v1";
 
@@ -79,11 +81,17 @@ export async function POST(request: NextRequest) {
 
     const status = String(payload.data.status).toUpperCase();
     if (status === "PAID") {
+      const assessment = await getAssessmentByIdFromCatalog(supabase, assessmentId);
+      const amountCents = await getAssessmentPriceCents(supabase, assessmentId);
       const persisted = await recordTransparentPurchase(
         supabase,
         user.id,
         assessmentId,
-        transparentId
+        transparentId,
+        {
+          productName: assessment?.name ?? "Avaliação Facilitô",
+          amountCents,
+        }
       );
 
       if (!persisted) {
