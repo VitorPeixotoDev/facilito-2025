@@ -24,8 +24,8 @@ export function ApplicantTopNav() {
 
     return (
         <>
-            <header className="w-full bg-white border-b border-slate-200 shadow-sm">
-                <div className="px-3 lg:pl-22 h-16 lg:h-20 flex items-center justify-between">
+            <header className="fixed inset-x-0 top-0 z-50 w-full bg-white border-b border-slate-200 shadow-sm">
+                <div className="px-3 lg:px-0 h-16 lg:h-20 flex items-center justify-between">
                     {/* Logo à esquerda */}
                     <div className="flex items-center gap-3">
                         <Link href="/applicant/vacancies" className="hover:opacity-80 transition-opacity">

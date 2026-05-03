@@ -1,3 +1,5 @@
+import type { Json } from "@/types/supabase";
+
 /**
  * Types and interfaces for the candidate ranking algorithm
  * 
@@ -25,7 +27,8 @@ export interface CandidateProfile {
     skills: string[];
     courses: string[];
     freelancer_services: string[];
-    experience: string | null;
+    /** jsonb (lista de experiências), string legada ou null */
+    experience: string | Json | null;
     academic_background: string | null;
     home_address: UserLocation | null;
     profile_analysis: string[] | null;

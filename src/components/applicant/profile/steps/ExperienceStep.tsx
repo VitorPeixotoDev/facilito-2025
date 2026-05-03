@@ -19,7 +19,7 @@ interface ExperienceStepProps {
         value: ProfileFormData[K]
     ) => void;
     onManualSaveLongTextField: (
-        field: "experience" | "academic_background",
+        field: "academic_background",
         value: string
     ) => Promise<boolean>;
 }

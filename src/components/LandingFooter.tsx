@@ -1,6 +1,7 @@
-'use client'
+"use client"
 
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function LandingFooter() {
     const currentYear = new Date().getFullYear()
@@ -113,13 +114,13 @@ export default function LandingFooter() {
                         &copy; {currentYear} Facilitô! Vagas. Todos os direitos reservados.
                     </p>
                     <div className="flex items-center gap-4 text-xs text-slate-500">
-                        <a href="#" className="hover:text-[#5e9ea0] transition-colors">
+                        <Link href="/termos" className="hover:text-[#5e9ea0] transition-colors">
                             Termos de uso
-                        </a>
+                        </Link>
                         <span className="h-3 w-px bg-slate-300" />
-                        <a href="#" className="hover:text-[#5e9ea0] transition-colors">
+                        <Link href="/privacidade" className="hover:text-[#5e9ea0] transition-colors">
                             Política de privacidade
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

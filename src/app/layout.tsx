@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthClientProvider } from "@/components/AuthClientProvider";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { InstallPWA } from "@/components/InstallPWA";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { createClient } from "@/utils/supabase/server";
@@ -55,6 +56,7 @@ export default async function RootLayout({
           initialUser={user}
         >
           {children}
+          <CookieConsentBanner />
         </AuthClientProvider>
       </body>
     </html>

@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import Stripe from "stripe";
 import { recordPurchase } from "@/lib/assessment/assessmentPurchasesService";
+import { getAssessmentByIdFromCatalog } from "@/lib/assessment/assessmentCatalogService";
+import { getAssessmentPriceCents } from "@/lib/assessment/assessmentPricesService";
 export default async function PaymentSuccessPage({
   searchParams,
 }: {
@@ -50,11 +52,22 @@ export default async function PaymentSuccessPage({
     redirect("/applicant/shop?payment=error");
   }
 
+  const assessment = await getAssessmentByIdFromCatalog(supabase, assessmentId);
+  const fallbackAmountCents = await getAssessmentPriceCents(supabase, assessmentId);
+  const amountCents = session.amount_total ?? fallbackAmountCents;
+
   const ok = await recordPurchase(
     supabase,
     userId,
     assessmentId,
-    session.id
+    session.id,
+    {
+      productName: assessment?.name ?? "Avaliação Facilitô",
+      amountCents,
+      paymentMethod: "card",
+      paymentProvider: "stripe",
+      paymentReference: session.id,
+    }
   );
 
   if (!ok) {

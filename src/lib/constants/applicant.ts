@@ -1,4 +1,4 @@
-import { Home, ShoppingBag, Briefcase, User, Trophy, Rocket } from "lucide-react";
+import { Home, ShoppingBag, Briefcase, User, Trophy } from "lucide-react";
 
 export interface NavItem {
     id: string;
@@ -18,10 +18,10 @@ export const APPLICANT_NAV_ITEMS: NavItem[] = [
     },
     {
         id: "shop",
-        label: "Carreira",
+        label: "Loja",
         href: "/applicant/shop",
-        icon: Rocket,
-        ariaLabel: "Ir para Carreira",
+        icon: ShoppingBag,
+        ariaLabel: "Ir para Loja",
     },
     {
         id: "vacancies",

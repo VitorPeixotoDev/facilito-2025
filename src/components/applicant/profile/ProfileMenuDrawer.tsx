@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { X, LogOut } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { X, LogOut, ReceiptText } from "lucide-react";
 import { signOut } from "@/app/login/actions";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface ProfileMenuDrawerProps {
     isOpen: boolean;
@@ -12,6 +15,7 @@ interface ProfileMenuDrawerProps {
 
 export function ProfileMenuDrawer({ isOpen, onClose }: ProfileMenuDrawerProps) {
     const router = useRouter();
+    const pathname = usePathname();
     const [showConfirm, setShowConfirm] = useState(false);
 
     const handleLogout = async () => {
@@ -65,7 +69,21 @@ export function ProfileMenuDrawer({ isOpen, onClose }: ProfileMenuDrawerProps) {
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-                    {/* Conteúdo do menu pode ser adicionado aqui no futuro */}
+                    <nav aria-label="Menu do usuário" className="space-y-2">
+                        <Link
+                            href="/applicant/purchases"
+                            onClick={onClose}
+                            className={cn(
+                                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-colors",
+                                pathname === "/applicant/purchases"
+                                    ? "bg-[#5e9ea0]/10 text-[#2f6668]"
+                                    : "text-slate-700 hover:bg-slate-100 hover:text-[#2f6668]"
+                            )}
+                        >
+                            <ReceiptText className="h-5 w-5" aria-hidden="true" />
+                            Compras realizadas
+                        </Link>
+                    </nav>
                 </div>
 
                 {/* Footer com botão Sair */}

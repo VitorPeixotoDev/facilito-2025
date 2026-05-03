@@ -2,6 +2,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { recordTransparentPurchase } from "@/lib/assessment/assessmentPurchasesService";
+import { getAssessmentByIdFromCatalog } from "@/lib/assessment/assessmentCatalogService";
+import { getAssessmentPriceCents } from "@/lib/assessment/assessmentPricesService";
 
 type GenericPayload = {
   event?: string;
@@ -71,7 +73,18 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createServiceRoleClient();
-  const ok = await recordTransparentPurchase(supabase, userId, assessmentId, paymentId);
+  const assessment = await getAssessmentByIdFromCatalog(supabase, assessmentId);
+  const amountCents = await getAssessmentPriceCents(supabase, assessmentId);
+  const ok = await recordTransparentPurchase(
+    supabase,
+    userId,
+    assessmentId,
+    paymentId,
+    {
+      productName: assessment?.name ?? "Avaliação Facilitô",
+      amountCents,
+    }
+  );
   if (!ok) {
     return NextResponse.json({ error: "Falha ao registrar compra" }, { status: 500 });
   }

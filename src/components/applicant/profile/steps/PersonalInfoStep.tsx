@@ -14,7 +14,7 @@ interface PersonalInfoStepProps {
         value: ProfileFormData[K]
     ) => void;
     onManualSaveLongTextField: (
-        field: "description" | "experience" | "academic_background",
+        field: "description" | "academic_background",
         value: string
     ) => Promise<boolean>;
 }
