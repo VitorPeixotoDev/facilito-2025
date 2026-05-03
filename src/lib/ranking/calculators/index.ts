@@ -14,6 +14,10 @@ import type {
     RankingWeights,
 } from '../types';
 import { calculateCategorySimilarity, jaccardSimilarity } from '../utils/similarity';
+import {
+    getTotalExperienceYearsFromDbValue,
+    hasMeaningfulWorkExperienceFromDb,
+} from '@/lib/workExperience';
 
 /**
  * Calculates similarity score for services offered
@@ -95,9 +99,8 @@ export function calculateExperienceSimilarity(
     candidate: CandidateProfile,
     experienceConfig: ExperienceConfig
 ): number {
-    // Extract years from experience text (future: use experience_years field)
-    const userExp = extractExperienceYears(user.experience) || 0;
-    const candidateExp = extractExperienceYears(candidate.experience) || 0;
+    const userExp = getTotalExperienceYearsFromDbValue(user.experience) || 0;
+    const candidateExp = getTotalExperienceYearsFromDbValue(candidate.experience) || 0;
 
     // Normalize experience (0-1)
     const normalizedUserExp = Math.min(userExp / experienceConfig.maxYears, 1);
@@ -113,37 +116,6 @@ export function calculateExperienceSimilarity(
         : 0;
 
     return Math.min(similarity + experienceBonus, 1);
-}
-
-/**
- * Extracts years of experience from experience text
- * 
- * Tries to parse years from the experience description.
- * This is a temporary solution until experience_years field is implemented.
- * 
- * @param experienceText - Experience description text
- * @returns Number of years, or 0 if cannot be determined
- */
-function extractExperienceYears(experienceText: string | null): number {
-    if (!experienceText) {
-        return 0;
-    }
-
-    // Try to find patterns like "5 anos", "5 years", "5+ anos", etc.
-    const yearPatterns = [
-        /(\d+)\s*(?:ano|anos|year|years)/i,
-        /(\d+)\+/,
-        /(\d+)\s*yr/i,
-    ];
-
-    for (const pattern of yearPatterns) {
-        const match = experienceText.match(pattern);
-        if (match) {
-            return parseInt(match[1], 10);
-        }
-    }
-
-    return 0;
 }
 
 /**
@@ -188,7 +160,7 @@ export function calculateProfileCompleteness(candidate: CandidateProfile): numbe
         hasDescription: candidate.description && candidate.description.length > 50 ? 0.15 : 0,
         hasSkills: candidate.skills && candidate.skills.length > 0 ? 0.2 : 0,
         hasServices: candidate.freelancer_services && candidate.freelancer_services.length > 0 ? 0.2 : 0,
-        hasExperience: candidate.experience ? 0.1 : 0,
+        hasExperience: hasMeaningfulWorkExperienceFromDb(candidate.experience) ? 0.1 : 0,
         hasCourses: candidate.courses && candidate.courses.length > 0 ? 0.1 : 0,
         hasEducation: candidate.academic_background ? 0.1 : 0,
     };

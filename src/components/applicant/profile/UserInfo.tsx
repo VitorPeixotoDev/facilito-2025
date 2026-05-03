@@ -9,6 +9,7 @@ import ContactAndSocialSection from './ContactAndSocialSection';
 import AdditionalInfoSection from './AdditionalInfoSection';
 import AddressSection from './AddressSection';
 import type { UserProfile } from '@/components/AuthClientProvider';
+import { hasMeaningfulWorkExperienceFromDb } from '@/lib/workExperience';
 import type { AssessmentConfig } from '@/types/assessments';
 
 interface UserInfoProps {
@@ -95,7 +96,7 @@ export default function UserInfo({ profile, onAssessmentClick }: UserInfoProps) 
                     (profile.graduations?.length ?? 0) > 0;
             }
             if (section.title === 'Experiência e Formação') {
-                return profile.experience || profile.academic_background;
+                return hasMeaningfulWorkExperienceFromDb(profile.experience) || profile.academic_background;
             }
             if (section.title === 'Contato e Redes Sociais') {
                 return profile.contact_email || profile.whatsapp || profile.portfolio ||

@@ -1,5 +1,6 @@
 "use client";
 
+import type { WorkExperienceEntry } from "@/lib/workExperience";
 import { PersonalInfoStep } from "./steps/PersonalInfoStep";
 import { SkillsAndCoursesStep } from "./steps/SkillsAndCoursesStep";
 import { ExperienceStep } from "./steps/ExperienceStep";
@@ -15,7 +16,7 @@ export interface ProfileFormData {
     skills: string[];
     courses: string[];
     freelancer_services: string[];
-    experience?: string;
+    experience: WorkExperienceEntry[];
     academic_background?: string;
     has_children?: boolean;
     has_drivers_license: string[];
@@ -46,9 +47,10 @@ interface ProfileFormStepsProps {
     onObterLocalizacao: () => void;
     onBuscarEndereco: () => void;
     onManualSaveLongTextField: (
-        field: "description" | "experience" | "academic_background",
+        field: "description" | "academic_background",
         value: string
     ) => Promise<boolean>;
+    onSaveWorkExperience: (entries: WorkExperienceEntry[]) => Promise<boolean>;
 }
 
 export function ProfileFormSteps({
@@ -62,6 +64,7 @@ export function ProfileFormSteps({
     onObterLocalizacao,
     onBuscarEndereco,
     onManualSaveLongTextField,
+    onSaveWorkExperience,
 }: ProfileFormStepsProps) {
     switch (currentStep) {
         case 1:
@@ -78,6 +81,7 @@ export function ProfileFormSteps({
                     formData={formData}
                     updateFormField={updateFormField}
                     onManualSaveLongTextField={onManualSaveLongTextField}
+                    onSaveWorkExperience={onSaveWorkExperience}
                 />
             );
         case 3:

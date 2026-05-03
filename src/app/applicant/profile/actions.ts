@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
+import type { Json } from "@/types/supabase";
 
 export interface ProfileUpdateData {
     full_name?: string;
@@ -11,7 +12,7 @@ export interface ProfileUpdateData {
     skills?: string[];
     courses?: string[];
     freelancer_services?: string[];
-    experience?: string | null;
+    experience?: Json | null;
     academic_background?: string | null;
     has_children?: boolean | null;
     has_drivers_license?: string[];

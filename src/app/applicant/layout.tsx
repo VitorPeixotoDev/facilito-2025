@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ApplicantNavigation } from "@/components/applicant/ApplicantNavigation";
 import { ApplicantTopNav } from "@/components/applicant/ApplicantTopNav";
 import { useAuth } from "@/components/AuthClientProvider";
+import { hasMeaningfulWorkExperienceFromDb } from "@/lib/workExperience";
 
 const PROFILE_ONBOARDING_SEEN_KEY = "facilito.profile_onboarding_seen.v1";
 
@@ -17,7 +18,7 @@ function isFirstTimeProfile(profile: ReturnType<typeof useAuth>["profile"]) {
         (!profile.skills || profile.skills.length === 0) &&
         (!profile.courses || profile.courses.length === 0) &&
         (!profile.freelancer_services || profile.freelancer_services.length === 0) &&
-        (!profile.experience || profile.experience.trim() === "") &&
+        !hasMeaningfulWorkExperienceFromDb(profile.experience) &&
         (!profile.academic_background || profile.academic_background.trim() === "") &&
         (!profile.home_address)
     );
