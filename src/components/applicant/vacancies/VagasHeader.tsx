@@ -83,7 +83,7 @@ export function VagasHeader({
     }, [onCodeDigitsChange, onSearchModeChange]);
 
     return (
-        <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm pt-2 sm:pt-4">
+        <div className="sticky top-16 z-30 bg-white border-b border-slate-200 shadow-sm pt-2 sm:pt-4 lg:top-20">
             <div className="p-4">
                 <div className="mb-2">
                     <div className="flex items-center gap-2 flex-wrap">

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServiceRoleClient } from "@/utils/supabase/admin";
 import { recordPurchase } from "@/lib/assessment/assessmentPurchasesService";
+import { getAssessmentByIdFromCatalog } from "@/lib/assessment/assessmentCatalogService";
+import { getAssessmentPriceCents } from "@/lib/assessment/assessmentPricesService";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -67,11 +69,20 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createServiceRoleClient();
+  const assessment = await getAssessmentByIdFromCatalog(supabase, assessmentId);
+  const fallbackAmountCents = await getAssessmentPriceCents(supabase, assessmentId);
   const ok = await recordPurchase(
     supabase,
     userId,
     assessmentId,
-    session.id
+    session.id,
+    {
+      productName: assessment?.name ?? "Avaliação Facilitô",
+      amountCents: session.amount_total ?? fallbackAmountCents,
+      paymentMethod: "card",
+      paymentProvider: "stripe",
+      paymentReference: session.id,
+    }
   );
 
   if (!ok) {

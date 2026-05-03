@@ -54,8 +54,8 @@ export default function ApplicantLayout({
     }, [loading, profileLoading, user, profile, pathname, router, isProfileOnboardingRoute]);
 
     return (
-        <div className="min-h-screen bg-slate-50">
-            {!isProfileOnboardingRoute && <ApplicantTopNav />}
+        <div className="min-h-screen bg-slate-50 pt-16 lg:pt-20">
+            <ApplicantTopNav />
             {!isProfileOnboardingRoute && <ApplicantNavigation />}
             <main className={isProfileOnboardingRoute ? "" : "lg:pl-20 xl:pl-24 pb-16 lg:pb-0"}>
                 {children}

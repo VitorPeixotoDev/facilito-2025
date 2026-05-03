@@ -63,7 +63,7 @@ export const DASHBOARD_CONFIG = {
         description: "Escolha como deseja acessar a plataforma",
     },
     terms: {
-        text: "Ao continuar, você concorda com nossos termos de uso",
+        text: "Ao continuar, você concorda com nossos",
     },
 } as const;
 

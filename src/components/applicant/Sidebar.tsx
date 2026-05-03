@@ -9,7 +9,7 @@ export function Sidebar() {
     const pathname = usePathname();
 
     return (
-        <aside className="hidden lg:flex fixed left-0 top-0 h-full w-20 xl:w-24 flex-col items-center py-6 bg-slate-50 border-r border-slate-200">
+        <aside className="hidden lg:flex fixed left-0 top-20 h-[calc(100%-5rem)] w-20 xl:w-24 flex-col items-center py-6 bg-slate-50 border-r border-slate-200">
             <nav className="flex flex-col items-center gap-2 w-full">
                 {APPLICANT_NAV_ITEMS.map((item) => {
                     const Icon = item.icon;
