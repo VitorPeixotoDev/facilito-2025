@@ -3,6 +3,7 @@
 import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState, ReactNode } from "react";
 import { User } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
+import type { Json } from "@/types/supabase";
 
 export interface UserProfile {
     id: string;
@@ -13,7 +14,7 @@ export interface UserProfile {
     skills: string[];
     courses: string[];
     freelancer_services: string[];
-    experience: string | null;
+    experience: Json | null;
     academic_background: string | null;
     has_children: boolean | null;
     has_drivers_license: string[];

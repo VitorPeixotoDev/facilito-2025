@@ -7,14 +7,32 @@ import { Button } from "@/components/ui/button";
 import { Save, CheckCircle2 } from "lucide-react";
 import { ProfileShellSkeleton, Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/AuthClientProvider";
-import { updateProfile } from "./actions";
+import { updateProfile, type ProfileUpdateData } from "./actions";
 import { ProfileFormSteps, type ProfileFormData } from "@/components/applicant/profile/ProfileFormSteps";
 import { isBirthDateAfterToday } from "@/components/applicant/profile/utils";
 import { ProfileHeader, ONBOARDING_STEPS } from "@/components/applicant/profile/ProfileHeader";
 import { getLocationDescription, getCoordsFromAddress } from "@/utils/geocoding";
+import {
+    hasMeaningfulWorkExperience,
+    hasMeaningfulWorkExperienceFromDb,
+    parseExperienceFromDb,
+    serializeExperienceForDb,
+    type WorkExperienceEntry,
+} from "@/lib/workExperience";
+import { validateWorkExperienceList } from "@/lib/validation/workExperienceSchema";
 
 // Chave para localStorage
 const PROFILE_DRAFT_KEY = 'profile_draft_data';
+
+/** Snapshot do formulário sem experiência (para autosave não reagir só a mudanças em experience). */
+function stripExperienceForCompare(data: ProfileFormData): string {
+    const { experience: _exp, ...rest } = data;
+    return JSON.stringify(rest);
+}
+
+function experienceKeyFromForm(data: ProfileFormData): string {
+    return JSON.stringify(data.experience ?? []);
+}
 
 export default function ProfilePage() {
     const { user, profile, refreshProfile, loading: authLoading } = useAuth();
@@ -28,6 +46,8 @@ export default function ProfilePage() {
     const [isInitializing, setIsInitializing] = useState(true);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastSavedDataRef = useRef<string>("");
+    const lastSavedNonExperienceRef = useRef<string>("");
+    const lastSavedExperienceRef = useRef<string>("");
 
     // Estados para endereço
     const [enderecoManual, setEnderecoManual] = useState("");
@@ -41,7 +61,7 @@ export default function ProfilePage() {
         skills: [],
         courses: [],
         freelancer_services: [],
-        experience: "",
+        experience: [],
         academic_background: "",
         has_children: false,
         has_drivers_license: [],
@@ -112,7 +132,7 @@ export default function ProfilePage() {
             (!profileData.skills || profileData.skills.length === 0) &&
             (!profileData.courses || profileData.courses.length === 0) &&
             (!profileData.freelancer_services || profileData.freelancer_services.length === 0) &&
-            (!profileData.experience || profileData.experience.trim() === "") &&
+            !hasMeaningfulWorkExperienceFromDb(profileData.experience) &&
             (!profileData.academic_background || profileData.academic_background.trim() === "") &&
             (!profileData.home_address);
 
@@ -138,7 +158,7 @@ export default function ProfilePage() {
                 skills: profile.skills || [],
                 courses: profile.courses || [],
                 freelancer_services: profile.freelancer_services || [],
-                experience: profile.experience || "",
+                experience: parseExperienceFromDb(profile.experience),
                 academic_background: profile.academic_background || "",
                 has_children: profile.has_children || false,
                 has_drivers_license: profile.has_drivers_license || [],
@@ -168,6 +188,9 @@ export default function ProfilePage() {
                         // Mantém dados básicos do perfil
                         full_name: draft.full_name || profileData.full_name,
                         email: draft.email || profileData.email,
+                        experience: parseExperienceFromDb(
+                            draft.experience !== undefined ? draft.experience : profile.experience
+                        ),
                     };
 
                     if (draft.home_address?.description) {
@@ -184,7 +207,7 @@ export default function ProfilePage() {
                 skills: [],
                 courses: [],
                 freelancer_services: [],
-                experience: "",
+                experience: [],
                 academic_background: "",
                 has_children: false,
                 has_drivers_license: [],
@@ -199,7 +222,14 @@ export default function ProfilePage() {
 
             // Tenta carregar rascunho do localStorage
             const draft = loadDraftFromLocalStorage();
-            profileData = draft || basicData;
+            profileData = draft
+                ? {
+                      ...(draft as ProfileFormData),
+                      experience: parseExperienceFromDb(
+                          (draft as { experience?: unknown }).experience
+                      ),
+                  }
+                : basicData;
 
             if (draft?.home_address?.description) {
                 setEnderecoManual(draft.home_address.description);
@@ -210,6 +240,8 @@ export default function ProfilePage() {
 
         setFormData(profileData);
         lastSavedDataRef.current = JSON.stringify(profileData);
+        lastSavedNonExperienceRef.current = stripExperienceForCompare(profileData);
+        lastSavedExperienceRef.current = experienceKeyFromForm(profileData);
 
         setIsLoading(false);
         setTimeout(() => {
@@ -284,9 +316,17 @@ export default function ProfilePage() {
         }
     };
 
+    type SaveProfileOptions = { persistWorkExperience?: boolean };
+
     // Função para salvar perfil
     const saveProfile = useCallback(
-        async (data: ProfileFormData, showToast = true, redirectAfterSave = false) => {
+        async (
+            data: ProfileFormData,
+            showToast = true,
+            redirectAfterSave = false,
+            options?: SaveProfileOptions
+        ) => {
+            const persistWorkExperience = options?.persistWorkExperience !== false;
             if (!user) {
                 if (showToast) alert("Usuário não autenticado");
                 return false;
@@ -303,9 +343,30 @@ export default function ProfilePage() {
             setSaveStatus("saving");
 
             try {
-                await updateProfile(user.id, data);
-                lastSavedDataRef.current = JSON.stringify(data);
-                await refreshProfile();
+                const payload: ProfileUpdateData = {
+                    ...(data as unknown as ProfileUpdateData),
+                };
+                if (persistWorkExperience) {
+                    const experienceValidation = validateWorkExperienceList(data.experience ?? []);
+                    if (!experienceValidation.success) {
+                        setSaveStatus("error");
+                        if (showToast) {
+                            alert(experienceValidation.message);
+                        }
+                        setTimeout(() => setSaveStatus("idle"), 3000);
+                        return false;
+                    }
+                    payload.experience = serializeExperienceForDb(experienceValidation.data);
+                } else {
+                    delete payload.experience;
+                }
+                await updateProfile(user.id, payload);
+                lastSavedNonExperienceRef.current = stripExperienceForCompare(data);
+                if (persistWorkExperience) {
+                    lastSavedExperienceRef.current = experienceKeyFromForm(data);
+                    lastSavedDataRef.current = JSON.stringify(data);
+                    await refreshProfile();
+                }
 
                 setSaveStatus("saved");
 
@@ -323,7 +384,7 @@ export default function ProfilePage() {
                         (data.description && data.description.trim().length >= 20) ||
                         (data.skills && data.skills.length > 0) ||
                         (data.courses && data.courses.length > 0) ||
-                        (data.experience && data.experience.trim().length > 0) ||
+                        hasMeaningfulWorkExperience(data.experience) ||
                         (data.academic_background && data.academic_background.trim().length > 0) ||
                         data.home_address;
 
@@ -388,11 +449,18 @@ export default function ProfilePage() {
             case 2: {
                 if (
                     (!formData.skills || formData.skills.length === 0) &&
-                    !formData.experience?.trim() &&
+                    !hasMeaningfulWorkExperience(formData.experience) &&
                     (!formData.freelancer_services || formData.freelancer_services.length === 0)
                 ) {
                     setStepError("Adicione pelo menos uma habilidade, experiência ou serviço freelance.");
                     return false;
+                }
+                if (formData.experience.length > 0) {
+                    const experienceValidation = validateWorkExperienceList(formData.experience);
+                    if (!experienceValidation.success) {
+                        setStepError(experienceValidation.message);
+                        return false;
+                    }
                 }
                 break;
             }
@@ -441,8 +509,31 @@ export default function ProfilePage() {
     };
 
     const onManualSaveLongTextField = useCallback(
-        async (field: "description" | "experience" | "academic_background", value: string) => {
+        async (field: "description" | "academic_background", value: string) => {
             const nextData = { ...formData, [field]: value };
+            setFormData(nextData);
+
+            if (isFirstTime && typeof window !== "undefined") {
+                try {
+                    localStorage.setItem(PROFILE_DRAFT_KEY, JSON.stringify(nextData));
+                } catch (error) {
+                    console.warn("Erro ao salvar rascunho no localStorage:", error);
+                }
+            }
+
+            return saveProfile(nextData, false, false);
+        },
+        [formData, isFirstTime, saveProfile]
+    );
+
+    const onSaveWorkExperience = useCallback(
+        async (entries: WorkExperienceEntry[]) => {
+            const experienceValidation = validateWorkExperienceList(entries);
+            if (!experienceValidation.success) {
+                alert(experienceValidation.message);
+                return false;
+            }
+            const nextData = { ...formData, experience: experienceValidation.data };
             setFormData(nextData);
 
             if (isFirstTime && typeof window !== "undefined") {
@@ -469,9 +560,13 @@ export default function ProfilePage() {
             clearTimeout(saveTimeoutRef.current);
         }
 
-        const currentData = JSON.stringify(formData);
-
-        if (currentData === lastSavedDataRef.current) {
+        const nonExp = stripExperienceForCompare(formData);
+        const exp = experienceKeyFromForm(formData);
+        if (nonExp === lastSavedNonExperienceRef.current && exp === lastSavedExperienceRef.current) {
+            return;
+        }
+        // Mudanças só em experiência profissional não disparam autosave (uso do botão "Salvar experiências").
+        if (nonExp === lastSavedNonExperienceRef.current && exp !== lastSavedExperienceRef.current) {
             return;
         }
 
@@ -479,7 +574,7 @@ export default function ProfilePage() {
         const debounceTime = isFirstTime ? 5000 : 2000;
 
         saveTimeoutRef.current = setTimeout(() => {
-            saveProfile(formData, false, false);
+            saveProfile(formData, false, false, { persistWorkExperience: false });
         }, debounceTime);
 
         return () => {
@@ -562,6 +657,7 @@ export default function ProfilePage() {
                         onObterLocalizacao={obterLocalizacao}
                         onBuscarEndereco={buscarEnderecoManual}
                         onManualSaveLongTextField={onManualSaveLongTextField}
+                        onSaveWorkExperience={onSaveWorkExperience}
                     />
 
                     {stepError && (

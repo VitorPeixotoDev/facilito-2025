@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   updated_at timestamp with time zone NULL DEFAULT timezone('utc'::text, now()),
   contact_email character varying(255) NULL,
   skills text[] NULL DEFAULT '{}'::text[],
-  experience text NULL,
+  experience jsonb NULL,
   portfolio character varying(1000) NULL,
   academic_background text NULL,
   has_children boolean NULL,

@@ -23,7 +23,7 @@ export interface Database {
                     birth_date: string | null;
                     courses: string[];
                     freelancer_services: string[];
-                    experience: string | null;
+                    experience: Json | null;
                     academic_background: string | null;
                     has_children: boolean | null;
                     home_address: Json | null;
@@ -49,7 +49,7 @@ export interface Database {
                     birth_date?: string | null;
                     courses?: string[];
                     freelancer_services?: string[];
-                    experience?: string | null;
+                    experience?: Json | null;
                     academic_background?: string | null;
                     has_children?: boolean | null;
                     home_address?: Json | null;
@@ -75,7 +75,7 @@ export interface Database {
                     birth_date?: string | null;
                     courses?: string[];
                     freelancer_services?: string[];
-                    experience?: string | null;
+                    experience?: Json | null;
                     academic_background?: string | null;
                     has_children?: boolean | null;
                     home_address?: Json | null;

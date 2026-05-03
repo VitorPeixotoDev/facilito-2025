@@ -4,10 +4,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Briefcase, X, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ProfileFormData } from "../ProfileFormSteps";
+import { ProfessionalExperienceEditor } from "../ProfessionalExperienceEditor";
 import { SKILLS_CATEGORIES } from "@/lib/constants/skills_categories";
 import { FREELANCER_SERVICES } from "@/lib/constants/freelancer_services";
+import type { WorkExperienceEntry } from "@/lib/workExperience";
 
 interface SkillsAndCoursesStepProps {
     formData: ProfileFormData;
@@ -16,9 +18,10 @@ interface SkillsAndCoursesStepProps {
         value: ProfileFormData[K]
     ) => void;
     onManualSaveLongTextField: (
-        field: "experience" | "academic_background",
+        field: "academic_background",
         value: string
     ) => Promise<boolean>;
+    onSaveWorkExperience: (entries: WorkExperienceEntry[]) => Promise<boolean>;
 }
 
 const SKILL_SUGGESTIONS = Array.from(
@@ -50,12 +53,11 @@ export function SkillsAndCoursesStep({
     formData,
     updateFormField,
     onManualSaveLongTextField,
+    onSaveWorkExperience,
 }: SkillsAndCoursesStepProps) {
     const [activeHelp, setActiveHelp] = useState<"skills" | "freela" | null>(null);
     const [customHabilidade, setCustomHabilidade] = useState("");
     const [customServico, setCustomServico] = useState("");
-    const [experienceDraft, setExperienceDraft] = useState(formData.experience || "");
-    const [experienceDirty, setExperienceDirty] = useState(false);
     const [isSavingExperience, setIsSavingExperience] = useState(false);
 
     const skills = formData.skills || [];
@@ -135,20 +137,6 @@ export function SkillsAndCoursesStep({
         FREELANCER_SUGGESTIONS,
         freelancerServices
     );
-
-    useEffect(() => {
-        setExperienceDraft(formData.experience || "");
-        setExperienceDirty(false);
-    }, [formData.experience]);
-
-    const salvarExperiencia = async () => {
-        const value = experienceDraft;
-        updateFormField("experience", value);
-        setIsSavingExperience(true);
-        await onManualSaveLongTextField("experience", value);
-        setIsSavingExperience(false);
-        setExperienceDirty(false);
-    };
 
     const helpContent = {
         skills: {
@@ -248,34 +236,19 @@ export function SkillsAndCoursesStep({
                 </div>
             </Card>
 
-            {/* Experiência Profissional */}
-            <Card className="p-4 sm:p-6 shadow-lg mb-4">
-                <h2 className="text-lg font-bold text-[#111] mb-4 flex items-center gap-2">
-                    <Briefcase className="w-5 h-5 text-[#5f9ea0]" />
-                    <span>
-                        Experiência Profissional <span className="text-red-500">*</span>
-                    </span>
-                </h2>
-                <textarea
-                    placeholder="Descreva sua experiência profissional, empresas onde trabalhou, cargos ocupados..."
-                    className="text-gray-700 flex min-h-[150px] w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5e9ea0] focus:ring-offset-1"
-                    value={experienceDraft}
-                    onChange={(e) => {
-                        setExperienceDraft(e.target.value);
-                        setExperienceDirty(true);
-                    }}
-                />
-                <div className="mt-3 flex justify-end">
-                    <button
-                        type="button"
-                        onClick={salvarExperiencia}
-                        disabled={isSavingExperience || !experienceDirty}
-                        className="px-4 py-2 bg-[#5f9ea0] text-white rounded-md hover:bg-[#4a8b8f] disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {isSavingExperience ? "Salvando..." : "Salvar"}
-                    </button>
-                </div>
-            </Card>
+            <ProfessionalExperienceEditor
+                entries={formData.experience}
+                onChange={(entries) => updateFormField("experience", entries)}
+                onSave={async (entries) => {
+                    setIsSavingExperience(true);
+                    try {
+                        await onSaveWorkExperience(entries);
+                    } finally {
+                        setIsSavingExperience(false);
+                    }
+                }}
+                isSaving={isSavingExperience}
+            />
 
             {/* Serviços Freelancer */}
             <Card className="p-4 sm:p-6 shadow-lg">
