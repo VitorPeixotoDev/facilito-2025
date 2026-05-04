@@ -22,6 +22,7 @@ interface SkillsAndCoursesStepProps {
         value: string
     ) => Promise<boolean>;
     onSaveWorkExperience: (entries: WorkExperienceEntry[]) => Promise<boolean>;
+    experienceStepFieldErrors?: Record<string, string> | null;
 }
 
 const SKILL_SUGGESTIONS = Array.from(
@@ -32,9 +33,15 @@ const FREELANCER_SUGGESTIONS = Array.from(
     new Set(Object.values(FREELANCER_SERVICES).flat())
 );
 
+const MIN_SUGGESTION_CHARS = 2;
+
 const findSuggestionMatch = (value: string, suggestions: string[]) => {
     const normalizedValue = value.trim().toLocaleLowerCase();
-    return suggestions.find((item) => item.toLocaleLowerCase() === normalizedValue);
+    return suggestions.find(
+        (item) =>
+            item.trim().length >= MIN_SUGGESTION_CHARS &&
+            item.trim().toLocaleLowerCase() === normalizedValue
+    );
 };
 
 const getFilteredSuggestions = (value: string, suggestions: string[], selectedItems: string[]) => {
@@ -43,6 +50,7 @@ const getFilteredSuggestions = (value: string, suggestions: string[], selectedIt
 
     return suggestions
         .filter((item) => {
+            if (item.trim().length < MIN_SUGGESTION_CHARS) return false;
             const normalizedItem = item.toLocaleLowerCase();
             return normalizedItem.includes(query) && !selectedItems.includes(item);
         })
@@ -54,6 +62,7 @@ export function SkillsAndCoursesStep({
     updateFormField,
     onManualSaveLongTextField,
     onSaveWorkExperience,
+    experienceStepFieldErrors = null,
 }: SkillsAndCoursesStepProps) {
     const [activeHelp, setActiveHelp] = useState<"skills" | "freela" | null>(null);
     const [customHabilidade, setCustomHabilidade] = useState("");
@@ -248,6 +257,7 @@ export function SkillsAndCoursesStep({
                     }
                 }}
                 isSaving={isSavingExperience}
+                parentFieldErrors={experienceStepFieldErrors}
             />
 
             {/* Serviços Freelancer */}
