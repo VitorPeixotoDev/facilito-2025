@@ -9,6 +9,7 @@ import { getTodayLocalIsoDate } from "./utils";
 import { JOB_TITLE_SUGGESTIONS } from "@/lib/constants/job_titles";
 import {
     createEmptyWorkExperienceBlock,
+    formatWorkExperienceBlockDurationPt,
     sumWorkExperienceYears,
     type WorkExperienceEntry,
 } from "@/lib/workExperience";
@@ -44,6 +45,8 @@ interface ProfessionalExperienceEditorProps {
     onChange: (entries: WorkExperienceEntry[]) => void;
     onSave: (entries: WorkExperienceEntry[]) => Promise<void>;
     isSaving: boolean;
+    /** Erros da validação ao avançar etapa (ex.: "Próximo") — exibidos junto aos campos. */
+    parentFieldErrors?: Record<string, string> | null;
 }
 
 function updateEntry(
@@ -59,6 +62,7 @@ export function ProfessionalExperienceEditor({
     onChange,
     onSave,
     isSaving,
+    parentFieldErrors = null,
 }: ProfessionalExperienceEditorProps) {
     const [dirty, setDirty] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -72,7 +76,9 @@ export function ProfessionalExperienceEditor({
         return y >= 1 ? `${y.toFixed(1)} anos somados` : `${Math.round(y * 12)} meses (aprox.)`;
     }, [entries]);
 
-    const hasFieldErrors = Object.keys(fieldErrors).length > 0;
+    const hasFieldErrors =
+        Object.keys(fieldErrors).length > 0 ||
+        (parentFieldErrors != null && Object.keys(parentFieldErrors).length > 0);
 
     const markDirty = () => {
         setDirty(true);
@@ -120,7 +126,8 @@ export function ProfessionalExperienceEditor({
     };
 
     const err = (blockIndex: number, field: string) =>
-        getWorkExperienceFieldError(fieldErrors, blockIndex, field);
+        getWorkExperienceFieldError(fieldErrors, blockIndex, field) ??
+        getWorkExperienceFieldError(parentFieldErrors ?? {}, blockIndex, field);
 
     return (
         <Card className="p-4 sm:p-6 shadow-lg mb-4">
@@ -172,6 +179,7 @@ export function ProfessionalExperienceEditor({
                         const startErr = err(index, "start_date");
                         const endErr = err(index, "end_date");
                         const descriptionErr = err(index, "description");
+                        const blockDurationLabel = formatWorkExperienceBlockDurationPt(entry);
 
                         return (
                             <div
@@ -361,6 +369,12 @@ export function ProfessionalExperienceEditor({
                                             Ainda trabalho aqui
                                         </label>
                                     </div>
+
+                                    {blockDurationLabel ? (
+                                        <p className="sm:col-span-2 text-xs font-medium text-[#3f787a]">
+                                            Tempo nesta experiência: {blockDurationLabel}
+                                        </p>
+                                    ) : null}
 
                                     <div className="sm:col-span-2">
                                         <label

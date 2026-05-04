@@ -61,8 +61,8 @@ export function parseExperienceFromDb(raw: unknown): WorkExperienceEntry[] {
             typeof item.id === "string" && item.id.length > 0
                 ? item.id
                 : typeof crypto !== "undefined" && crypto.randomUUID
-                  ? crypto.randomUUID()
-                  : `we-${Date.now()}-${Math.random()}`;
+                    ? crypto.randomUUID()
+                    : `we-${Date.now()}-${Math.random()}`;
         const start = item.start_date != null ? String(item.start_date).slice(0, 10) : null;
         const end = item.end_date != null ? String(item.end_date).slice(0, 10) : null;
         out.push({
@@ -133,6 +133,88 @@ function durationYears(startIso: string, endIso: string | null): number {
     return (end - start) / MS_PER_YEAR;
 }
 
+const ISO_DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+function getTodayLocalIsoForDuration(): string {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
+
+function parseIsoYmd(iso: string): { y: number; m: number; d: number } | null {
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    return { y: +m[1], m: +m[2], d: +m[3] };
+}
+
+/**
+ * Meses completos de calendário entre duas datas ISO (fim ≥ início).
+ * Se o dia final for menor que o dia inicial no mês de término, desconta um mês (período incompleto).
+ */
+function calendarMonthsBetweenStartAndEnd(startIso: string, endIso: string): number {
+    if (endIso < startIso) {
+        return 0;
+    }
+    const s = parseIsoYmd(startIso);
+    const e = parseIsoYmd(endIso);
+    if (!s || !e) {
+        return 0;
+    }
+    let months = (e.y - s.y) * 12 + (e.m - s.m);
+    if (e.d < s.d) {
+        months -= 1;
+    }
+    return Math.max(0, months);
+}
+
+/**
+ * Duração em anos (fração) de um único bloco; fim ausente = até hoje.
+ * Retorna 0 se não houver data de início válida (AAAA-MM-DD).
+ */
+export function getWorkExperienceBlockDurationYears(entry: WorkExperienceEntry): number {
+    if (!entry.start_date || !ISO_DATE_ONLY.test(entry.start_date)) {
+        return 0;
+    }
+    return durationYears(entry.start_date, entry.end_date);
+}
+
+/** Texto em pt-BR (anos e meses de calendário), ou null se não for calculável. */
+export function formatWorkExperienceBlockDurationPt(entry: WorkExperienceEntry): string | null {
+    if (!entry.start_date || !ISO_DATE_ONLY.test(entry.start_date)) {
+        return null;
+    }
+    const endIso =
+        entry.end_date && ISO_DATE_ONLY.test(entry.end_date)
+            ? entry.end_date
+            : getTodayLocalIsoForDuration();
+
+    if (endIso < entry.start_date) {
+        return null;
+    }
+
+    const totalMonths = calendarMonthsBetweenStartAndEnd(entry.start_date, endIso);
+
+    if (totalMonths > 0) {
+        const years = Math.floor(totalMonths / 12);
+        const months = totalMonths % 12;
+        if (years === 0) {
+            return `${months} ${months === 1 ? "mês" : "meses"}`;
+        }
+        if (months === 0) {
+            return `${years} ${years === 1 ? "ano" : "anos"}`;
+        }
+        return `${years} ${years === 1 ? "ano" : "anos"} e ${months} ${months === 1 ? "mês" : "meses"}`;
+    }
+
+    const y = getWorkExperienceBlockDurationYears(entry);
+    if (y > 0) {
+        return "menos de 1 mês";
+    }
+    return null;
+}
+
 /**
  * Soma as durações de cada bloco com data de início (fim ausente = até hoje).
  * Blocos sem start_date contribuem com 0 anos (descrição não é parseada aqui).
@@ -140,10 +222,7 @@ function durationYears(startIso: string, endIso: string | null): number {
 export function sumWorkExperienceYears(entries: WorkExperienceEntry[]): number {
     let total = 0;
     for (const e of entries) {
-        if (!e.start_date) {
-            continue;
-        }
-        total += durationYears(e.start_date, e.end_date);
+        total += getWorkExperienceBlockDurationYears(e);
     }
     return total;
 }

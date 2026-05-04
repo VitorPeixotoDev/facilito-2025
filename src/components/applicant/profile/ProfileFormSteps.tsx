@@ -51,6 +51,7 @@ interface ProfileFormStepsProps {
         value: string
     ) => Promise<boolean>;
     onSaveWorkExperience: (entries: WorkExperienceEntry[]) => Promise<boolean>;
+    experienceStepFieldErrors?: Record<string, string> | null;
 }
 
 export function ProfileFormSteps({
@@ -65,6 +66,7 @@ export function ProfileFormSteps({
     onBuscarEndereco,
     onManualSaveLongTextField,
     onSaveWorkExperience,
+    experienceStepFieldErrors = null,
 }: ProfileFormStepsProps) {
     switch (currentStep) {
         case 1:
@@ -82,6 +84,7 @@ export function ProfileFormSteps({
                     updateFormField={updateFormField}
                     onManualSaveLongTextField={onManualSaveLongTextField}
                     onSaveWorkExperience={onSaveWorkExperience}
+                    experienceStepFieldErrors={experienceStepFieldErrors}
                 />
             );
         case 3:
